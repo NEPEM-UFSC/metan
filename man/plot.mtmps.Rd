@@ -109,7 +109,7 @@ plot(selection)
 
 }
 \references{
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, B.G. Sari, and M.I. Diel. 2019. Mean performance and stability in multi-environment trials II: Selection based on multiple traits. Agron. J. (in press).
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, B.G. Sari, and M.I. Diel. 2019. Mean performance and stability in multi-environment trials II: Selection based on multiple traits. Agron. J. (in press).
 }
 \author{
 Tiago Olivoto \email{tiagoolivoto@gmail.com}

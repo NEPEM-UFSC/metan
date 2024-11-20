@@ -113,7 +113,7 @@ get_model_data(model2, what = "OrWAAS")
 
 }
 \references{
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, V.S. Marchioro, V.Q. de
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, V.S. Marchioro, V.Q. de
 Souza, and E. Jost. 2019a. Mean performance and stability in
 multi-environment trials I: Combining features of AMMI and BLUP techniques.
 Agron. J. 111:2949-2960. \doi{10.2134/agronj2019.03.0220}

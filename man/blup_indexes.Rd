@@ -95,7 +95,7 @@ embryogenesis and their genotype x environment interaction. Crop Breed.
 Appl. Biotechnol. 18:55-64.
 \doi{10.1590/1984-70332018v18n1a8}
 
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, V.S. Marchioro, V.Q. de
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, V.S. Marchioro, V.Q. de
 Souza, and E. Jost. 2019. Mean performance and stability in
 multi-environment trials I: Combining features of AMMI and BLUP techniques.
 Agron. J. 111:2949-2960. \doi{10.2134/agronj2019.03.0220}

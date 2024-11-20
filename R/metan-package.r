@@ -21,6 +21,5 @@
 #'
 #' A complete guide may be found at <https://tiagoolivoto.github.io/metan/>
 #' @md
-#' @name metan-package
-#' @docType package
+#' @name metan
 NULL

@@ -2,12 +2,9 @@
 % Please edit documentation in R/AMMI_indexes.R
 \name{ammi_indexes}
 \alias{ammi_indexes}
-\alias{AMMI_indexes}
 \title{AMMI-based stability indexes}
 \usage{
 ammi_indexes(.data, order.y = NULL, level = 0.95)
-
-AMMI_indexes(.data, order.y = NULL, level = 0.95)
 }
 \arguments{
 \item{.data}{An object of class \code{waas} or \code{performs_ammi}}

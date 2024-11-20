@@ -12,12 +12,11 @@
   genotypes = "selected",
   title = TRUE,
   radar = TRUE,
-  arrange.label = FALSE,
   x.lab = NULL,
   y.lab = NULL,
   size.point = 2.5,
   size.line = 0.7,
-  size.text = 10,
+  size.text = 3.5,
   width.bar = 0.75,
   n.dodge = 1,
   check.overlap = FALSE,
@@ -53,10 +52,6 @@ automatically generated titles.}
 
 \item{radar}{Logical argument. If true (default) a radar plot is generated
 after using \code{coord_polar()}.}
-
-\item{arrange.label}{Logical argument. If \code{TRUE}, the labels are
-arranged to avoid text overlapping. This becomes useful when the number of
-genotypes is large, say, more than 30.}
 
 \item{x.lab, y.lab}{The labels for the axes x and y, respectively. x label is
 set to null when a radar plot is produced.}
@@ -104,7 +99,7 @@ plot(mtsi_index)
 
 }
 \references{
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, B.G. Sari, and M.I. Diel. 2019. Mean performance and stability in multi-environment trials II: Selection based on multiple traits. Agron. J. (in press).
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, B.G. Sari, and M.I. Diel. 2019. Mean performance and stability in multi-environment trials II: Selection based on multiple traits. Agron. J. (in press).
 }
 \author{
 Tiago Olivoto \email{tiagoolivoto@gmail.com}

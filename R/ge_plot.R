@@ -31,6 +31,8 @@
 #'   [ggplot2::theme()].
 #' @param colour Logical argument. If `FALSE` then the plot will not be
 #'   colored.
+#' @param row_col,row_col_type Shows row/column and defines what to show.
+#'   Defaults to 'average'.
 #' @return An object of class `gg, ggplot`.
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @export

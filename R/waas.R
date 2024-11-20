@@ -18,7 +18,7 @@
 #' PCAs, or a declared number of PCAs. For example if `prob = 0.05`, all
 #' axis that are significant considering this probability level are used. The
 #' number of axis can be also informed by declaring `naxis = x`. This will
-#' override the number of significant axes according to the argument code{prob}.
+#' override the number of significant axes according to the argument `prob`.
 #'
 #' @param .data The dataset containing the columns related to Environments,
 #'   Genotypes, replication/block and response variable(s).
@@ -62,7 +62,7 @@
 #'   within-environment ANOVA is performed.
 #' @param verbose Logical argument. If `verbose = FALSE` the code is run
 #'   silently.
-#' @references Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, V.S. Marchioro,
+#' @references Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, V.S. Marchioro,
 #'   V.Q. de Souza, and E. Jost. 2019a. Mean performance and stability in
 #'   multi-environment trials I: Combining features of AMMI and BLUP techniques.
 #'   Agron. J. 111:2949-2960. \doi{10.2134/agronj2019.03.0220}

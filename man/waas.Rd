@@ -122,7 +122,7 @@ IPCA for \emph{k = 1,2,..,p}, considering \emph{p} the number of significant
 PCAs, or a declared number of PCAs. For example if \code{prob = 0.05}, all
 axis that are significant considering this probability level are used. The
 number of axis can be also informed by declaring \code{naxis = x}. This will
-override the number of significant axes according to the argument code{prob}.
+override the number of significant axes according to the argument \code{prob}.
 }
 \examples{
 \donttest{
@@ -188,7 +188,7 @@ get_model_data(model3, what = "OrWAASY")
 
 }
 \references{
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, V.S. Marchioro,
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, V.S. Marchioro,
 V.Q. de Souza, and E. Jost. 2019a. Mean performance and stability in
 multi-environment trials I: Combining features of AMMI and BLUP techniques.
 Agron. J. 111:2949-2960. \doi{10.2134/agronj2019.03.0220}

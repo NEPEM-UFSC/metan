@@ -17,10 +17,9 @@
   x.lab = NULL,
   y.lab = NULL,
   title = NULL,
-  arrange.label = FALSE,
   size.point = 2.5,
   size.line = 0.7,
-  size.text = 10,
+  size.text = 3.5,
   width.bar = 0.75,
   col.sel = "red",
   col.nonsel = "gray",
@@ -64,10 +63,6 @@ prioritizing the first, last, and middle labels.}
 set to null when a radar plot is produced.}
 
 \item{title}{The plot title when \code{type = "contribution"}.}
-
-\item{arrange.label}{Logical argument. If \code{TRUE}, the labels are
-arranged to avoid text overlapping. This becomes useful when the number of
-genotypes is large, say, more than 30.}
 
 \item{size.point}{The size of the point in graphic. Defaults to 2.5.}
 

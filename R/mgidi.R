@@ -487,9 +487,6 @@ mgidi <- function(.data,
 #' @param x.lab,y.lab The labels for the axes x and y, respectively. x label is
 #'   set to null when a radar plot is produced.
 #' @param title The plot title when `type = "contribution"`.
-#' @param arrange.label Logical argument. If `TRUE`, the labels are
-#'   arranged to avoid text overlapping. This becomes useful when the number of
-#'   genotypes is large, say, more than 30.
 #' @param size.point The size of the point in graphic. Defaults to 2.5.
 #' @param size.line The size of the line in graphic. Defaults to 0.7.
 #' @param size.text The size for the text in the plot. Defaults to 10.

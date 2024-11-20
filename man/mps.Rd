@@ -176,7 +176,7 @@ Mohammadi, R., & Amri, A. (2008). Comparison of parametric and non-parametric
 methods for selecting stable and adapted durum wheat genotypes in variable
 environments. Euphytica, 159(3), 419-432. \doi{10.1007/s10681-007-9600-6}
 
-Olivoto, T., A.D.C. L{\'{u}}cio, J.A.G. da silva, V.S. Marchioro, V.Q. de
+Olivoto, T., A.D.C. Lúcio, J.A.G. da silva, V.S. Marchioro, V.Q. de
 Souza, and E. Jost. 2019. Mean performance and stability in multi-environment
 trials I: Combining features of AMMI and BLUP techniques. Agron. J.
 \doi{10.2134/agronj2019.03.0220}

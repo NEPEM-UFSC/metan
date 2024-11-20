@@ -48,6 +48,9 @@ rows and columns. The defaults show the text at left and top.}
 \item{average}{Show the average values for environments and genotypes?
 Defaults to \code{TRUE}.}
 
+\item{row_col, row_col_type}{Shows row/column and defines what to show.
+Defaults to 'average'.}
+
 \item{order_g, order_e}{A charactere vector indicating the order of the levels
 for genotypes and environments, respectively. This can be used to change
 the default ordering of rows and columns.}
