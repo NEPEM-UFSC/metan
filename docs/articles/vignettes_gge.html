@@ -5,7 +5,6 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="metan">
 <title>Analyzing multienvironment trials using GGE • metan</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -14,16 +13,11 @@
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Analyzing multienvironment trials using GGE">
-<meta property="og:description" content="metan">
-<meta property="og:image" content="https://tiagoolivoto.github.io/metan/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]--><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-140429633-1"></script><script>
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Analyzing multienvironment trials using GGE">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-140429633-1"></script><script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -33,100 +27,67 @@
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-inverse navbar-expand-lg bg-light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="inverse" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">metan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.18.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.19.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../index.html">
-    <span class="fa fa-home"></span>
-     
-    Home
-  </a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../index.html"><span class="fa fa-home"></span> Home</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-examples">Examples</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-examples">
-    <a class="dropdown-item" href="../articles/vignettes_helper.html">Helper functions</a>
-    <a class="dropdown-item" href="../articles/vignettes_utilities.html">Utilities</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/vignettes_descriptive.html">Descriptive statistics</a>
-    <a class="dropdown-item" href="../articles/vignettes_biometry.html">Biometry</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/vignettes_cross-validation.html">Cross-validation</a>
-    <a class="dropdown-item" href="../articles/vignettes_ammi.html">AMMI</a>
-    <a class="dropdown-item" href="../articles/vignettes_blup.html">BLUP</a>
-    <a class="dropdown-item" href="../articles/vignettes_gge.html">GGE</a>
-    <a class="dropdown-item" href="../articles/vignettes_stability.html">Stability</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/vignettes_indexes.html">Multivariate indexes</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
+<li><a class="dropdown-item" href="../articles/vignettes_helper.html">Helper functions</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_utilities.html">Utilities</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_descriptive.html">Descriptive statistics</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_biometry.html">Biometry</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_cross-validation.html">Cross-validation</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_ammi.html">AMMI</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_blup.html">BLUP</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_gge.html">GGE</a></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_stability.html">Stability</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/vignettes_indexes.html">Multivariate indexes</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Functions</a>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-news">
+<li><a class="dropdown-item" href="../news/index.html">Package news</a></li>
+    <li><a class="external-link dropdown-item" href="https://olivoto.netlify.app/">Blog posts</a></li>
+  </ul>
 </li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-news">News</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-news">
-    <a class="dropdown-item" href="../news/index.html">Package news</a>
-    <a class="external-link dropdown-item" href="https://olivoto.netlify.app/">Blog posts</a>
-  </div>
-</li>
-<li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-more">More</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-more">
-    <a class="dropdown-item" href="../CODE_OF_CONDUCT.html">Code of Conduct</a>
-    <a class="dropdown-item" href="../CONTRIBUTING.html">Contributing</a>
-    <a class="dropdown-item" href="../ISSUE_TEMPLATE.html">Issues</a>
-    <a class="dropdown-item" href="../SUPPORT.html">Support</a>
-    <a class="dropdown-item" href="../LICENSE.html">Licence</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-more" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">More</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-more">
+<li><a class="dropdown-item" href="../CODE_OF_CONDUCT.html">Code of Conduct</a></li>
+    <li><a class="dropdown-item" href="../CONTRIBUTING.html">Contributing</a></li>
+    <li><a class="dropdown-item" href="../ISSUE_TEMPLATE.html">Issues</a></li>
+    <li><a class="dropdown-item" href="../SUPPORT.html">Support</a></li>
+    <li><a class="dropdown-item" href="../LICENSE.html">Licence</a></li>
+  </ul>
 </li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://www.researchgate.net/profile/Tiago_Olivoto2">
-    <span class="fab fa fab fa-researchgate fa-2x"></span>
-     
-  </a>
-</li>
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/TiagoOlivoto">
-    <span class="fa fa-github fa-2x"></span>
-     
-  </a>
-</li>
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://twitter.com/tolivoto">
-    <span class="fab fa fab fa-twitter fa-2x"></span>
-     
-  </a>
-</li>
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://www.mendeley.com/profiles/tiago-olivoto/">
-    <span class="fab fa fab fa-mendeley fa-2x"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/TiagoOlivoto"><span class="fa fa-github fa-2x"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://twitter.com/tolivoto"><span class="fa fab fa-twitter fa-2x"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://www.mendeley.com/profiles/tiago-olivoto/"><span class="fa fab fa-mendeley fa-2x"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -139,9 +100,9 @@
                         <h4 data-toc-skip class="author">Tiago
 Olivoto</h4>
             
-            <h4 data-toc-skip class="date">2023-03-06</h4>
+            <h4 data-toc-skip class="date">2024-11-20</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/TiagoOlivoto/metan/blob/HEAD/vignettes/vignettes_gge.Rmd" class="external-link"><code>vignettes/vignettes_gge.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nepem-ufsc/metan/blob/HEAD/vignettes/vignettes_gge.Rmd" class="external-link"><code>vignettes/vignettes_gge.Rmd</code></a></small>
       <div class="d-none name"><code>vignettes_gge.Rmd</code></div>
     </div>
 
@@ -157,8 +118,8 @@ GGE (i.e., G + GE) biplot, which is constructed by the first two
 symmetrically scaled principal components (PC1 and PC2) derived from
 singular value decomposition of environment-centered MET data. The GGE
 biplot graphically displays G plus GE of a MET in a way that facilitates
-visual genotype evaluation and mega-environment identification <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et
-al. 2007</a>)</span></p>
+visual genotype evaluation and mega-environment identification <span class="citation">(<a href="#ref-Yan2007">W. Yan et al.
+2007</a>)</span></p>
 <p>In this section, we will use the data in <code>data_ge</code>. For
 more information, please, see <code><a href="../reference/data_ge.html">?data_ge</a></code>. Other data sets can
 be used provided that the following columns are in the dataset:
@@ -171,38 +132,62 @@ environment, genotype, block/replicate and response variable(s).</p>
 </h2>
 <p>The mean yield of genotype <em>i</em> in environment <em>j</em> is
 commonly described by a general linear model</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>μ</mi><mo>+</mo><msub><mi>α</mi><mi>i</mi></msub><mo>+</mo><msub><mi>β</mi><mi>j</mi></msub><mo>+</mo><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 \hat y_{ij} + \mu + \alpha_i + \beta_j + \phi_{ij}
-\]</span> where <span class="math inline">\(\hat y_{ij}\)</span> is the
-mean yield of genotype <em>i</em> in environment <em>j</em>, <span class="math inline">\(i = 1, ... g; j = 1, ...e\)</span> being
-<em>g</em> and <em>e</em> the numbers of genotypes and environments,
-respectively; <span class="math inline">\(\mu\)</span> is the grand
-mean; <span class="math inline">\(\alpha_i\)</span> is the main effect
-of the genotype <em>i</em>; <span class="math inline">\(\beta_j\)</span>
-is the main effect of the environment <em>j</em>, and <span class="math inline">\(\phi_{ij}\)</span> is the interaction effect
-between genotype <em>i</em> and environment <em>j</em>. Subjecting the
-<span class="math inline">\(\phi_{ij}\)</span> to Singular Value
-Decomposition (SVD) results in the AMMI model. The deletion of <span class="math inline">\(\alpha_i\)</span> allows the variation explained
-by this term to be absorbed into the <span class="math inline">\(\phi_{ij}\)</span> term. In the Genotype plus
-Genotype-vs-Environment interaction (GGE) model the <span class="math inline">\(\alpha_i\)</span> term is is deleted from the
-above model and then the environment-centered data matrix, <span class="math inline">\(\phi_{ij}\)</span>, is subjected to SVD <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et
-al. 2007</a>; <a href="#ref-Yan2003" role="doc-biblioref">Weikai. Yan
-and Kang 2003</a>)</span>. Explicitly, we have</p>
-<p><span class="math display">\[
-{\phi_{ij} =  \hat y_{ij}} - \mu - \beta_j  = \sum\limits_{k = 1}^p
-\xi_{ik}^*\eta_{jk}^*
-\]</span></p>
-<p>where <span class="math inline">\(\xi_{ik}^* =
-\lambda_k^\alpha\xi_{ik}\)</span>; <span class="math inline">\(\eta_{jk}^* =
-\lambda_k^{1-\alpha}\eta_{jk}\)</span> being <span class="math inline">\(\lambda_k\)</span> the <em>k</em>th eigenvalue
-from the SVD (<span class="math inline">\(k = 1, ...p\)</span>), with
-<span class="math inline">\(p \le min(e, g)\)</span>; <span class="math inline">\(\alpha\)</span> is the the singular value
-partition factor for the Principal Component (PC) <em>k</em>; <span class="math inline">\(\xi_{ik}^*\)</span> and <span class="math inline">\(\eta_{jk}^*\)</span> are the PC scores for
-genotype <em>i</em> and environment <em>j</em>, respectively.</p>
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\hat y_{ij}</annotation></semantics></math>
+is the mean yield of genotype <em>i</em> in environment <em>j</em>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mi>g</mi><mo>;</mo><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">i = 1, ... g; j = 1, ...e</annotation></semantics></math>
+being <em>g</em> and <em>e</em> the numbers of genotypes and
+environments, respectively;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+is the grand mean;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\alpha_i</annotation></semantics></math>
+is the main effect of the genotype <em>i</em>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\beta_j</annotation></semantics></math>
+is the main effect of the environment <em>j</em>, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{ij}</annotation></semantics></math>
+is the interaction effect between genotype <em>i</em> and environment
+<em>j</em>. Subjecting the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{ij}</annotation></semantics></math>
+to Singular Value Decomposition (SVD) results in the AMMI model. The
+deletion of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\alpha_i</annotation></semantics></math>
+allows the variation explained by this term to be absorbed into the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{ij}</annotation></semantics></math>
+term. In the Genotype plus Genotype-vs-Environment interaction (GGE)
+model the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\alpha_i</annotation></semantics></math>
+term is is deleted from the above model and then the
+environment-centered data matrix,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\phi_{ij}</annotation></semantics></math>,
+is subjected to SVD <span class="citation">(<a href="#ref-Yan2007">W.
+Yan et al. 2007</a>; <a href="#ref-Yan2003">Weikai. Yan and Kang
+2003</a>)</span>. Explicitly, we have</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><msub><mi>ϕ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><mo>−</mo><mi>μ</mi><mo>−</mo><msub><mi>β</mi><mi>j</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msubsup><mi>ξ</mi><mrow><mi>i</mi><mi>k</mi></mrow><mo>*</mo></msubsup><msubsup><mi>η</mi><mrow><mi>j</mi><mi>k</mi></mrow><mo>*</mo></msubsup></mrow><annotation encoding="application/x-tex">
+{\phi_{ij} =  \hat y_{ij}} - \mu - \beta_j  = \sum\limits_{k = 1}^p \xi_{ik}^*\eta_{jk}^*
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>ξ</mi><mrow><mi>i</mi><mi>k</mi></mrow><mo>*</mo></msubsup><mo>=</mo><msubsup><mi>λ</mi><mi>k</mi><mi>α</mi></msubsup><msub><mi>ξ</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\xi_{ik}^* = \lambda_k^\alpha\xi_{ik}</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>η</mi><mrow><mi>j</mi><mi>k</mi></mrow><mo>*</mo></msubsup><mo>=</mo><msubsup><mi>λ</mi><mi>k</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow></msubsup><msub><mi>η</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\eta_{jk}^* = \lambda_k^{1-\alpha}\eta_{jk}</annotation></semantics></math>
+being
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\lambda_k</annotation></semantics></math>
+the <em>k</em>th eigenvalue from the SVD
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">k = 1, ...p</annotation></semantics></math>),
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≤</mo><mi>m</mi><mi>i</mi><mi>n</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>e</mi><mo>,</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p \le min(e, g)</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+is the the singular value partition factor for the Principal Component
+(PC) <em>k</em>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>ξ</mi><mrow><mi>i</mi><mi>k</mi></mrow><mo>*</mo></msubsup><annotation encoding="application/x-tex">\xi_{ik}^*</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>η</mi><mrow><mi>j</mi><mi>k</mi></mrow><mo>*</mo></msubsup><annotation encoding="application/x-tex">\eta_{jk}^*</annotation></semantics></math>
+are the PC scores for genotype <em>i</em> and environment <em>j</em>,
+respectively.</p>
 <p>The function <code><a href="../reference/gge.html">gge()</a></code> is used to produce a GGE model.
-According to <span class="citation">Weikai. Yan and Kang (<a href="#ref-Yan2003" role="doc-biblioref">2003</a>)</span>, the function
-supports four methods of data centering, two methods of data scaling and
-three options for singular value partitioning:</p>
+According to <span class="citation">Weikai. Yan and Kang (<a href="#ref-Yan2003">2003</a>)</span>, the function supports four methods
+of data centering, two methods of data scaling and three options for
+singular value partitioning:</p>
 </div>
 <div class="section level2">
 <h2 id="centering-methods-available">Centering methods available<a class="anchor" aria-label="anchor" href="#centering-methods-available"></a>
@@ -296,7 +281,7 @@ table.</p>
 using as input a fitted model of class <code>gge</code>. The type of
 biplot is chosen by the argument <code>type</code> in the function. Ten
 biplots type are available according to <span class="citation">Weikai.
-Yan and Kang (<a href="#ref-Yan2003" role="doc-biblioref">2003</a>)</span>.</p>
+Yan and Kang (<a href="#ref-Yan2003">2003</a>)</span>.</p>
 <ul>
 <li>
 <code>type = 1</code> A basic biplot.</li>
@@ -355,11 +340,11 @@ genotype, on average.</p>
 and is perpendicular to the AEC abscissa. Therefore, if the AEC abscissa
 represents the G, the AEC ordinate must approximate the GEI associated
 with each genotype, which is a measure of variability or instability of
-the genotypes <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et al. 2007</a>)</span>. A greater
-projection onto the AEC ordinate, regardless of the direction, means
-greater instability. In our example, G3 was found to be the most stable
-and the second most productive genotype, while G9 had great
-instability.</p>
+the genotypes <span class="citation">(<a href="#ref-Yan2007">W. Yan et
+al. 2007</a>)</span>. A greater projection onto the AEC ordinate,
+regardless of the direction, means greater instability. In our example,
+G3 was found to be the most stable and the second most productive
+genotype, while G9 had great instability.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gge_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gge.html">gge</a></span><span class="op">(</span><span class="va">data_ge</span>, <span class="va">ENV</span>, <span class="va">GEN</span>, <span class="va">GY</span>, svp <span class="op">=</span> <span class="st">"genotype"</span><span class="op">)</span></span>
 <span><span class="va">c</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>, type <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -389,8 +374,9 @@ into sectors. Each sector has a vertex genotype. For example, the sector
 with the vertex genotype G4 may be referred to as the G4 sector; and one
 environment (E9), fell in this sector. As a rule, the vertex genotype is
 the highest-yielding genotype in all environments that share the sector
-with it <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et al. 2007</a>)</span>. In this case, G4
-was the highest-yielding in E9, as shown in the two-way table above.</p>
+with it <span class="citation">(<a href="#ref-Yan2007">W. Yan et al.
+2007</a>)</span>. In this case, G4 was the highest-yielding in E9, as
+shown in the two-way table above.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gge_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gge.html">gge</a></span><span class="op">(</span><span class="va">data_ge</span>, <span class="va">ENV</span>, <span class="va">GEN</span>, <span class="va">GY</span>, svp <span class="op">=</span> <span class="st">"symmetrical"</span><span class="op">)</span></span>
 <span><span class="va">e</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>, type <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
@@ -473,7 +459,7 @@ environments. E4 and E9 were the least desirable test environments.</p>
 <p>Analogous to visualizing genotype performances in a given environment
 (biplot 5) visualization of the mean and stability of genotypes is
 achieved by drawing an average environment coordinate (AEC) on the
-genotype-focused biplot <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et al. 2007</a>)</span>.</p>
+genotype-focused biplot <span class="citation">(<a href="#ref-Yan2007">W. Yan et al. 2007</a>)</span>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gge_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gge.html">gge</a></span><span class="op">(</span><span class="va">data_ge</span>, <span class="va">ENV</span>, <span class="va">GEN</span>, <span class="va">GY</span>, svp <span class="op">=</span> <span class="st">"genotype"</span><span class="op">)</span></span>
 <span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>, type <span class="op">=</span> <span class="fl">7</span>, sel_gen <span class="op">=</span> <span class="st">"G8"</span><span class="op">)</span></span>
@@ -496,9 +482,9 @@ ideal genotype, represented by the small circle with an arrow pointing
 to it, is defined as having the highest yield in all environments. That
 is, it has the highest mean yield and is absolutely stable. The
 genotypes are ranked based on their distance from the ideal genotype
-<span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W.
-Yan et al. 2007</a>)</span>. In our example, G3 and G8 were found to
-outperform the other genotypes.</p>
+<span class="citation">(<a href="#ref-Yan2007">W. Yan et al.
+2007</a>)</span>. In our example, G3 and G8 were found to outperform the
+other genotypes.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">o</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>, type <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>,</span>
@@ -519,8 +505,8 @@ the biplot origin and is perpendicular to the connector line. We see one
 environment, E9, is on the same side of the perpendicular line as G10,
 and the other 13 environments are on the other side of the perpendicular
 line, together with G8. This indicates that G10 yielded more than G8 in
-E9, but G8. yielded more than G10 in the other 13 environments <span class="citation">(<a href="#ref-Yan2007" role="doc-biblioref">W. Yan et
-al. 2007</a>)</span>.</p>
+E9, but G8. yielded more than G10 in the other 13 environments <span class="citation">(<a href="#ref-Yan2007">W. Yan et al.
+2007</a>)</span>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gge_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gge.html">gge</a></span><span class="op">(</span><span class="va">data_ge</span>, <span class="va">ENV</span>, <span class="va">GEN</span>, <span class="va">GY</span>, svp <span class="op">=</span> <span class="st">"symmetrical"</span><span class="op">)</span></span>
 <span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gge_model</span>, type <span class="op">=</span> <span class="fl">9</span>, sel_gen1 <span class="op">=</span> <span class="st">"G8"</span>, sel_gen2 <span class="op">=</span> <span class="st">"G10"</span><span class="op">)</span></span>
@@ -550,7 +536,7 @@ al. 2007</a>)</span>.</p>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-Yan2003" class="csl-entry">
 Yan, Weikai., and Manjit S. Kang. 2003. <em><span class="nocase">GGE
 biplot analysis : a graphical tool for breeders, geneticists, and
@@ -564,28 +550,26 @@ Genotype-by-Environment Data</span>.”</span> <em>Crop Science</em> 47
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p>
-<p>Developed by <a href="https://olivoto.netlify.app/" class="external-link">Tiago Olivoto</a>.</p>
+  <p>Developed by <a href="https://olivoto.netlify.app/" class="external-link">Tiago Olivoto</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

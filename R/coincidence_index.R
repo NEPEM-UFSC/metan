@@ -61,7 +61,11 @@ coincidence_index <- function(..., total, sel1 = NULL, sel2 = NULL){
       stop("Only objects of class 'mgidi', 'mtsi', 'fai_blup', and 'sh' are accepted.")
     }
     selected <- lapply(models, function(x){
-      x[["sel_gen"]]
+      if(inherits(x, "fai_blup")){
+        x[["sel_gen"]][[1]]
+      } else{
+        x[["sel_gen"]]
+      }
     })
     names(selected) <- names
     ngsel <- sapply(selected, length)

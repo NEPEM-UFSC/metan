@@ -14,7 +14,6 @@ vignette: >
 
 ```{r global_options, include = FALSE}
 knitr::opts_chunk$set(comment = "#", collapse = TRUE)
-load("plots_corr.RData")
 
 ```
 
@@ -144,14 +143,14 @@ print(ccoef2, digits = 2)
 
 The function `corr_plot()` may be used to visualize (both graphically and numerically) a correlation matrix. Pairwise of scatterplots are produced and may be shown in the upper or lower diagonal, which may be seen as a nicer and customizable ggplot2-based version of the `pairs()`base R function.
 
-```{r, eval=FALSE, fig.height = 12, fig.width = 12, fig.align = "center" }
-a <- corr_plot(data_ge2, CD, EL, PERK, NKR)
+```{r, fig.height = 12, fig.width = 12, fig.align = "center" }
+corr_plot(data_ge2, CD, EL, PERK, NKR)
 
-b <- 
+
 corr_plot(data_ge2, CD, EL, PERK, NKR,
           lower = NULL,
           upper = "corr")
-c <- 
+ 
 corr_plot(data_ge2, CD, EL, PERK, NKR,
           shape.point = 19,
           size.point = 2,
@@ -163,7 +162,7 @@ corr_plot(data_ge2, CD, EL, PERK, NKR,
           alpha.sign = 0.3,
           axis.labels = TRUE)
 
-d <- 
+
 corr_plot(data_ge2, CD, EL, PERK, NKR, CW, NKE,
           prob = 0.01,
           shape.point = 21,
@@ -182,7 +181,7 @@ corr_plot(data_ge2, CD, EL, PERK, NKR, CW, NKE,
           col.dia.panel = "black",
           pan.spacing = 0,
           lab.position = "tl")
-arrange_ggplot(a, b, c, d, tag_levels = "a")
+
 ```
 
 It is also possible to use a categorical variable of the data to map the scatterplot by colors.
@@ -452,7 +451,7 @@ According to the suggested cutpoint, two clusters are formed. The number of clus
 
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center"}
 library(pvclust)
-pv_clust <- pvclust(t(d2$data), nboot = 100, method.dist = "euclidean")
+pv_clust <- pvclust(as.matrix(t(d2$de)), nboot = 100, method.dist = "euclidean")
 plot(pv_clust, hang = -1, cex = 0.5)
 pvrect(pv_clust, alpha = 0.95)
 ```
@@ -577,7 +576,7 @@ ________________________________________________________________________________
 
 This vignette was built with [pkgdown](https://pkgdown.r-lib.org/). All tables were produced with the package [`DT`](https://rstudio.github.io/DT/) using the following function.
 
-```{r warning = FALSE, message = FALSE, eval=FALSE}
+```{r warning = FALSE, message = FALSE}
 library(DT) # Used to make the tables
 # Function to make HTML tables
 print_table <- function(table, rownames = FALSE, digits = 3, ...){

@@ -1,4 +1,4 @@
-url: https://tiagoolivoto.github.io/metan/
+url: https://nepem-ufsc.github.io/metan/
 
 home:
   title: metan
@@ -76,8 +76,6 @@ navbar:
       - text: Licence
         href: LICENSE.html
   right:
-    - icon: "fab fa-researchgate fa-2x"
-      href: https://www.researchgate.net/profile/Tiago_Olivoto2
     - icon: "fa-github fa-2x"
       href: https://github.com/TiagoOlivoto
     - icon: "fab fa-twitter fa-2x"
@@ -213,6 +211,8 @@ reference:
       - ge_reg
       - ge_stats
       - gai
+      - plaisted_peterson
+      - print.plaisted_peterson
       - plot.anova_joint
       - plot.env_dissimilarity
       - plot.env_stratification
@@ -365,7 +365,6 @@ reference:
       - get_model_data
       - gmd
       - is.split_factors
-      - metan-package
       - utils_bind
       - resca
       - residual_plots
@@ -376,6 +375,7 @@ reference:
       - transpose_df
       - tukey_hsd
       - utils_samples
+      - metan
 
 
   - title: "Datasets"

@@ -6,16 +6,14 @@ output: rmarkdown::html_vignette
 link-citations: true
 bibliography: metanref.bib 
 vignette: >
-  %\VignetteIndexEntry{Indexes for simultaneous selection}
+%\VignetteIndexEntry{Indexes for simultaneous selection}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
-
-
+  ---
+  
+  
 ```{r global_options, include = FALSE}
 knitr::opts_chunk$set(comment = "#", collapse = TRUE)
-load("indexes.RData")
-
 
 ```
 
@@ -50,12 +48,13 @@ The function `mtsi()` is used to compute the multi-trait stability index (*MTSI*
 
 In the following example, the selection of stable genotypes will consider five traits, namely, KW, NKE, PH, EH, and TKW. Note that the output of the function `waasb()` is passed to the function `mtsi()` by the forward-pipe operator `%>%`. Finally, the MTSI index is plotted using the function `plot()`.
 
-```{r eval=FALSE}
+```{r }
 library(metan)
-MTSI_index <- data_ge2 %>%
-              waasb(ENV, GEN, REP,
-                    resp = c(KW, NKE, PH, EH, TKW)) %>%
-              mtsi(verbose = FALSE, index = "waasb")
+MTSI_index <- 
+  data_ge2 %>%
+  waasb(ENV, GEN, REP,
+        resp = c(KW, NKE, PH, EH, TKW)) %>%
+  mtsi(verbose = FALSE, index = "waasb")
 
 ```
 
@@ -64,7 +63,7 @@ MTSI_index <- data_ge2 %>%
 
 The following code considers that higher values for KW, NKE, TKW are better, and lower values for PH and EH are better. By using `wresp = 65`, the simultaneous selection for mean performance and stability will prioritize the mean performance (mean of the variables) rather than their stability across environments.
 
-```{r eval=FALSE}
+```{r}
 MTSI_index2 <- 
   data_ge2 %>%
   waasb(ENV, GEN, REP,
@@ -94,7 +93,7 @@ plot(MTSI_index2)
 # MGIDI index
 The MGIDI index can be seen as the MTSI index with a weigth of 100 for mean performance. This index is computed with the function `mgidi()`. Here, we will use the example data `data_g()`. By default, all traits are assumed to be increased. To change this default, use the argument `ideotype`. For example, if for three traits, the first one is assumed to be decreased and the last two are assumed to be increased, use `ideotype = c("l, h, h")`.
 
-```{r,   eval=FALSE}
+```{r}
 mod <- gamem(data_g,
              gen = GEN,
              rep = REP,
@@ -113,7 +112,7 @@ arrange_ggplot(p1, p2)
 # Smith-Hazel index
 The Smith-Hazel index ([@Smith1936; @Hazel1943]) is computed with the function `Smith_Hazel()`. Users can compute the index either by declaring known genetic and phenotypic variance-covariance matrices or by using as inpute data, a model fitted with the function `gamem()`. In this case, the variance-covariance are extracted internally. The economic weights in the argument `weights` are set by default to 1 for all traits.
 
-```{r  eval=FALSE}
+```{r }
 smith <- Smith_Hazel(mod, SI = 20)
 
 ```
@@ -125,7 +124,7 @@ smith <- Smith_Hazel(mod, SI = 20)
 The FAI-BLUP is a multi-trait index based on factor analysis and ideotype-design recently proposed by @Rocha2018. It is based on factor analysis, when the factorial scores of each ideotype are designed according to the desirable and undesirable factors. Then, a spatial probability is estimated based on genotype-ideotype distance, enabling genotype ranking [@Rocha2018]. Here we will use the mixed-model `mod` as inpute data. By default, the selection is made to increase the value of all traits. Change this default with the arguments `DI` and `UI`.
 
 
-```{r, eval=FALSE}
+```{r}
 
 fai <- fai_blup(mod, SI = 20)
 
@@ -150,7 +149,7 @@ We can also produce a Venn plot to show the relationships between the indexes
 
 ```{r}
 MGIDI <- gmd(mgidi_index, "sel_gen")
-FAI <- gmd(fai, "sel_gen")
+FAI <- gmd(fai, "sel_gen")[[1]]
 SH <- gmd(smith, "sel_gen")
 
 # Create the plot

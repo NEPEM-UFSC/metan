@@ -249,6 +249,6 @@ The multi-trait stability index (MTSI) was proposed by @Olivoto2019a and is used
 
 # Getting help
 
-* If you encounter a clear bug, please file a minimal reproducible example on [github](https://github.com/TiagoOlivoto/metan/issues)
+* If you encounter a clear bug, please file a minimal reproducible example on [github](https://github.com/nepem-ufsc/metan/issues)
 
 # References

@@ -76,7 +76,7 @@ install.packages("metan")
 ```
 
 Or install the development version from
-[GitHub](https://github.com/TiagoOlivoto/metan) with:
+[GitHub](https://github.com/nepem-ufsc/metan) with:
 
 ``` r
 devtools::install_github("TiagoOlivoto/metan")
@@ -94,7 +94,7 @@ file](https://tiagoolivoto.github.io/metan/news/index.html).
 
 ## Cheatsheet
 
-<a href="https://github.com/TiagoOlivoto/metan/raw/master/metan_cheat_sheet.pdf"><img src="https://raw.githubusercontent.com/TiagoOlivoto/metan/master/man/figures/metan_cheat_sheet.png" width="935" height="640"/></a>
+<a href="https://github.com/nepem-ufsc/metan/raw/master/metan_cheat_sheet.pdf"><img src="https://raw.githubusercontent.com/TiagoOlivoto/metan/master/man/figures/metan_cheat_sheet.png" width="935" height="640"/></a>
 
 # Getting started
 
@@ -379,7 +379,7 @@ A BibTeX entry for LaTeX users is
 # Getting help
 
 - If you encounter a clear bug, please file a minimal reproducible
-  example on [github](https://github.com/TiagoOlivoto/metan/issues)
+  example on [github](https://github.com/nepem-ufsc/metan/issues)
 
 - Suggestions and criticisms to improve the quality and usability of the
   package are welcome!

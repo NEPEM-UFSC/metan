@@ -169,7 +169,7 @@ by levels of a factor variable.
 
 * New functions `clip_read()` and `clip_write()` to read from the clipboard and write to the clipboard, respectively.
 * New function `sum_by()` to compute the sum by levels of factors.
-* Update wsmp.R ([#7](https://github.com/TiagoOlivoto/metan/pull/7)). Thank you @[BartoszKozak](https://github.com/bartosz-kozak) for your contribution.
+* Update wsmp.R ([#7](https://github.com/nepem-ufsc/metan/pull/7)). Thank you @[BartoszKozak](https://github.com/bartosz-kozak) for your contribution.
 * `mgidi()` now allows using a fixed-effect model fitted with `gafem()` as input data.
 * `round_cols()` now can be used to round whole matrices.
 
@@ -219,7 +219,7 @@ by levels of a factor variable.
 * Improve feedback for results, indicating random and fixed effects. Thanks to [@NelsonJunior](https://scholar.google.com.br/citations?user=i2F6X04AAAAJ&hl=pt-BR) for his suggestion.
 * `plot()` call on objects of class `gamem`, `waasb` and `waas` now returns the variable names automatically. Thanks to [@MdFarhad](https://www.researchgate.net/profile/Md-Farhad) for suggesting me this change.
 * `plot.gamem()` and `plot.waasb()` have a new argument (`type = "vcomp"`) to produce a plot showing the contribution of the variance components to the phenotypic variance
-* `cv_ammi()`, `cv_ammif()`, and `cv_blup()` now check for missing values and unbalanced data before computing the cross-validation. ([#3](https://github.com/TiagoOlivoto/metan/issues/3))
+* `cv_ammi()`, `cv_ammif()`, and `cv_blup()` now check for missing values and unbalanced data before computing the cross-validation. ([#3](https://github.com/nepem-ufsc/metan/issues/3))
 
 
 ## Bug fixes
@@ -230,7 +230,7 @@ by levels of a factor variable.
 
 # metan 1.4.0
 ## Bug fixes
-* Factor columns can now have custom names rather than `ENV`, `GEN`, and `REP` only ([#2](https://github.com/TiagoOlivoto/metan/issues/2)).
+* Factor columns can now have custom names rather than `ENV`, `GEN`, and `REP` only ([#2](https://github.com/nepem-ufsc/metan/issues/2)).
 
 ## New functions
 * `gmd()` a shortcut to `get_model_data()`
@@ -310,7 +310,7 @@ by levels of a factor variable.
    - `desc_stat()` now handles grouped data passed from `dplyr::group_by()`
    - `plot_scores()` now support objects of class `waas_mean`.
    - Include inst/CITATION to return a reference paper with `citation("metan")`.
-   - Change 'PC2' with 'PC1' in y-axis of `plot_scores(type = 2)` ([#1](https://github.com/TiagoOlivoto/metan/issues/1))
+   - Change 'PC2' with 'PC1' in y-axis of `plot_scores(type = 2)` ([#1](https://github.com/nepem-ufsc/metan/issues/1))
    - `get_model_data()` now support models of class `anova_joint` and `gafem` and extract random effects of models fitted with `waasb()` and `gamem()`.
    - Update `plot.waasb()` and `plot.gamem()` to show distribution of random effects.
    - `inspect()`, `cv_blup()`, `cv_ammif()`, and `cv_ammi()` now generate a warning message saying that is not possible to compute cross-validation procedures in experiments with two replicates only. Thanks to [@Vlatko](https://www.researchgate.net/profile/Vlatko-Galic) for his email.
