@@ -1,9 +1,12 @@
 # Release summary
-In this resubmission, I fixed the following erros:
+This is a minor version that includes new functions and bug fixes
 
-* changed old-style citEntry() with bibentry()
-* Updated the invalid URL https://tidyeval.tidyverse.org/index.html
+## revdepcheck results
 
+We checked 3 reverse dependencies, comparing R CMD check results across CRAN and dev versions of this package.
+
+ * We saw 0 new problems
+ * We failed to check 0 packages
 
 # Test environments
 * GitHub Actions (ubuntu-16.04): devel, release, oldrel, 3.5, 3.4, 3.3

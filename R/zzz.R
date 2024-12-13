@@ -158,7 +158,7 @@ NULL
   packageStartupMessage("| Author: Tiago Olivoto                                   |")
   packageStartupMessage("| Type 'citation('metan')' to know how to cite metan      |")
   packageStartupMessage("| Type 'vignette('metan_start')' for a short tutorial     |")
-  packageStartupMessage("| Visit 'https://bit.ly/pkgmetan' for a complete tutorial |")
+  packageStartupMessage("| Visit 'https://bit.ly/metanpkg' for a complete tutorial |")
   packageStartupMessage("|=========================================================|")
 }
 

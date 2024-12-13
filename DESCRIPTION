@@ -25,8 +25,7 @@ Description: Performs stability analysis of multi-environment trial data
     Olivoto et al. (2019b) <doi:10.2134/agronj2019.03.0221>.
     Non-parametric methods includes superiority index by Lin & Binns
     (1988) <doi:10.4141/cjps88-018>, nonparametric measures of phenotypic
-    stability by Huehn (1990)
-    <https://link.springer.com/article/10.1007/BF00024241>, TOP third
+    stability by Huehn (1990) <doi:10.1007/BF00024241>, TOP third
     statistic by Fox et al. (1990) <doi:10.1007/BF00040364>. Functions for
     computing biometrical analysis such as path analysis, canonical
     correlation, partial correlation, clustering analysis, and tools for
