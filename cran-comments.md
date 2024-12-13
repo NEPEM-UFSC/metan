@@ -1,5 +1,5 @@
 # Release summary
-This is a minor version that includes new functions and bug fixes
+This is a minor version that includes new functions and bug fixes.
 
 ## revdepcheck results
 

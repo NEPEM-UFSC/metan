@@ -105,7 +105,7 @@
                         <h4 data-toc-skip class="author">Tiago
 Olivoto</h4>
             
-            <h4 data-toc-skip class="date">2024-11-21</h4>
+            <h4 data-toc-skip class="date">2024-12-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nepem-ufsc/metan/blob/HEAD/vignettes/vignettes_stability.Rmd" class="external-link"><code>vignettes/vignettes_stability.Rmd</code></a></small>
       <div class="d-none name"><code>vignettes_stability.Rmd</code></div>
@@ -413,7 +413,7 @@ that computes all the stability indexes at once. To get the results into
 a <em>“ready-to-read”</em> file, use <code><a href="../reference/get_model_data.html">get_model_data()</a></code>.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stat_ge</span> <span class="op">&lt;-</span> <span class="va">data_ge2</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/ge_stats.html">ge_stats</a></span><span class="op">(</span><span class="va">ENV</span>, <span class="va">GEN</span>, <span class="va">REP</span>, resp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">EH</span>, <span class="va">PH</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># Evaluating trait EH |======================                      | 50% 00:00:04 Evaluating trait PH |============================================| 100% 00:00:08 </span></span>
+<span><span class="co"># Evaluating trait EH |======================                      | 50% 00:00:03 Evaluating trait PH |============================================| 100% 00:00:07 </span></span>
 <span><span class="fu"><a href="../reference/get_model_data.html">get_model_data</a></span><span class="op">(</span><span class="va">stat_ge</span>, <span class="st">"stats"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu">print_table</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># Class of the model: ge_stats</span></span>
 <span><span class="co"># Variable extracted: stats</span></span></code></pre></div>
