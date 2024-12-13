@@ -2,8 +2,6 @@
 ## New features
 * New "complementarity" object returned in the function `mgidi()`.
 
-## Minor improvements
-* Fix bug with 
 
 # metan 1.18.0
 ## New features
