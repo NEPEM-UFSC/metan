@@ -30,9 +30,9 @@ path_coeff_seq(.data, resp, chain_1, chain_2, by = NULL, verbose = TRUE, ...)
 \item{.data}{The data. Must be a data frame or a grouped data passed from
 \code{\link[dplyr:group_by]{dplyr::group_by()}}}
 
-\item{resp}{<\code{\link[=dplyr_tidy_select]{tidy-select}}> The dependent trait.}
+\item{resp}{The dependent trait.}
 
-\item{pred}{<\code{\link[=dplyr_tidy_select]{tidy-select}}> The predictor traits. set to
+\item{pred}{The predictor traits. set to
 \code{everything()}, i.e., the predictor traits are all the numeric traits in
 the data except that in \code{resp}. To select multiple traits, use a
 comma-separated vector of names, (e.g., \code{pred = c(V1, V2, V2)}), an
@@ -82,7 +82,7 @@ console.}
 \item{cor_mat}{Matrix of correlations containing both dependent and
 independent traits.}
 
-\item{chain_1, chain_2}{<\code{\link[=dplyr_tidy_select]{tidy-select}}> The traits used
+\item{chain_1, chain_2}{The traits used
 in the first (primary) and second (secondary) chain.}
 }
 \value{

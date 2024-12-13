@@ -1,0 +1,19 @@
+Package: mathjaxr
+Version: 1.6-0
+Date: 2022-02-28
+Title: Using 'Mathjax' in Rd Files
+Authors@R: person(given = "Wolfgang", family = "Viechtbauer", role = c("aut","cre"), email = "wvb@wvbauer.com", comment = c(ORCID = "0000-0003-3463-4063"))
+Description: Provides 'MathJax' and macros to enable its use within Rd files for rendering equations in the HTML help files.
+License: GPL-3
+Encoding: UTF-8
+URL: https://github.com/wviechtb/mathjaxr
+BugReports: https://github.com/wviechtb/mathjaxr/issues
+Suggests: js
+NeedsCompilation: yes
+Packaged: 2022-02-28 12:11:26 UTC; wviechtb
+Author: Wolfgang Viechtbauer [aut, cre]
+    (<https://orcid.org/0000-0003-3463-4063>)
+Maintainer: Wolfgang Viechtbauer <wvb@wvbauer.com>
+Repository: CRAN
+Date/Publication: 2022-02-28 14:10:02 UTC
+Built: R 4.4.2; x86_64-w64-mingw32; 2024-12-08 01:28:41 UTC; windows

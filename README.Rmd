@@ -58,10 +58,7 @@ install.packages("metan")
 Or install the development version from [GitHub](https://github.com/nepem-ufsc/metan) with:
 
 ```{r, eval=FALSE}
-devtools::install_github("TiagoOlivoto/metan")
-
-# To build the HTML vignette use
-devtools::install_github("TiagoOlivoto/metan", build_vignettes = TRUE)
+pak::pkg_install("TiagoOlivoto/metan")
 
 ```
 

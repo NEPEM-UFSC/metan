@@ -16,7 +16,7 @@
 #' [as.factor()].
 #' @name utils_as
 #' @param .data A data frame or a vector.
-#' @param ... <[`tidy-select`][dplyr_tidy_select]>. If `.data` is a data
+#' @param ... If `.data` is a data
 #'   frame, then `...` are the variable(s) to encode to a format.
 #' @return An object of the same class of `.data` with the variables in
 #'   `...` encoded to the specified format.

@@ -173,7 +173,7 @@ Z. Pflanzenzuchtg 52:127-138.
 }
 \seealso{
 \code{\link[=acv]{acv()}}, \code{\link[=ammi_indexes]{ammi_indexes()}}, \code{\link[=ecovalence]{ecovalence()}}, \code{\link[=Fox]{Fox()}}, \code{\link[=gai]{gai()}},
-\code{\link[=ge_reg]{ge_reg()}}, \code{\link[=hmgv]{hmgv()}}, \code{\link[=hmrpgv]{hmrpgv()}}, \code{\link[=rpgv]{rpgv()}}, \code{\link[=Huehn]{Huehn()}}, \code{\link[=polar]{polar()}},
+\code{\link[=ge_reg]{ge_reg()}}, \code{\link[=hmgv]{hmgv()}}, \code{\link[=hmrpgv]{hmrpgv()}}, \code{\link[=rpgv]{rpgv()}}, \code{\link[=Huehn]{Huehn()}}, \code{\link[=ge_polar]{ge_polar()}},
 \code{\link[=Shukla]{Shukla()}}, \code{\link[=superiority]{superiority()}}, \code{\link[=Thennarasu]{Thennarasu()}}, \code{\link[=waas]{waas()}}, \code{\link[=waasb]{waasb()}}
 }
 \author{

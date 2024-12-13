@@ -1,0 +1,103 @@
+
+R version 4.4.2 (2024-10-31 ucrt) -- "Pile of Leaves"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "CropBreeding"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> options(pager = "console")
+> library('CropBreeding')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("breeding_metrics")
+> ### * breeding_metrics
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: breeding_metrics
+> ### Title: Breeding Metrics Calculation
+> ### Aliases: breeding_metrics
+> 
+> ### ** Examples
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("gxe_analysis_multiple")
+> ### * gxe_analysis_multiple
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: gxe_analysis_multiple
+> ### Title: Two-Way ANOVA for Genotype x Environment Interaction with
+> ###   Multiple Traits
+> ### Aliases: gxe_analysis_multiple
+> 
+> ### ** Examples
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("perform_ammi_single_trait")
+> ### * perform_ammi_single_trait
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: perform_ammi_single_trait
+> ### Title: Perform AMMI Analysis for a Single Trait
+> ### Aliases: perform_ammi_single_trait
+> 
+> ### ** Examples
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("stability_analysis")
+> ### * stability_analysis
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: stability_analysis
+> ### Title: Stability Analysis using Eberhart-Russell Model
+> ### Aliases: stability_analysis
+> 
+> ### ** Examples
+> 
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  1.96 0.22 2.22 NA NA 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

@@ -145,7 +145,7 @@
 #'
 #' @export
 #' @seealso [acv()], [ammi_indexes()], [ecovalence()], [Fox()], [gai()],
-#'   [ge_reg()], [hmgv()], [hmrpgv()], [rpgv()], [Huehn()], [polar()],
+#'   [ge_reg()], [hmgv()], [hmrpgv()], [rpgv()], [Huehn()], [ge_polar()],
 #'   [Shukla()], [superiority()], [Thennarasu()], [waas()], [waasb()]
 #'
 #' @examples

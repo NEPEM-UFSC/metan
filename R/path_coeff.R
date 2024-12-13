@@ -26,16 +26,16 @@
 #'
 #' @param .data The data. Must be a data frame or a grouped data passed from
 #'   [dplyr::group_by()]
-#' @param resp <[`tidy-select`][dplyr_tidy_select]> The dependent trait.
+#' @param resp  The dependent trait.
 #' @param cor_mat Matrix of correlations containing both dependent and
 #'   independent traits.
-#' @param pred <[`tidy-select`][dplyr_tidy_select]> The predictor traits. set to
+#' @param pred  The predictor traits. set to
 #'   `everything()`, i.e., the predictor traits are all the numeric traits in
 #'   the data except that in `resp`. To select multiple traits, use a
 #'   comma-separated vector of names, (e.g., `pred = c(V1, V2, V2)`), an
 #'   interval of trait names, (e.g., `pred = c(V1:V3)`), or even a select helper
 #'   (e.g., `pred = starts_with("V")`).
-#' @param chain_1,chain_2 <[`tidy-select`][dplyr_tidy_select]> The traits used
+#' @param chain_1,chain_2  The traits used
 #'   in the first (primary) and second (secondary) chain.
 #' @param by One variable (factor) to compute the function by. It is a shortcut
 #'   to [dplyr::group_by()]. To compute the statistics by more than

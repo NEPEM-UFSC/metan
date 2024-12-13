@@ -1,0 +1,24 @@
+augment_chisq_add_phi   Augment a chi-squared test and compute phi
+                        coefficients
+geom_diverging          Geometries for diverging bar plots
+geom_stripped_rows      Alternating Background Color
+ggcascade               Cascade plot
+ggcoef_model            Plot model coefficients
+gglikert                Plotting Likert-type items
+ggsurvey                Easy ggplot2 with survey objects
+hex_bw                  Identify a suitable font color (black or white)
+                        given a background HEX color
+label_number_abs        Label absolute values
+pal_extender            Extend a discrete colour palette
+position_likert         Stack objects on top of each another and center
+                        them around 0
+round_any               Round to multiple of any number.
+scale_fill_likert       Colour scale for Likert-type plots
+signif_stars            Significance Stars
+stat_cross              Compute cross-tabulation statistics
+stat_prop               Compute proportions according to custom
+                        denominator
+stat_weighted_mean      Compute weighted y mean
+symmetric_limits        Symmetric limits
+weighted.median         Weighted Median and Quantiles
+weighted.sum            Weighted Sum

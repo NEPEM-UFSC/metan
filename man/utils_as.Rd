@@ -22,7 +22,7 @@ as_factor(.data, ..., .keep = "all", .pull = FALSE)
 \arguments{
 \item{.data}{A data frame or a vector.}
 
-\item{...}{<\code{\link[=dplyr_tidy_select]{tidy-select}}>. If \code{.data} is a data
+\item{...}{If \code{.data} is a data
 frame, then \code{...} are the variable(s) to encode to a format.}
 
 \item{.keep}{Allows you to control which columns from \code{.data} are
