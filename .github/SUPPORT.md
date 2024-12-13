@@ -20,7 +20,8 @@ Armed with your reprex, the next step is to figure out [where to ask](https://ww
     problem _is_ a bug or a feature request, you can easily return here and 
     report it. 
 
-Before opening a new issue, be sure to search [issues](https://github.com/nepem-ufsc/metan/issues) and [pull requests](https://github.com/nepem-ufsc/metan/pulls) to make sure the 
+Be
+fore opening a new issue, be sure to search [issues](https://github.com/nepem-ufsc/metan/issues) and [pull requests](https://github.com/nepem-ufsc/metan/pulls) to make sure the 
 bug hasn't been reported and/or already fixed in the development version. 
 
 Fell free to send an email to <tiagoolivoto@gmail.com> for further questions.
