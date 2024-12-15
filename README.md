@@ -79,10 +79,10 @@ Or install the development version from
 [GitHub](https://github.com/nepem-ufsc/metan) with:
 
 ``` r
-devtools::install_github("TiagoOlivoto/metan")
-
-# To build the HTML vignette use
-devtools::install_github("TiagoOlivoto/metan", build_vignettes = TRUE)
+if(!requireNamespace("pak", quietly = TRUE)){
+  install.packages("pak")
+}
+pak::pkg_install("TiagoOlivoto/metan")
 ```
 
 *Note*: If you are a Windows user, you should also first download and
@@ -271,7 +271,7 @@ model2 <-
             gen = GEN,
             rep = REP,
             resp = everything())
-# Evaluating trait GY |======================                      | 50% 00:00:01 Evaluating trait HM |============================================| 100% 00:00:02 
+# Evaluating trait GY |======================                      | 50% 00:00:01 Evaluating trait HM |============================================| 100% 00:00:01 
 # Method: REML/BLUP
 # Random effects: GEN, GEN:ENV
 # Fixed effects: ENV, REP(ENV)
@@ -343,8 +343,8 @@ get_model_data(stats)
 #  8 GY    G7     2.74  27.4  28.3 -0.133   7.33 0.122   83.9  77.6  93.4  4.16 
 #  9 GY    G8     3.00  30.4  35.1  0.0531 10.8  0.0712  98.8  90.5 107.   2.57 
 # 10 GY    G9     2.51  42.4  39.4  0.154  14.7  0.167   68.8  68.9  70.3  5.56 
-# # … with 32 more variables: bij <dbl>, Sij <dbl>, R2 <dbl>, ASTAB <dbl>,
-# #   ASI <dbl>, ASV <dbl>, AVAMGE <dbl>, DA <dbl>, DZ <dbl>, EV <dbl>, FA <dbl>,
+# # ℹ 32 more variables: bij <dbl>, Sij <dbl>, R2 <dbl>, ASTAB <dbl>, ASI <dbl>,
+# #   ASV <dbl>, AVAMGE <dbl>, DA <dbl>, DZ <dbl>, EV <dbl>, FA <dbl>,
 # #   MASI <dbl>, MASV <dbl>, SIPC <dbl>, ZA <dbl>, WAAS <dbl>, WAASB <dbl>,
 # #   HMGV <dbl>, RPGV <dbl>, HMRPGV <dbl>, Pi_a <dbl>, Pi_f <dbl>, Pi_u <dbl>,
 # #   Gai <dbl>, S1 <dbl>, S2 <dbl>, S3 <dbl>, S6 <dbl>, N1 <dbl>, N2 <dbl>,
@@ -355,23 +355,23 @@ get_model_data(stats)
 
 ``` r
 citation("metan")
-
 Please, support this project by citing it in your publications!
 
-  Olivoto, T., and Lúcio, A.D. (2020). metan: an R package for
-  multi-environment trial analysis. Methods Ecol Evol. 11:783-789
-  doi:10.1111/2041-210X.13384
+  Olivoto T, Lúcio AD (2020). "metan: An R package for
+  multi‐environment trial analysis." _Methods in Ecology and
+  Evolution_, *11*(6), 783-789. doi:10.1111/2041-210X.13384
+  <https://doi.org/10.1111/2041-210X.13384>.
 
-A BibTeX entry for LaTeX users is
+Uma entrada BibTeX para usuários(as) de LaTeX é
 
-  @Article{Olivoto2020,
-    author = {Tiago Olivoto and Alessandro Dal'Col L{'{u}}cio},
-    title = {metan: an R package for multi-environment trial analysis},
+  @Article{,
+    title = {metan: An R package for multi‐environment trial analysis},
+    author = {Tiago Olivoto and Alessandro Dal’Col Lúcio},
+    year = {2020},
     journal = {Methods in Ecology and Evolution},
     volume = {11},
     number = {6},
     pages = {783-789},
-    year = {2020},
     doi = {10.1111/2041-210X.13384},
   }
 ```

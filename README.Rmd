@@ -58,6 +58,9 @@ install.packages("metan")
 Or install the development version from [GitHub](https://github.com/nepem-ufsc/metan) with:
 
 ```{r, eval=FALSE}
+if(!requireNamespace("pak", quietly = TRUE)){
+  install.packages("pak")
+}
 pak::pkg_install("TiagoOlivoto/metan")
 
 ```
