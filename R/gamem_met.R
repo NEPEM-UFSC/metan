@@ -396,9 +396,9 @@ gamem_met <- function(.data,
         arrange(-Predicted) %>%
         column_to_first(Rank)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:(REP:ENV)`)) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
         separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:(REP:ENV)`[[1]]) %>%
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
         as_factor(1:3)
       BLUPint <-
         suppressWarnings(
@@ -454,9 +454,9 @@ gamem_met <- function(.data,
         add_cols(BLUPre = bups$`REP:ENV`[[1]]) %>%
         as_factor(1:2)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:(REP:ENV)`)) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
         separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:(REP:ENV)`[[1]]) %>%
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
         as_factor(1:3)
       genCOEF <-
         summary(Complete)[["coefficients"]] %>%
@@ -536,9 +536,9 @@ gamem_met <- function(.data,
         arrange(ENV) %>%
         as_factor(1:2)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:(REP:ENV)`)) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
         separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:(REP:ENV)`[[1]]) %>%
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
         as_factor(1:3)
       BLUPint <-
         suppressWarnings(
