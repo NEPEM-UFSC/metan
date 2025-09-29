@@ -1083,15 +1083,6 @@ get_model_data <- function(x,
     if (!what %in% c(check21)) {
       stop("Invalid value in 'what' for object of class, ", class(x), ". Allowed are ", paste(check21, collapse = ", "), call. = FALSE)
     }
-    if(what == "FMAX"){
-      bind <-
-        sapply(x, function(x) {
-          x[["MSRratio"]]
-        }) %>%
-        as.data.frame() %>%
-        rownames_to_column("TRAIT") %>%
-        setNames(c("TRAIT", "F_RATIO"))
-    }
     if(what == "ALL"){
       bind <-
         lapply(x, function(x){
@@ -1099,13 +1090,24 @@ get_model_data <- function(x,
         }) %>%
         rbind_fill_id(.id = "trait")
     } else{
-      bind <- sapply(x, function(x) {
-        x[["individual"]][[what]]
-      }) %>%
-        as_tibble() %>%
-        mutate(ENV = x[[1]][["individual"]][["ENV"]]) %>%
-        column_to_first(ENV)
+      if(what == "FMAX"){
+        bind <-
+          sapply(x, function(x) {
+            x[["MSRratio"]]
+          }) %>%
+          as.data.frame() %>%
+          rownames_to_column("TRAIT") %>%
+          setNames(c("TRAIT", "F_RATIO"))
+      } else{
+        bind <- sapply(x, function(x) {
+          x[["individual"]][[what]]
+        }) %>%
+          as_tibble() %>%
+          mutate(ENV = x[[1]][["individual"]][["ENV"]]) %>%
+          column_to_first(ENV)
+      }
     }
+
   }
   if (has_class(x, c("anova_joint", "gafem", "gafem_group"))) {
     if(has_class(x, c("gafem_group"))){
