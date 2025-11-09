@@ -52,6 +52,7 @@ Imports:
     rlang (>= 0.4.11),
     tibble,
     tidyr,
+    utils,
     tidyselect (>= 1.0.0)
 Suggests:
     DT,
