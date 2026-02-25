@@ -296,7 +296,8 @@ ammi_indexes <- function(.data, order.y = NULL, level = 0.95) {
             explan <- model$PCA[which(model$PCA[6] < 1 - level),][7]
         }
         WAAS <-
-            SCOR %>%
+          # SCOR %>%
+          SCOR[, which(model$PCA[6] < 1 - level)] %>%
             abs() %>%
             t() %>%
             as.data.frame()
