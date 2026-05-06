@@ -1,3 +1,5 @@
+# metan 1.20.0
+
 # metan 1.19.0
 ## New features
 * New "complementarity" object returned in the function `mgidi()`.
