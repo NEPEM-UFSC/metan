@@ -701,7 +701,6 @@ get_climate <- function(env = NULL, lat, lon, start, end,
 #'   arranged vertically by stage blocks.
 #'
 #' @export envirotype
-#' @export plot.envirotype
 #' @rdname envirotype
 #'
 #' @examples
@@ -860,6 +859,7 @@ envirotype <- function(data,
 }
 
 #' @rdname envirotype
+#' @export
 #' @method plot envirotype
 plot.envirotype <- function(x, var = NULL, ncol = 1, ...) {
   if(is.null(var)){
