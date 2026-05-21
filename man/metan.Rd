@@ -11,11 +11,16 @@ evaluation of multi-environment trials, including, but not limited to:
 \item AMMI-based stability indexes;
 \item BLUP-based stability indexes;
 \item Cross-validation procedures for AMMI-family and BLUP models;
+\item Eberhart & Russell joint regression stability analysis;
+\item Factorial regression using environmental covariates and stepwise selection;
+\item Finlay-Wilkinson regression analysis;
 \item GGE biplot analysis;
 \item Estimation using AMMI considering different numbers of interaction
 principal component axes;
 \item Graphics tools for generating biplots;
+\item Multi-trait selection indexes (MTSI, MGIDI, FAI-BLUP, and Smith-Hazel);
 \item Nonparametric stability statistics;
+\item Plaisted & Peterson phenotypic stability analysis;
 \item Variance components and genetic parameters in mixed-effect models;
 \item Within-environment analysis of variance;
 }

@@ -110,9 +110,9 @@ inspect <- function (.data,
         level_length <- length(levels(data_col))
         if (level_length > threshold) {
           cli::cli_abort(
-            "Column '", col, "' has more levels (", level_length, ")",
-            " than the threshold (", threshold, ") allowed.\n",
-            "Please remove the column or increase the 'threshold' argument. Increasing the threshold may produce long processing times")
+            "Column {.var {col}} has more levels ({level_length}) than the threshold ({threshold}) allowed.
+            Please remove the column or increase the {.arg threshold} argument. Increasing the threshold may produce long processing times."
+          )
         }
       }
     }
@@ -121,7 +121,7 @@ inspect <- function (.data,
         geom_point(alpha = 0.65) +
         geom_smooth(method=method,
                     se = FALSE,
-                    size = 0.5,
+                    linewidth = 0.5,
                     color = "red")
     }
     ggpair <-

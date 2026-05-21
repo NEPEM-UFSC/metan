@@ -202,9 +202,15 @@ reference:
     contents:
       - Annicchiarico
       - corr_stab_ind
+      - eberhart_russell
+      - print.eberhart_russell
+      - plot.eberhart_russell
       - ecovalence
       - env_dissimilarity
       - env_stratification
+      - factorial_reg
+      - finlay_wilkinson
+      - plot.FW
       - ge_acv
       - ge_factanal
       - ge_polar

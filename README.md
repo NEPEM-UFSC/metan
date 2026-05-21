@@ -49,6 +49,17 @@ parametric and non-parametric methods. The package will help you to:
 - Compute [GT](https://tiagoolivoto.github.io/metan/reference/gtb.html)
   and [GYT](https://tiagoolivoto.github.io/metan/reference/gytb.html)
   biplot analysis;
+- Compute [factorial
+  regression](https://tiagoolivoto.github.io/metan/reference/factorial_reg.html)
+  using environmental covariates and stepwise selection;
+- Compute
+  [Finlay-Wilkinson](https://tiagoolivoto.github.io/metan/reference/finlay_wilkinson.html)
+  regression and [Eberhart &
+  Russell](https://tiagoolivoto.github.io/metan/reference/eberhart_russell.html)
+  joint regression models;
+- Compute pairwise stability analysis based on [Plaisted and
+  Peterson](https://tiagoolivoto.github.io/metan/reference/plaisted_peterson.html)’s
+  GxE partitioning;
 - Compute [BLUP-based stability
   indexes](https://tiagoolivoto.github.io/metan/reference/blup_indexes.html);
 - Compute variance components and genetic parameters in [single
@@ -63,6 +74,12 @@ parametric and non-parametric methods. The package will help you to:
   models;
 - Compute parametric and nonparametric [stability
   statistics](https://tiagoolivoto.github.io/metan/reference/ge_stats.html);
+- Implement simultaneous selection using multi-trait selection indexes:
+  [MTSI](https://tiagoolivoto.github.io/metan/reference/mtsi.html),
+  [MGIDI](https://tiagoolivoto.github.io/metan/reference/mgidi.html),
+  [FAI-BLUP](https://tiagoolivoto.github.io/metan/reference/fai_blup.html),
+  and
+  [Smith-Hazel](https://tiagoolivoto.github.io/metan/reference/Smith_Hazel.html);
 - Implement [biometrical
   models](https://tiagoolivoto.github.io/metan/reference/index.html#section-biometry).
 
