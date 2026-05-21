@@ -44,7 +44,7 @@
 #' gen_data
 #' inspect(gen_data, plot = TRUE)
 #'
-#' aov(V1 ~ GEN + REP, data = gen_data) %>% anova()
+#' aov(V1 ~ GEN + REP, data = gen_data) |> anova()
 #'
 #' # Genotype-environment data
 #' # 5 genotypes, 3 environments, 4 replicates and 2 traits
@@ -55,7 +55,7 @@
 #'           nvars = 2,
 #'           seed = 1)
 #' ge_plot(df, ENV, GEN, V1)
-#' aov(V1 ~ ENV*GEN + ENV/REP, data = df) %>% anova()
+#' aov(V1 ~ ENV*GEN + ENV/REP, data = df) |> anova()
 #'
 #' # Change genotype effect (trait 1 with fewer differences among genotypes)
 #' # Define different intercepts for the two traits
@@ -81,49 +81,49 @@ ge_simula <- function(ngen,
                       intercept = 100,
                       seed = NULL){
   if(length(gen_eff) != 1 & length(gen_eff) != nvars){
-    stop("Argument 'gen_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'gen_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(gen_eff) == 1 & length(gen_eff) != nvars){
-    warning("'gen_eff = ", gen_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'gen_eff = {gen_eff}' recycled for all the {nvars} traits.")
   }
 
   if(length(env_eff) != 1 & length(env_eff) != nvars ){
-    stop("Argument 'env_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'env_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(env_eff) == 1 & length(env_eff) != nvars){
-    warning("'env_eff = ", env_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'env_eff = {env_eff}' recycled for all the {nvars} traits.")
   }
 
   if(length(rep_eff) != 1 & length(rep_eff) != nvars){
-    stop("Argument 'rep_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'rep_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(rep_eff) == 1 & length(rep_eff) != nvars){
-    warning("'rep_eff = ", rep_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'rep_eff = {rep_eff}' recycled for all the {nvars} traits.")
   }
 
   if(length(ge_eff) != 1 & length(ge_eff) != nvars){
-    stop("Argument 'ge_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'ge_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(ge_eff) == 1 & length(ge_eff) != nvars){
-    warning("'ge_eff = ", ge_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'ge_eff = {ge_eff}' recycled for all the {nvars} traits.")
   }
   if(length(res_eff) != 1 & length(res_eff) != nvars){
-    stop("Argument 'res_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'res_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(res_eff) == 1 & length(res_eff) != nvars){
-    warning("'res_eff = ", res_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'res_eff = {res_eff}' recycled for all the {nvars} traits.")
   }
   if(length(intercept) != 1 & length(intercept) != nvars){
-    stop("Argument 'intercept' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'intercept' must have length 1 or the same length of 'nvars'.")
   }
   if(length(intercept) == 1 & length(intercept) != nvars){
-    warning("'intercept = ", intercept, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'intercept = {intercept}' recycled for all the {nvars} traits.")
   }
   if(!missing(seed) & length(seed) != 1 & length(seed) != nvars){
-    stop("Argument 'seed' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'seed' must have length 1 or the same length of 'nvars'.")
   }
   if(length(seed) == 1 & length(seed) != nvars){
-    warning("'seed = ", seed, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'seed = {seed}' recycled for all the {nvars} traits.")
   }
   compute_one_var <-
     function(ngen = ngen,
@@ -156,14 +156,14 @@ ge_simula <- function(ngen,
         data.frame(REP = paste("B", 1:nrep, sep = ""),
                    block_eff = runif(nrep, -rep_eff, rep_eff))
       df2 <-
-        df %>%
-        left_join(env_eff, by = "ENV") %>%
-        left_join(gen_eff, by = "GEN") %>%
-        left_join(block_eff, by = "REP") %>%
-        add_cols(ge_eff = rep(runif(nenv * ngen, -ge_eff, ge_eff), each = nrep)) %>%
-        add_cols(resid = rnorm(nenv * ngen * nrep, 0, res_eff)) %>%
-        add_cols(V1 = intercept) %>%
-        mutate(across(V1, ~.x + gen_eff + env_eff + block_eff + ge_eff + resid)) %>%
+        df |>
+        left_join(env_eff, by = "ENV") |>
+        left_join(gen_eff, by = "GEN") |>
+        left_join(block_eff, by = "REP") |>
+        add_cols(ge_eff = rep(runif(nenv * ngen, -ge_eff, ge_eff), each = nrep)) |>
+        add_cols(resid = rnorm(nenv * ngen * nrep, 0, res_eff)) |>
+        add_cols(V1 = intercept) |>
+        mutate(across(V1, ~.x + gen_eff + env_eff + block_eff + ge_eff + resid)) |>
         remove_cols(env_eff:resid)
       return(df2)
     }
@@ -182,9 +182,9 @@ ge_simula <- function(ngen,
     dfs[[paste("V", i, sep = "")]] <- temp
   }
   dfs_bind <-
-    dfs %>%
-    reduce(left_join, by = c("ENV", "GEN", "REP")) %>%
-    set_names("ENV", "GEN", "REP", paste("V", 1:nvars, sep = "")) %>%
+    dfs |>
+    reduce(left_join, by = c("ENV", "GEN", "REP")) |>
+    set_names("ENV", "GEN", "REP", paste("V", 1:nvars, sep = "")) |>
     as_factor(1:3)
   return(dfs_bind)
 }
@@ -199,34 +199,34 @@ g_simula <- function(ngen,
                      intercept = 100,
                      seed = NULL){
   if(length(gen_eff) != 1 & length(gen_eff) != nvars){
-    stop("Argument 'gen_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'gen_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(gen_eff) == 1 & length(gen_eff) != nvars){
-    warning("'gen_eff = ", gen_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'gen_eff = {gen_eff}' recycled for all the {nvars} traits.")
   }
   if(length(rep_eff) != 1 & length(rep_eff) != nvars){
-    stop("Argument 'rep_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'rep_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(rep_eff) == 1 & length(rep_eff) != nvars){
-    warning("'rep_eff = ", rep_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'rep_eff = {rep_eff}' recycled for all the {nvars} traits.")
   }
   if(length(res_eff) != 1 & length(res_eff) != nvars){
-    stop("Argument 'res_eff' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'res_eff' must have length 1 or the same length of 'nvars'.")
   }
   if(length(res_eff) == 1 & length(res_eff) != nvars){
-    warning("'res_eff = ", res_eff, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'res_eff = {res_eff}' recycled for all the {nvars} traits.")
   }
   if(length(intercept) != 1 & length(intercept) != nvars){
-    stop("Argument 'intercept' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'intercept' must have length 1 or the same length of 'nvars'.")
   }
   if(length(intercept) == 1 & length(intercept) != nvars){
-    warning("'intercept = ", intercept, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'intercept = {intercept}' recycled for all the {nvars} traits.")
   }
   if(!missing(seed) & length(seed) != 1 & length(seed) != nvars){
-    stop("Argument 'seed' must have length 1 or the same length of 'nvars'.", call. = FALSE)
+    cli::cli_abort("Argument 'seed' must have length 1 or the same length of 'nvars'.")
   }
   if(length(seed) == 1 & length(seed) != nvars){
-    warning("'seed = ", seed, "' recycled for all the ", nvars, " traits.", call. = FALSE)
+    cli::cli_warn("'seed = {seed}' recycled for all the {nvars} traits.")
   }
   compute_one_var <-
     function(ngen = ngen,
@@ -252,12 +252,12 @@ g_simula <- function(ngen,
         data.frame(REP = paste("B", 1:nrep, sep = ""),
                    block_eff = runif(nrep, -rep_eff, rep_eff))
       df2 <-
-        df %>%
-        left_join(gen_eff, by = "GEN") %>%
-        left_join(block_eff, by = "REP") %>%
-        add_cols(resid = rnorm(ngen * nrep, 0, res_eff)) %>%
-        add_cols(V1 = intercept) %>%
-        mutate(across(V1, ~.x + gen_eff + block_eff + resid)) %>%
+        df |>
+        left_join(gen_eff, by = "GEN") |>
+        left_join(block_eff, by = "REP") |>
+        add_cols(resid = rnorm(ngen * nrep, 0, res_eff)) |>
+        add_cols(V1 = intercept) |>
+        mutate(across(V1, ~.x + gen_eff + block_eff + resid)) |>
         remove_cols(gen_eff:resid)
       return(df2)
     }
@@ -273,9 +273,9 @@ g_simula <- function(ngen,
     dfs[[paste("V", i, sep = "")]] <- temp
   }
   dfs_bind <-
-    dfs %>%
-    reduce(left_join, by = c("GEN", "REP")) %>%
-    set_names("GEN", "REP", paste("V", 1:nvars, sep = "")) %>%
+    dfs |>
+    reduce(left_join, by = c("GEN", "REP")) |>
+    set_names("GEN", "REP", paste("V", 1:nvars, sep = "")) |>
     as_factor(1:2)
   return(dfs_bind)
 }

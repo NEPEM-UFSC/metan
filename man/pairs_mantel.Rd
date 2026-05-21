@@ -117,9 +117,9 @@ permutations.
 \donttest{
 library(metan)
 # iris dataset
-lpc <- iris \%>\%
-       group_by(Species) \%>\%
-       lpcor() \%>\%
+lpc <- iris |>
+       group_by(Species) |>
+       lpcor() |>
        pairs_mantel(names = c('setosa', 'versicolor', 'virginica'))
 
 
@@ -128,7 +128,7 @@ mt_num <- select_numeric_cols(mtcars)
 lpdata <- as.lpcor(cor(mt_num[1:5]),
                    cor(mt_num[1:5]),
                    cor(mt_num[2:6]),
-                   cor(mt_num[4:8])) \%>\%
+                   cor(mt_num[4:8])) |>
           pairs_mantel()
 }
 }

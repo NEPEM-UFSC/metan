@@ -9,10 +9,10 @@
 #' * `gmd()` Is a shortcut to `get_model_data`.
 #' * `sel_gen()` Extracts the selected genotypes by a given index.
 #' @param x An object created with the functions [ammi_indexes()],
-#'   [anova_ind()], [anova_joint()], [can_corr()] [ecovalence()],  [Fox()],
-#'   [gai()], [gamem()],[gafem()], [ge_acv()], [ge_means()], [ge_reg()],
+#'   [anova_ind()], [anova_joint()], [can_corr()] [ecovalence()],  [finlay_wilkinson()], [Fox()],
+#'   [gai()], [gamem()],[gafem()], [ge_acv()], [ge_means()], [eberhart_russell()],
 #'   [gytb()], [mgidi()], [performs_ammi()], [blup_indexes()], [Shukla()],
-#'   [superiority()], [waas()] or [waasb()].
+#'   [lin_binns()], [waas()] or [waasb()].
 #' @param what What should be captured from the model. See more in section
 #'   **Details**.
 #' @param type Chose if the statistics must be show by genotype (`type =
@@ -105,7 +105,13 @@
 #' * `"POLAR"` The Power Law Residuals (default).
 #' * `"POLAR_R"` The rank for Power Law Residuals.
 #'
-#'  **Objects of class `ge_reg`:**
+#'  **Objects of class `FW`:**
+#' * `"estimates"` The genotype intercepts and slopes of the regression (default).
+#' * `"predictions"` The predicted values.
+#' * `"var_e"` The residual variances for each genotype.
+#' * `"var_e_weighted"` The pooled weighted error variance.
+#'
+#'  **Objects of class `eberhart_russell`:**
 #' * `GEN`: the genotypes.
 #' * `b0` and `b1` (default): the intercept and slope of the regression,
 #' respectively.
@@ -172,7 +178,7 @@
 #' * `"GAI"` The geometric adaptability index (default).
 #' * `"GAI_R"` The rank for the GAI values.
 #'
-#'  **Objects of class `superiority`:**
+#'  **Objects of class `lin_binns`:**
 #' * `"Pi_a"` The superiority measure for all environments (default).
 #' * `"R_a"` The rank for Pi_a.
 #' * `"Pi_f"` The superiority measure for favorable environments.
@@ -324,8 +330,8 @@
 #'
 #' @seealso [ammi_indexes()], [anova_ind()], [anova_joint()], [ecovalence()],
 #'   [Fox()], [gai()], [gamem()], [gafem()], [ge_acv()], [ge_polar()]
-#'   [ge_means()], [ge_reg()], [mgidi()], [mtsi()], [mps()], [mtmps()],
-#'   [performs_ammi()], [blup_indexes()], [Shukla()], [superiority()], [waas()],
+#'   [ge_means()], [eberhart_russell()], [finlay_wilkinson()], [mgidi()], [mtsi()], [mps()], [mtmps()],
+#'   [performs_ammi()], [blup_indexes()], [Shukla()], [lin_binns()], [waas()],
 #'   [waasb()]
 #' @importFrom dplyr bind_rows
 #' @importFrom purrr map_dfr
@@ -369,42 +375,41 @@ get_model_data <- function(x,
                            type = "GEN",
                            verbose = TRUE) {
   call_f <- match.call()
-  if (!has_class(x, c("waasb", "waasb_group", "waas","waas_means", "gamem", "performs_ammi",
-                      "blup_ind", "ammi_indexes", "ecovalence", "ge_reg", "Fox", "Shukla",
-                      "superiority", "ge_effects", "gai", "Huehn", "Thennarasu",
-                      "ge_stats", "Annicchiarico", "Schmildt", "ge_means", "anova_joint",
-                      "gafem", "gafem_group", "gamem_group", "anova_ind", "gge", "can_cor",
-                      "can_cor_group", "gytb", "ge_acv", "ge_polar", "mgidi", "mtsi",
-                      "env_stratification", "fai_blup", "sh", "mps", "mtmps", "path_coeff",
-                      "path_coeff_seq", "group_path_seq", "group_path", "colindiag", "colingroup"))) {
-    stop("Invalid class in object ", call_f[["x"]], ". See ?get_model_data for more information.", call. = FALSE)
+
+  valid_classes <- c("waasb", "waasb_group", "waas","waas_means", "gamem", "performs_ammi", "ammi",
+                     "blup_ind", "ammi_indexes", "ecovalence", "plaisted_peterson", "eberhart_russell", "ge_reg", "Fox", "Shukla",
+                     "lin_binns", "superiority", "ge_effects", "gai", "Huehn", "Thennarasu",
+                     "ge_stats", "Annicchiarico", "Schmildt", "ge_means", "anova_joint",
+                     "gafem", "gafem_group", "gamem_group", "anova_ind", "gge", "can_cor",
+                     "can_cor_group", "gytb", "ge_acv", "ge_polar", "mgidi", "mtsi",
+                     "env_stratification", "fai_blup", "sh", "mps", "mtmps", "path_coeff",
+                     "path_coeff_seq", "group_path_seq", "group_path", "colindiag", "colingroup", "FW")
+
+  if (!has_class(x, valid_classes)) {
+    cli::cli_abort("Invalid class in object {call_f[['x']]}. See ?get_model_data for more information.")
   }
+
   if (!is.null(what) && what != "PCA" && substr(what, 1, 2) == "PC") {
-    npc <- ncol(x[[1]][["model"]] %>%
-                  select(starts_with("PC")) %>%
+    npc <- ncol(x[[1]][["model"]] |>
+                  select(starts_with("PC")) |>
                   select(matches("PC\\d+")))
     npcwhat <- as.numeric(substr(what, 3, nchar(what)))
     if (npcwhat > npc) {
-      stop("The number of principal components informed is greater than those in model (", npc, ").", call. = FALSE)
+      cli::cli_abort("The number of principal components informed is greater than those in model ({npc}).")
     }
   }
-  check <- c(
-    "blupg", "blupge","blueg","bluege", "Y", "WAASB", "PctResp", "PctWAASB", "wRes", "wWAASB", "OrResp", "OrWAASB",
-    "OrPC1", "WAASBY", "OrWAASBY", "vcomp", "lrt", "details", "genpar", "ranef", "data", "gcov",
-    "gcor", "pcov", "pcor", "fixed", "h2")
+
+  check <- c("blupg", "blupge","blueg","bluege", "Y", "WAASB", "PctResp", "PctWAASB", "wRes", "wWAASB", "OrResp", "OrWAASB", "OrPC1", "WAASBY", "OrWAASBY", "vcomp", "lrt", "details", "genpar", "ranef", "data", "gcov", "gcor", "pcov", "pcor", "fixed", "h2")
   check1 <- c("Y", "WAAS", "PctResp", "PctWAAS", "wRes", "wWAAS", "OrResp", "OrWAAS", "OrPC1", "WAASY", "OrWAASY")
   check2 <- paste("PC", 1:200, sep = "")
   check3 <- c("blupg", "blupge", "blueg","bluege", "vcomp", "lrt", "genpar", "details", "ranef", "data", "gcov", "gcor", "pcov", "pcor", "fixed")
   check3.1 <- c("h2", "blupg", "blueg", "vcomp", "lrt", "genpar", "details", "ranef", "data", "gcov", "gcor", "pcov", "pcor", "fixed")
-  check4 <- c("Y", "WAASB", "PctResp", "PctWAASB", "wRes", "wWAASB",
-              "OrResp", "OrWAASB", "OrPC1", "WAASBY", "OrWAASBY")
+  check4 <- c("Y", "WAASB", "PctResp", "PctWAASB", "wRes", "wWAASB", "OrResp", "OrWAASB", "OrPC1", "WAASBY", "OrWAASBY")
   check5 <- c("ipca_ss", "ipca_ms", "ipca_fval", "ipca_pval", "ipca_expl", "ipca_accum")
   check6 <- c("HMGV", "HMGV_R", "RPGV", "RPGV_Y", "RPGV_R", "HMRPGV", "HMRPGV_Y", "HMRPGV_R", "WAASB", "WAASB_R")
-  check7 <- c("ASTAB", "ASTAB_R", "ssiASTAB", "ASI", "ASI_R", "ASI_SSI", "ASV", "ASV_R", "ASV_SSI","AVAMGE",
-              "AVAMGE_R","AVAMGE_SSI","DA","DA_R","DA_SSI","DZ","DZ_R","DZ_SSI","EV","EV_R","EV_SSI","FA",
-              "FA_R","FA_SSI","MASI","MASI_R","MASI_SSI","MASV","MASV_R","MASV_SSI","SIPC","SIPC_R","SIPC_SSI",
-              "ZA","ZA_R","ZA_SSI","WAAS","WAAS_R","WAAS_SSI")
+  check7 <- c("ASTAB", "ASTAB_R", "ssiASTAB", "ASI", "ASI_R", "ASI_SSI", "ASV", "ASV_R", "ASV_SSI","AVAMGE", "AVAMGE_R","AVAMGE_SSI","DA","DA_R","DA_SSI","DZ","DZ_R","DZ_SSI","EV","EV_R","EV_SSI","FA", "FA_R","FA_SSI","MASI","MASI_R","MASI_SSI","MASV","MASV_R","MASV_SSI","SIPC","SIPC_R","SIPC_SSI", "ZA","ZA_R","ZA_SSI","WAAS","WAAS_R","WAAS_SSI")
   check8 <- c("Ecoval", "Ecov_perc", "rank")
+  check8.1 <- c("theta", "theta_prop")
   check9 <- c("GEN", "b0", "b1", "t(b1=1)", "pval_t", "s2di", "F(s2di=0)", "pval_f", "RMSE", "R2", "coefs", "anova")
   check10 <- c("TOP")
   check11 <- c("ShuklaVar", "rMean", "rShukaVar", "ssiShukaVar")
@@ -423,461 +428,301 @@ get_model_data <- function(x,
   check24 <- c("gyt", "stand_gyt", "si")
   check25 <- c("ACV", "ACV_R")
   check26 <- c("POLAR", "POLAR_R")
-  check27 <- c("data", "cormat", "PCA", "FA", "KMO", "MSA", "communalities",
-               "communalities_mean", "initial_loadings", "finish_loadings",
-               "canonical_loadings", "scores_gen", "scores_ide", "gen_ide",
-               "MGIDI", "contri_fac", "contri_fac_rank", "contri_fac_rank_sel",
-               "sel_dif", "stat_gain", "sel_gen")
-  check28 <- c("data", "cormat", "PCA", "FA", "KMO", "MSA", "communalities",
-               "communalities_mean", "initial_loadings", "finish_loadings",
-               "canonical_loadings", "scores_gen", "scores_ide", "gen_ide",
-               "MTSI", "contri_fac", "contri_fac_rank", "contri_fac_rank_sel",
-               "sel_dif_trait", "stat_dif_trait", "sel_dif_stab", "stat_dif_stab",
-               "sel_dif_mps", "stat_dif_mps", "sel_gen")
+  check27 <- c("data", "cormat", "PCA", "FA", "KMO", "MSA", "communalities", "communalities_mean", "initial_loadings", "finish_loadings", "canonical_loadings", "scores_gen", "scores_ide", "gen_ide", "MGIDI", "contri_fac", "contri_fac_rank", "contri_fac_rank_sel", "sel_dif", "stat_gain", "sel_gen")
+  check28 <- c("data", "cormat", "PCA", "FA", "KMO", "MSA", "communalities", "communalities_mean", "initial_loadings", "finish_loadings", "canonical_loadings", "scores_gen", "scores_ide", "gen_ide", "MTSI", "contri_fac", "contri_fac_rank", "contri_fac_rank_sel", "sel_dif_trait", "stat_dif_trait", "sel_dif_stab", "stat_dif_stab", "sel_dif_mps", "stat_dif_mps", "sel_gen")
   check29 <- c("FA", "env_strat", "mega_env_stat")
-  check30 <- c("data", "eigen", "FA", "canonical_loadings", "FAI", "sel_dif_trait",
-               "sel_gen", "construction_ideotypes")
+  check30 <- c("data", "eigen", "FA", "canonical_loadings", "FAI", "sel_dif_trait", "sel_gen", "construction_ideotypes")
   check31 <- c("b", "index", "sel_dif_trait", "total_gain", "sel_gen", "gcov", "pcov")
-  check32 <- c("observed", "performance", "performance_res", "stability",
-               "stability_res", "mps_ind", "h2", "perf_method", "wmper",
-               "sense_mper", "stab_method", "wstab", "sense_stab")
+  check32 <- c("observed", "performance", "performance_res", "stability", "stability_res", "mps_ind", "h2", "perf_method", "wmper", "sense_mper", "stab_method", "wstab", "sense_stab")
+  check36 <- c("estimates", "predictions", "var_e", "var_e_weighted")
   check33 <- c("coef", "eigenval", "vif")
   check34 <- c("resp_fc", "resp_sc", "resp_sc2", "fc_sc_coef")
   check35 <- c("cormat", "corlist", "evalevet", "VIF", "indicators")
 
+  bind <- NULL
 
   if(has_class(x, c("colindiag", "colingroup"))){
-    if (is.null(what)){
-      what <- "indicators"
-    }
-    if (!what %in% check35) {
-      stop("Invalid value in 'what' for object of class 'colindiag'. Allowed are ", paste(check35, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "indicators"
+    what <- rlang::arg_match(what, values = check35)
+
     if(has_class(x, "colingroup")){
-      bind <-
-        x %>%
-        mutate(data = map(data, ~.x %>% .[[what]])) %>%
+      bind <- x |>
+        mutate(data = map(data, \(d) d[[what]])) |>
         unnest(data)
-    } else{
+    } else {
       bind <- x[[what]]
     }
   }
 
-
-
   if(has_class(x, c("path_coeff", "group_path"))){
-    if (is.null(what)){
-      what <- "coef"
-    }
-    if (!what %in% check33) {
-      stop("Invalid value in 'what' for object of class 'path_coeff'. Allowed are ", paste(check33, collapse = ", "), call. = FALSE)
-    }
-    what <-
-      switch(what,
-             "coef" = "Coefficients",
-             "eigenval" = "Eigen",
-             "vif" = "vif")
+    if (is.null(what)) what <- "coef"
+    what <- rlang::arg_match(what, values = check33)
+
+    what <- switch(what, "coef" = "Coefficients", "eigenval" = "Eigen", "vif" = "vif")
     if(has_class(x, "group_path")){
-      bind <-
-        x %>%
-        mutate(data = map(data, ~.x %>% .[[what]])) %>%
+      bind <- x |>
+        mutate(data = map(data, \(d) d[[what]])) |>
         unnest(data)
-    } else{
+    } else {
       bind <- x[[what]]
     }
   }
 
   if (has_class(x, c("path_coeff_seq", "group_path_seq"))){
-    if (is.null(what)){
-      what <- "resp_sc2"
-    }
-    if (!what %in% check34) {
-      stop("Invalid value in 'what' for object of class 'path_coeff_seq'. Allowed are ", paste(check34, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "resp_sc2"
+    what <- rlang::arg_match(what, values = check34)
+
     if(has_class(x, "group_path_seq")){
       if(what %in% c("resp_fc", "resp_sc")){
-        bind <-
-          x %>%
-          mutate(data = map(data, ~.x %>% .[[what]][["Coefficients"]])) %>%
+        bind <- x |>
+          mutate(data = map(data, \(d) d[[what]][["Coefficients"]])) |>
           unnest(data)
-      } else{
-        bind <-
-          x %>%
-          mutate(data = map(data, ~.x %>% .[[what]])) %>%
+      } else {
+        bind <- x |>
+          mutate(data = map(data, \(d) d[[what]])) |>
           unnest(data)
       }
-    } else{
+    } else {
       if(what %in% c("resp_fc", "resp_sc")){
         bind <- x[[what]][["Coefficients"]]
-      } else{
+      } else {
         bind <- x[[what]]
       }
     }
   }
 
-
-
-
   if (!is.null(what) && what %in% check3 && !has_class(x, c("waasb", "waas", "waasb_group", "gamem", "gamem_group", "gafem", "anova_joint"))) {
-    stop("Invalid argument 'what'. It can only be used with an oject of class 'waasb' or 'gamem', 'gafem, or 'anova_joint'. Please, check and fix.")
+    cli::cli_abort("Invalid argument 'what'. It can only be used with an object of class 'waasb' or 'gamem', 'gafem', or 'anova_joint'. Please, check and fix.")
   }
   if (!type %in% c("GEN", "ENV")) {
-    stop("Argument 'type' invalid. It must be either 'GEN' or 'ENV'.")
+    cli::cli_abort("Argument 'type' invalid. It must be either 'GEN' or 'ENV'.")
   }
 
   if(has_class(x, "mps")){
-    if (is.null(what)){
-      what <- "mps_ind"
-    }
-    if (!what %in% check32) {
-      stop("Invalid value in 'what' for object of class 'mps'. Allowed are ", paste(check32, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "mps_ind"
+    what <- rlang::arg_match(what, values = check32)
+
     if(has_class(x, "mps_group")){
-      bind <-
-        x %>%
-        mutate(data = map(data, ~.x %>% .[[what]])) %>%
+      bind <- x |>
+        mutate(data = map(data, \(d) d[[what]])) |>
         unnest(data)
-    } else{
+    } else {
       bind <- x[[what]]
     }
   }
 
-
-
   if(has_class(x, "sh")){
-    if (is.null(what)){
-      what <- "sel_dif_trait"
-    }
-    if (!what %in% check31) {
-      stop("Invalid value in 'what' for object of class 'sh'. Allowed are ", paste(check31, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "sel_dif_trait"
+    what <- rlang::arg_match(what, values = check31)
     bind <- x[[what]]
   }
 
   if(has_class(x, "fai_blup")){
-    if (is.null(what)){
-      what <- "sel_dif_trait"
-    }
-    if (!what %in% check30) {
-      stop("Invalid value in 'what' for object of class 'fai_blup'. Allowed are ", paste(check30, collapse = ", "), call. = FALSE)
-    }
-    if(what == "sel_dif_trait"){
-      bind <- x[[what]][[1]]
-    } else{
-      bind <- x[[what]]
-    }
+    if (is.null(what)) what <- "sel_dif_trait"
+    what <- rlang::arg_match(what, values = check30)
+    bind <- if(what == "sel_dif_trait") x[[what]][[1]] else x[[what]]
   }
 
   if(has_class(x, "env_stratification")){
-    if (is.null(what)){
-      what <- "env_strat"
-    }
-    if (!what %in% check29) {
-      stop("Invalid value in 'what' for object of class 'env_stratification'. Allowed are ", paste(check29, collapse = ", "), call. = FALSE)
-    }
-    bind <- x %>% map_dfr(~ bind_rows(!!! .x %>% .[[what]]), .id = 'TRAIT')
+    if (is.null(what)) what <- "env_strat"
+    what <- rlang::arg_match(what, values = check29)
+    bind <- x |> map_dfr(\(m) bind_rows(!!! m[[what]]), .id = 'TRAIT')
   }
+
   if(has_class(x, c("mtsi", "mtmps"))){
-    if (is.null(what)){
-      what <- "sel_dif_trait"
-    }
-    if (!what %in% check28) {
-      stop("Invalid value in 'what' for object of class '", class(x), "'. Allowed are ", paste(check28, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "sel_dif_trait"
+    what <- rlang::arg_match(what, values = check28)
     bind <- x[[what]]
   }
-  if(has_class(x, "mgidi")){
-    if (is.null(what)){
-      what <- "sel_dif"
-    }
-    if (!what %in% check27) {
-      stop("Invalid value in 'what' for object of class 'mgidi'. Allowed are ", paste(check27, collapse = ", "), call. = FALSE)
-    }
-    if(has_class(x, "mgidi_group")){
-      bind <-
-        x %>%
-        mutate(data = map(data, ~.x %>% .[[what]])) %>%
-        unnest(data)
-    } else{
 
+  if(has_class(x, "mgidi")){
+    if (is.null(what)) what <- "sel_dif"
+    what <- rlang::arg_match(what, values = check27)
+
+    if(has_class(x, "mgidi_group")){
+      bind <- x |>
+        mutate(data = map(data, \(d) d[[what]])) |>
+        unnest(data)
+    } else {
       bind <- x[[what]]
     }
   }
-  if (has_class(x,  "ge_polar")) {
-    if (is.null(what)){
-      what <- "POLAR"
-    }
-    if (!what %in% check26) {
-      stop("Invalid value in 'what' for object of class 'ge_acv'. Allowed are ", paste(check26, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
+
+  if (has_class(x, "ge_polar")) {
+    if (is.null(what)) what <- "POLAR"
+    what <- rlang::arg_match(what, values = check26)
+    bind <- map(x, \(m) m[[what]]) |>
+      as_tibble() |>
+      mutate(GEN = x[[1]][["GEN"]]) |>
       column_to_first(GEN)
   }
 
-  if (has_class(x,  "ge_acv")) {
-    if (is.null(what)){
-      what <- "ACV"
-    }
-    if (!what %in% check25) {
-      stop("Invalid value in 'what' for object of class 'ge_acv'. Allowed are ", paste(check25, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
+  if (has_class(x, "ge_acv")) {
+    if (is.null(what)) what <- "ACV"
+    what <- rlang::arg_match(what, values = check25)
+    bind <- map(x, \(m) m[[what]]) |>
+      as_tibble() |>
+      mutate(GEN = x[[1]][["GEN"]]) |>
       column_to_first(GEN)
   }
 
-  if(has_class(x,  "gge") & length(class(x)) == 1){
-    if (is.null(what)){
-      what <- "scores"
-    }
-    if(has_class(x,  "gge") && !what %in% check22){
-      stop("Invalid value in 'what' for an object of class '", class(x), "'. Allowed are ", paste(check22, collapse = ", "), call. = FALSE)
-    }
+  if(has_class(x, "gge") & length(class(x)) == 1){
+    if (is.null(what)) what <- "scores"
+    what <- rlang::arg_match(what, values = check22)
+
     if(what == "scores"){
       npc <- length(x[[1]]$varexpl)
-      bind <- lapply(x, function(x) {
-        rbind(x$coordgen %>%
-                as.data.frame() %>%
-                set_names(paste("PC", 1:npc, sep = "")) %>%
-                add_cols(TYPE = "GEN",
-                         CODE = x$labelgen,
-                         .before = 1),
-              x$coordenv %>%
-                as.data.frame() %>%
-                set_names(paste("PC", 1:npc, sep = "")) %>%
-                add_cols(TYPE = "ENV",
-                         CODE = x$labelenv,
-                         .before = 1))
-      }) %>%
-        rbind_fill_id(.id = "TRAIT")
+      bind <- lapply(x, function(m) {
+        rbind(m$coordgen |> as.data.frame() |> set_names(paste0("PC", 1:npc)) |> add_cols(TYPE = "GEN", CODE = m$labelgen, .before = 1),
+              m$coordenv |> as.data.frame() |> set_names(paste0("PC", 1:npc)) |> add_cols(TYPE = "ENV", CODE = m$labelenv, .before = 1))
+      }) |> rbind_fill_id(.id = "TRAIT")
     }
     if(what == "exp_var"){
-      bind <- lapply(x, function(x) {
-        tibble(PC = x$labelaxes,
-               Eigenvalue = x$eigenvalues,
-               Variance = x$varexpl,
-               Accumulated = cumsum(Variance))
-      }) %>%
-        rbind_fill_id(.id = "TRAIT")
+      bind <- lapply(x, function(m) {
+        tibble(PC = m$labelaxes, Eigenvalue = m$eigenvalues, Variance = m$varexpl, Accumulated = cumsum(Variance))
+      }) |> rbind_fill_id(.id = "TRAIT")
     }
     if(what == "projection"){
-      bind <- lapply(x, function(x) {
-        coord_gen <-  x$coordgen[, c(1, 2)]
-        coord_env <-  x$coordenv[, c(1, 2)]
+      bind <- lapply(x, function(m) {
+        coord_gen <- m$coordgen[, c(1, 2)]
+        coord_env <- m$coordenv[, c(1, 2)]
         med1 <- mean(coord_env[, 1])
         med2 <- mean(coord_env[, 2])
-        labgen <- x$labelgen
+        labgen <- m$labelgen
         x1 <- NULL
-        for (i in 1:nrow(x$ge_mat)) {
-          x <- solve(matrix(c(-med2, med1, med1, med2), nrow = 2),
-                     matrix(c(0, med2 * coord_gen[i, 2] + med1 * coord_gen[i, 1]), ncol = 1))
-          x1 <- rbind(x1, t(x))
+        for (i in 1:nrow(m$ge_mat)) {
+          xi <- solve(matrix(c(-med2, med1, med1, med2), nrow = 2),
+                      matrix(c(0, med2 * coord_gen[i, 2] + med1 * coord_gen[i, 1]), ncol = 1))
+          x1 <- rbind(x1, t(xi))
         }
-        plotdata <- data.frame(coord_gen,
-                               type = "genotype",
-                               GEN = labgen) %>%
-          mutate(x1_x = x1[, 1],
-                 x1_y = x1[, 2],
-                 PROJECTION = sqrt((x1_x - X1)^2 + (x1_y - X2)^2))
-      }) %>%
-        rbind_fill_id(.id = "TRAIT") %>%
-        select(TRAIT, GEN, PROJECTION) %>%
+        data.frame(coord_gen, type = "genotype", GEN = labgen) |>
+          mutate(x1_x = x1[, 1], x1_y = x1[, 2], PROJECTION = sqrt((x1_x - X1)^2 + (x1_y - X2)^2))
+      }) |>
+        rbind_fill_id(.id = "TRAIT") |>
+        select(TRAIT, GEN, PROJECTION) |>
         arrange(PROJECTION)
     }
   }
-  if(has_class(x, "gytb")){
-    if (is.null(what)){
-      what <- "gyt"
-    }
-    if(has_class(x, "gytb") && !what %in% check24){
-      stop("Invalid value in 'what' for an object of class '", class(x), "'. Allowed are ", paste(check24, collapse = ", "), call. = FALSE)
-    }
 
-    if(what == "gyt"){
-      bind <- x[["mod"]][["data"]]
-    }
-    if(what == "stand_gyt"){
-      bind <- x[["mod"]][["ge_mat"]]
-    }
+  if(has_class(x, "gytb")){
+    if (is.null(what)) what <- "gyt"
+    what <- rlang::arg_match(what, values = check24)
+
+    if(what == "gyt") bind <- x[["mod"]][["data"]]
+    if(what == "stand_gyt") bind <- x[["mod"]][["ge_mat"]]
     if(what == "si"){
-      bind <-
-        x[["mod"]][["ge_mat"]] %>%
-        as.data.frame() %>%
-        add_cols(SI = rowSums(.)) %>%
-        rownames_to_column("GEN") %>%
-        select(GEN, SI) %>%
+      bind <- x[["mod"]][["ge_mat"]] |>
+        as.data.frame() |>
+        (\(df) add_cols(df, SI = rowSums(df)))() |>
+        rownames_to_column("GEN") |>
+        select(GEN, SI) |>
         arrange(-SI)
     }
   }
+
   if(has_class(x, c("can_cor", "can_cor_group"))){
-    if (is.null(what)){
-      what <- "coefs"
-    }
-    if(has_class(x, c("can_cor", "can_cor_group")) && !what %in% check23){
-      stop("Invalid value in 'what' for an object of class '", class(x), "'. Allowed are ", paste(check23, collapse = ", "), call. = FALSE)
-    }
-    fg_what <- case_when(
-      what == "coefs" ~ "Coef_FG",
-      what == "loads" ~ "Loads_FG",
-      what == "crossloads" ~ "Crossload_FG"
-    )
-    sg_what <- case_when(
-      what == "coefs" ~ "Coef_SG",
-      what == "loads" ~ "Loads_SG",
-      what == "crossloads" ~ "Crossload_SG"
-    )
+    if (is.null(what)) what <- "coefs"
+    what <- rlang::arg_match(what, values = check23)
+
+    fg_what <- case_when(what == "coefs" ~ "Coef_FG", what == "loads" ~ "Loads_FG", what == "crossloads" ~ "Crossload_FG")
+    sg_what <- case_when(what == "coefs" ~ "Coef_SG", what == "loads" ~ "Loads_SG", what == "crossloads" ~ "Crossload_SG")
+
     if(has_class(x, "can_cor_group")){
       npairs <- ncol(x[["data"]][[1]][["Coef_FG"]])
       if(what == "canonical"){
-        bind <-
-          x %>%
-          mutate(test = map(data, ~.x %>% .[["Sigtest"]])) %>%
-          remove_cols(data) %>%
-          unnest(test)
-      } else{
-        bind <-
-          rbind(
-            x %>%
-              mutate(FG = map(data, ~.x %>% .[[fg_what]] %>%
-                                as_tibble(rownames = NA) %>%
-                                set_names(paste("CP", 1:npairs, sep = "")) %>%
-                                rownames_to_column("VAR"))) %>%
-              remove_cols(data) %>%
-              unnest(FG) %>%
-              add_cols(GROUP = "FG", .before = VAR),
-
-            x %>%
-              mutate(SG = map(data, ~.x %>% .[[sg_what]] %>%
-                                as_tibble(rownames = NA) %>%
-                                set_names(paste("CP", 1:npairs, sep = "")) %>%
-                                rownames_to_column("VAR"))) %>%
-              remove_cols(data) %>%
-              unnest(SG) %>%
-              add_cols(GROUP = "SG", .before = VAR)
-          )
+        bind <- x |> mutate(test = map(data, \(d) d[["Sigtest"]])) |> remove_cols(data) |> unnest(test)
+      } else {
+        bind <- rbind(
+          x |> mutate(FG = map(data, \(d) d[[fg_what]] |> as_tibble(rownames = NA) |> set_names(paste0("CP", 1:npairs)) |> rownames_to_column("VAR"))) |> remove_cols(data) |> unnest(FG) |> add_cols(GROUP = "FG", .before = VAR),
+          x |> mutate(SG = map(data, \(d) d[[sg_what]] |> as_tibble(rownames = NA) |> set_names(paste0("CP", 1:npairs)) |> rownames_to_column("VAR"))) |> remove_cols(data) |> unnest(SG) |> add_cols(GROUP = "SG", .before = VAR)
+        )
       }
-    } else{
+    } else {
       npairs <- ncol(x[["Coef_FG"]])
       if(what == "canonical"){
-        bind <-
-          x[["Sigtest"]] %>%
-          as_tibble(rownames = NA) %>%
-          rownames_to_column("GROUP")
-      } else{
-        bind <-
-          rbind(x[[fg_what]] %>%
-                  as_tibble(rownames = NA) %>%
-                  set_names(paste("CP", 1:npairs, sep = "")) %>%
-                  rownames_to_column("VAR") %>%
-                  add_cols(GROUP = "FG", .before = VAR),
-                x[[sg_what]] %>%
-                  as_tibble(rownames = NA) %>%
-                  set_names(paste("CP", 1:npairs, sep = "")) %>%
-                  rownames_to_column("VAR") %>%
-                  add_cols(GROUP = "SG", .before = VAR)
-          )
+        bind <- x[["Sigtest"]] |> as_tibble(rownames = NA) |> rownames_to_column("GROUP")
+      } else {
+        bind <- rbind(
+          x[[fg_what]] |> as_tibble(rownames = NA) |> set_names(paste0("CP", 1:npairs)) |> rownames_to_column("VAR") |> add_cols(GROUP = "FG", .before = VAR),
+          x[[sg_what]] |> as_tibble(rownames = NA) |> set_names(paste0("CP", 1:npairs)) |> rownames_to_column("VAR") |> add_cols(GROUP = "SG", .before = VAR)
+        )
       }
     }
   }
 
   if (has_class(x, c("waasb", "waasb_group", "gamem", "gamem_group"))) {
-    if (is.null(what)){
-      what <- "genpar"
-    }
+    if (is.null(what)) what <- "genpar"
+
     if(has_class(x, c("gamem_group", "waasb_group"))){
-      bind <-
-        x %>%
-        mutate(bind = map(data, ~.x %>% gmd(what = what, verbose = verbose))) %>%
-        unnest(bind) %>%
+      bind <- x |>
+        mutate(bind = map(data, \(d) gmd(d, what = what, verbose = verbose))) |>
+        unnest(bind) |>
         remove_cols(data)
-    } else{
-      if(is.null(x[[1]][["ESTIMATES"]]) == TRUE && what  %in%  c("genpar", "gcov", "gcor", "h2")){
-        warning("Using what = '",what, "' is only possible for models fitted with random = 'gen' or random = 'all'\nSetting what to 'vcomp'.", call. = FALSE)
+    } else {
+      if(is.null(x[[1]][["ESTIMATES"]]) && what %in% c("genpar", "gcov", "gcor", "h2")){
+        cli::cli_warn("Using what = '{what}' is only possible for models fitted with random = 'gen' or random = 'all'\nSetting what to 'vcomp'.")
         what <- "vcomp"
       }
-      if(has_class(x,  "gamem") && !what %in% check3.1){
-        stop("Invalid value in 'what' for an object of class '", class(x), "'. Allowed are ", paste(check3.1, collapse = ", "), call. = FALSE)
-      }
-      if(has_class(x,  "waasb") && !what %in% check){
-        stop("Invalid value in 'what' for an object of class '", class(x), "'. Allowed are ", paste(check, collapse = ", "), call. = FALSE)
-      }
-      if (has_class(x,  "waasb") & what %in% check4) {
-        bind <- sapply(x, function(x) {
-          x$model[[what]]
-        }) %>%
-          as_tibble() %>%
-          mutate(GEN = x[[1]][["model"]][["Code"]],
-                 TYPE = x[[1]][["model"]][["type"]]) %>%
-          dplyr::filter(TYPE == {{type}}) %>%
-          remove_cols(TYPE) %>%
+      if(has_class(x, "gamem")) what <- rlang::arg_match(what, values = check3.1)
+      if(has_class(x, "waasb")) what <- rlang::arg_match(what, values = check)
+
+      if (has_class(x, "waasb") && what %in% check4) {
+        bind <- map(x, \(m) m$model[[what]]) |>
+          as_tibble() |>
+          mutate(GEN = x[[1]][["model"]][["Code"]], TYPE = x[[1]][["model"]][["type"]]) |>
+          dplyr::filter(TYPE == {{type}}) |>
+          remove_cols(TYPE) |>
           column_to_first(GEN)
       }
       if(what == "h2"){
-        bind <-
-          gmd(x, verbose = FALSE) %>%
-          subset(Parameters == "h2mg") %>%
-          remove_cols(1) %>%
-          t() %>%
-          as.data.frame() %>%
-          rownames_to_column("VAR") %>%
+        bind <- gmd(x, verbose = FALSE) |>
+          subset(Parameters == "h2mg") |>
+          remove_cols(1) |>
+          t() |> as.data.frame() |>
+          rownames_to_column("VAR") |>
           set_names("VAR", "h2")
       }
       if (what == "data") {
-        bind <-
-          map(x, ~.x[["residuals"]] %>% select_cols(1:Y)) %>%
-          rbind_fill_id(.id = "VAR") %>%
-          pivot_wider(names_from = VAR,
-                      values_from = Y,
-                      values_fn = {mean})
+        bind <- map(x, \(m) m[["residuals"]] |> dplyr::select(1:Y)) |>
+          rbind_fill_id(.id = "VAR") |>
+          pivot_wider(names_from = VAR, values_from = Y, values_fn = mean)
       }
       if (what == "gcov") {
         data <- gmd(x, "data", verbose = FALSE)
-        if(ncol(select_numeric_cols(data)) < 2){
-          stop("Only one numeric variable. No matrix generated.", call. = FALSE)
-        }
+        if(ncol(select_numeric_cols(data)) < 2) cli::cli_abort("Only one numeric variable. No matrix generated.")
+
         fctrs <- names(select_non_numeric_cols(data))
-        formula <-
-          x[[1]][["formula"]] %>%
-          replace_string(pattern = "Y", replacement = "value") %>%
-          as.formula()
-        gvar <-
-          data %>%
-          pivot_longer(-all_of(fctrs)) %>%
-          group_by(name) %>%
-          doo(~lmer(formula, data = .) %>% VarCorr()) %>%
-          mutate(data = as.numeric(map(data, ~ .[["GEN"]])))
+        formula <- x[[1]][["formula"]] |> replace_string(pattern = "Y", replacement = "value") |> as.formula()
+
+        gvar <- data |>
+          pivot_longer(-all_of(fctrs)) |>
+          group_by(name) |>
+          doo(\(d) VarCorr(lmer(formula, data = d))) |>
+          mutate(data = as.numeric(map(data, \(d) d[["GEN"]])))
+
         factors <- select_non_numeric_cols(data)
         combined_vars <- comb_vars(data, verbose = FALSE)
-        gcov <-
-          cbind(factors, combined_vars) %>%
-          pivot_longer(-all_of(fctrs)) %>%
-          group_by(name) %>%
-          doo(~lmer(formula, data = .) %>% VarCorr()) %>%
-          mutate(data = as.numeric(map(data, ~ .[["GEN"]]))) %>%
-          separate(name, into = c("v1", "v2"), sep = "x") %>%
-          left_join(gvar, by = c("v1" = "name")) %>%
-          left_join(gvar, by = c("v2" = "name")) %>%
+
+        gcov_df <- cbind(factors, combined_vars) |>
+          pivot_longer(-all_of(fctrs)) |>
+          group_by(name) |>
+          doo(\(d) VarCorr(lmer(formula, data = d))) |>
+          mutate(data = as.numeric(map(data, \(d) d[["GEN"]]))) |>
+          separate(name, into = c("v1", "v2"), sep = "x") |>
+          left_join(gvar, by = c("v1" = "name")) |>
+          left_join(gvar, by = c("v2" = "name")) |>
           mutate(gcov = (data.x - data.y - data) / 2)
+
         gcov_mat <- diag(gvar$data, nrow = length(gvar$data), ncol = length(gvar$data))
         colnames(gcov_mat) <- rownames(gcov_mat) <- gvar$name
-        for (i in 1:nrow(gcov)){
-          gcov_mat[which(rownames(gcov_mat) == as.character(gcov[i, 1])),
-                   which(colnames(gcov_mat) == as.character(gcov[i, 2]))] <- pull(gcov[i, 6])
+
+        for (i in 1:nrow(gcov_df)){
+          gcov_mat[which(rownames(gcov_mat) == as.character(gcov_df[i, 1])),
+                   which(colnames(gcov_mat) == as.character(gcov_df[i, 2]))] <- pull(gcov_df[i, 6])
         }
         for(i in 1:nrow(gcov_mat)){
           for(j in 1:ncol(gcov_mat)){
-            if(gcov_mat[i, j] == 0){
-              gcov_mat[i, j] <- gcov_mat[j, i]
-            } else{
-              gcov_mat[i, j] <- gcov_mat[i, j]
-            }
+            gcov_mat[i, j] <- if(gcov_mat[i, j] == 0) gcov_mat[j, i] else gcov_mat[i, j]
           }
         }
         bind <- make_sym(gcov_mat, diag = diag(gcov_mat), make = "lower")
@@ -888,11 +733,7 @@ get_model_data <- function(x,
         bind <- matrix(NA, nrow = nrow(gcov), ncol = ncol(gcov))
         for(i in 1:nrow(gcov)){
           for(j in 1:ncol(gcov)){
-            if(i == j){
-              next
-            } else{
-              bind[i, j] <- gcov[i, j] / sqrt(gcov[i, i] * gcov[j, j])
-            }
+            if(i != j) bind[i, j] <- gcov[i, j] / sqrt(gcov[i, i] * gcov[j, j])
           }
         }
         diag(bind) <- 1
@@ -900,25 +741,15 @@ get_model_data <- function(x,
       }
       if (what == "pcov") {
         data <- gmd(x, "data", verbose = FALSE)
-        if(ncol(select_numeric_cols(data)) < 2){
-          stop("nly one numeric variable. No matrix generated.", call. = FALSE)
-        }
-        bind <-
-          data %>%
-          mean_by(GEN) %>%
-          remove_cols(GEN) %>%
-          cov()
+        if(ncol(select_numeric_cols(data)) < 2) cli::cli_abort("Only one numeric variable. No matrix generated.")
+        bind <- data |> mean_by(GEN) |> remove_cols(GEN) |> cov()
       }
       if (what == "pcor") {
         pcov <- gmd(x, "pcov", verbose = FALSE)
         bind <- matrix(NA, nrow = nrow(pcov), ncol = ncol(pcov))
         for(i in 1:nrow(pcov)){
           for(j in 1:ncol(pcov)){
-            if(i == j){
-              next
-            } else{
-              bind[i, j] <- pcov[i, j] / sqrt(pcov[i, i] * pcov[j, j])
-            }
+            if(i != j) bind[i, j] <- pcov[i, j] / sqrt(pcov[i, i] * pcov[j, j])
           }
         }
         diag(bind) <- 1
@@ -926,574 +757,309 @@ get_model_data <- function(x,
       }
       if (what == "fixed"){
         temps <- lapply(seq_along(x), function(i) {
-          x[[i]][["fixed"]] %>%
-            add_cols(VAR = names(x)[i]) %>%
-            column_to_first(VAR)
+          x[[i]][["fixed"]] |> add_cols(VAR = names(x)[i]) |> column_to_first(VAR)
         })
         names(temps) <- names(x)
-        bind <- temps %>% reduce(full_join, by = names(temps[[1]]))
+        bind <- temps |> reduce(full_join, by = names(temps[[1]]))
       }
       if (what == "vcomp") {
-        bind <- sapply(x, function(x) {
-          val <- x[["random"]][["Variance"]]
-        }) %>%
-          as_tibble() %>%
-          mutate(Group = x[[1]][["random"]][["Group"]]) %>%
+        bind <- map(x, \(m) m[["random"]][["Variance"]]) |>
+          as_tibble() |>
+          mutate(Group = x[[1]][["random"]][["Group"]]) |>
           column_to_first(Group)
       }
       if (what == "genpar") {
-        bind <- sapply(x, function(x) {
-          val <- x[["ESTIMATES"]][["Values"]]
-        }) %>%
-          as_tibble() %>%
-          mutate(Parameters = x[[1]][["ESTIMATES"]][["Parameters"]]) %>%
+        bind <- map(x, \(m) m[["ESTIMATES"]][["Values"]]) |>
+          as_tibble() |>
+          mutate(Parameters = x[[1]][["ESTIMATES"]][["Parameters"]]) |>
           column_to_first(Parameters)
       }
       if (what == "details") {
-        bind <- sapply(x, function(x) {
-          val <- x[["Details"]][["Values"]] %>% as.character()
-        }) %>%
-          as_tibble() %>%
-          mutate(Parameters = x[[1]][["Details"]][["Parameters"]]) %>%
+        bind <- map(x, \(m) as.character(m[["Details"]][["Values"]])) |>
+          as_tibble() |>
+          mutate(Parameters = x[[1]][["Details"]][["Parameters"]]) |>
           column_to_first(Parameters)
       }
       if (what == "lrt") {
         temps <- lapply(seq_along(x), function(i) {
-          x[[i]][["LRT"]] %>%
-            remove_rows_na(verbose = FALSE) %>%
-            add_cols(VAR = names(x)[i]) %>%
-            column_to_first(VAR)
+          x[[i]][["LRT"]] |> remove_rows_na(verbose = FALSE) |> add_cols(VAR = names(x)[i]) |> column_to_first(VAR)
         })
         names(temps) <- names(x)
-        bind <- temps %>% reduce(full_join, by = names(temps[[1]]))
+        bind <- temps |> reduce(full_join, by = names(temps[[1]]))
       }
       if (what %in% c("blupg", "blupge", "blueg", "bluege")) {
         if (what == "blupg") {
-          list <- lapply(x, function(x){
-            x[["BLUPgen"]] %>% select(GEN, Predicted)
-          })
+          list_m <- lapply(x, \(m) m[["BLUPgen"]] |> select(GEN, Predicted))
           bind <- suppressWarnings(
-            lapply(seq_along(list),
-                   function(i){
-                     set_names(list[[i]], "GEN", names(list)[i])
-                   }) %>%
-              reduce(full_join, by = "GEN") %>%
-              arrange(GEN)
+            lapply(seq_along(list_m), \(i) set_names(list_m[[i]], "GEN", names(list_m)[i])) |>
+              reduce(full_join, by = "GEN") |> arrange(GEN)
           )
         }
         if (what == "blupge") {
-          list <- lapply(x, function(x){
-            x[["residuals"]] %>% mean_by(ENV, GEN) %>% select_cols(ENV, GEN, .fitted)
-          })
-          bind <-  suppressWarnings(
-            lapply(seq_along(list),
-                   function(i){
-                     set_names(list[[i]], "ENV", "GEN", names(list)[i])
-                   }) %>%
-              reduce(full_join, by = c("ENV", "GEN")) %>%
-              arrange(ENV, GEN)
+          list_m <- lapply(x, \(m) m[["residuals"]] |> mean_by(ENV, GEN) |> dplyr::select(ENV, GEN, .fitted))
+          bind <- suppressWarnings(
+            lapply(seq_along(list_m), \(i) set_names(list_m[[i]], "ENV", "GEN", names(list_m)[i])) |>
+              reduce(full_join, by = c("ENV", "GEN")) |> arrange(ENV, GEN)
           )
         }
         if (what == "blueg") {
-          list <- lapply(x, function(x){
-            x[["residuals_lm"]] %>% select(GEN, .fitted) %>% mean_by(GEN)
-          })
-          bind <-  suppressWarnings(
-            lapply(seq_along(list),
-                   function(i){
-                     set_names(list[[i]],  "GEN", names(list)[i])
-                   }) %>%
-              reduce(full_join, by = "GEN") %>%
-              arrange(GEN)
+          list_m <- lapply(x, \(m) m[["residuals_lm"]] |> select(GEN, .fitted) |> mean_by(GEN))
+          bind <- suppressWarnings(
+            lapply(seq_along(list_m), \(i) set_names(list_m[[i]], "GEN", names(list_m)[i])) |>
+              reduce(full_join, by = "GEN") |> arrange(GEN)
           )
         }
         if (what == "bluege") {
-          list <- lapply(x, function(x){
-            x[["residuals_lm"]] %>% select(ENV, GEN, .fitted) %>% mean_by(ENV, GEN)
-          })
-          bind <-  suppressWarnings(
-            lapply(seq_along(list),
-                   function(i){
-                     set_names(list[[i]], "ENV", "GEN", names(list)[i])
-                   }) %>%
-              reduce(full_join, by = c("ENV", "GEN")) %>%
-              arrange(ENV, GEN)
+          list_m <- lapply(x, \(m) m[["residuals_lm"]] |> select(ENV, GEN, .fitted) |> mean_by(ENV, GEN))
+          bind <- suppressWarnings(
+            lapply(seq_along(list_m), \(i) set_names(list_m[[i]], "ENV", "GEN", names(list_m)[i])) |>
+              reduce(full_join, by = c("ENV", "GEN")) |> arrange(ENV, GEN)
           )
         }
       }
       if (what == "ranef") {
-        dfs<-
-          lapply(x, function(x){
-            if(has_class(x,  "waasb")){
-              int <- x[["BLUPint"]]
-            } else{
-              int <- x[["ranef"]]
-            }
-            factors <- int %>% select_non_numeric_cols()
-            numeric <- int %>% select_cols(contains("BLUP"))
-            df_list2 <- list()
-            for (i in 1:ncol(numeric)){
-              temp <-
-                cbind(factors, numeric[i])
-              var_names <- strsplit(case_when(names(temp[ncol(factors)+1])== "BLUPg" ~ "GEN",
-                                              names(temp[ncol(factors)+1])== "BLUPe" ~ "ENV",
-                                              names(temp[ncol(factors)+1])== "BLUPge" ~ c("ENV GEN"),
-                                              names(temp[ncol(factors)+1])== "BLUPre" ~ c("ENV REP"),
-                                              names(temp[ncol(factors)+1])== "BLUPg+ge" ~ c("ENV GEN"),
-                                              names(temp[ncol(factors)+1])== "BLUPbre" ~ c("REP BLOCK"),
-                                              names(temp[ncol(factors)+1])== "BLUPg+bre" ~ c("GEN REP BLOCK"),
-                                              names(temp[ncol(factors)+1])== "BLUPg+ge+bre" ~ c("ENV REP BLOCK GEN"),
-                                              names(temp[ncol(factors)+1])== "BLUPe+ge+re+bre" ~ c("ENV REP BLOCK GEN"),
-                                              names(temp[ncol(factors)+1])== "BLUPg+e+ge+re+bre" ~ c("ENV REP BLOCK GEN"),
-                                              names(temp[ncol(factors)+1])== "BLUPg+e+ge+re" ~ c("ENV GEN REP"),
-                                              names(temp[ncol(factors)+1])== "BLUPge+e+re" ~ c("ENV GEN REP")),
-                                    " ")[[1]]
-              temp <-
-                temp %>%
-                select(all_of(var_names), last_col()) %>%
-                distinct_all(.keep_all = TRUE)
-              fact_nam <- sapply(colnames(temp %>% select_non_numeric_cols()), paste) %>%
-                paste(., collapse = '_')
-              df_list2[[paste(fact_nam)]] <- temp
-            }
-            return(df_list2)
-          })
+        dfs <- lapply(x, function(m){
+          int <- if(has_class(m, "waasb")) m[["BLUPint"]] else m[["ranef"]]
+          factors <- int |> select_non_numeric_cols()
+          numeric <- int |> dplyr::select(contains("BLUP"))
+          df_list2 <- list()
+          for (i in seq_len(ncol(numeric))){
+            temp <- cbind(factors, numeric[i])
+            var_names <- strsplit(case_when(names(temp)[ncol(factors)+1] == "BLUPg" ~ "GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPe" ~ "ENV",
+                                            names(temp)[ncol(factors)+1] == "BLUPge" ~ "ENV GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPre" ~ "ENV REP",
+                                            names(temp)[ncol(factors)+1] == "BLUPg+ge" ~ "ENV GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPbre" ~ "REP BLOCK",
+                                            names(temp)[ncol(factors)+1] == "BLUPg+bre" ~ "GEN REP BLOCK",
+                                            names(temp)[ncol(factors)+1] == "BLUPg+ge+bre" ~ "ENV REP BLOCK GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPe+ge+re+bre" ~ "ENV REP BLOCK GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPg+e+ge+re+bre" ~ "ENV REP BLOCK GEN",
+                                            names(temp)[ncol(factors)+1] == "BLUPg+e+ge+re" ~ "ENV GEN REP",
+                                            names(temp)[ncol(factors)+1] == "BLUPge+e+re" ~ "ENV GEN REP"),
+                                  " ")[[1]]
+            temp <- temp |> select(all_of(var_names), last_col()) |> distinct_all(.keep_all = TRUE)
+            fact_nam <- paste(sapply(colnames(temp |> select_non_numeric_cols()), paste), collapse = '_')
+            df_list2[[paste(fact_nam)]] <- temp
+          }
+          return(df_list2)
+        })
         nvcomp <- length(dfs[[1]])
         bind <- list()
-
         for(i in 1:nvcomp){
-          var_names <- names(dfs[[1]][[i]] %>%  select_non_numeric_cols())
-          index <- length(var_names)
-          num <-
-            lapply(seq_along(dfs),
-                   function(j){
-                     set_names(dfs[[j]][[i]], var_names, names(dfs)[j])
-                   }) %>%
-            reduce(full_join, by = var_names) %>%
+          var_names <- names(dfs[[1]][[i]] |> select_non_numeric_cols())
+          num <- lapply(seq_along(dfs), \(j) set_names(dfs[[j]][[i]], var_names, names(dfs)[j])) |>
+            reduce(full_join, by = var_names) |>
             arrange(across(where(~!is.numeric(.x))))
           bind[[names(dfs[[1]])[i]]] <- num
         }
       }
     }
   }
-  if (has_class(x, "anova_ind")) {
-    if (is.null(what)){
-      what <- "ALL"
-    }
-    if (!what %in% c(check21)) {
-      stop("Invalid value in 'what' for object of class, ", class(x), ". Allowed are ", paste(check21, collapse = ", "), call. = FALSE)
-    }
-    if(what == "ALL"){
-      bind <-
-        lapply(x, function(x){
-          x[[1]]
-        }) %>%
-        rbind_fill_id(.id = "trait")
-    } else{
-      if(what == "FMAX"){
-        bind <-
-          sapply(x, function(x) {
-            x[["MSRratio"]]
-          }) %>%
-          as.data.frame() %>%
-          rownames_to_column("TRAIT") %>%
-          setNames(c("TRAIT", "F_RATIO"))
-      } else{
-        bind <- sapply(x, function(x) {
-          x[["individual"]][[what]]
-        }) %>%
-          as_tibble() %>%
-          mutate(ENV = x[[1]][["individual"]][["ENV"]]) %>%
-          column_to_first(ENV)
-      }
-    }
 
+  if (has_class(x, "anova_ind")) {
+    if (is.null(what)) what <- "ALL"
+    what <- rlang::arg_match(what, values = check21)
+
+    if(what == "ALL"){
+      bind <- lapply(x, \(m) m[[1]]) |> rbind_fill_id(.id = "trait")
+    } else {
+      if(what == "FMAX"){
+        bind <- map(x, \(m) m[["MSRratio"]]) |> as.data.frame() |> rownames_to_column("TRAIT") |> setNames(c("TRAIT", "F_RATIO"))
+      } else {
+        bind <- map(x, \(m) m[["individual"]][[what]]) |> as_tibble() |> mutate(ENV = x[[1]][["individual"]][["ENV"]]) |> column_to_first(ENV)
+      }
+    }
   }
+
   if (has_class(x, c("anova_joint", "gafem", "gafem_group"))) {
-    if(has_class(x, c("gafem_group"))){
-      bind <-
-        x %>%
-        mutate(bind = map(data, ~.x %>% gmd(what = what, verbose = verbose))) %>%
-        unnest(bind) %>%
-        remove_cols(data)
-    } else{
-      if (is.null(what)){
-        what <- "fitted"
-      }
-      if (!what %in% c(check20)) {
-        stop("Invalid value in 'what' for object of class, ", class(x), ". Allowed are ", paste(check20, collapse = ", "), call. = FALSE)
-      }
+    if(has_class(x, "gafem_group")){
+      bind <- x |> mutate(bind = map(data, \(d) gmd(d, what = what, verbose = verbose))) |> unnest(bind) |> remove_cols(data)
+    } else {
+      if (is.null(what)) what <- "fitted"
+      what <- rlang::arg_match(what, values = check20)
+
       if(what %in% c("Sum Sq", "Mean Sq", "F value", "Pr(>F)")){
-        bind <- sapply(x, function(x) {
-          x[["anova"]][[what]]
-        }) %>%
-          as_tibble()
-        bind <- cbind(x[[1]][["anova"]] %>% select_non_numeric_cols(), bind) %>%
-          remove_rows_na(verbose = FALSE)
+        bind <- map(x, \(m) m[["anova"]][[what]]) |> as_tibble()
+        bind <- cbind(x[[1]][["anova"]] |> select_non_numeric_cols(), bind) |> remove_rows_na(verbose = FALSE)
       }
-      if(what  == "h2"){
-        bind <- sapply(x, function(x){
-          MSG <- as.numeric(x[["anova"]][which(x[["anova"]][["Source"]] == "GEN"), 4])
-          MSE <- as.numeric(x[["anova"]][which(x[["anova"]][["Source"]] == "Residuals"), 4])
+      if(what == "h2"){
+        bind <- map(x, function(m){
+          MSG <- as.numeric(m[["anova"]][which(m[["anova"]][["Source"]] == "GEN"), 4])
+          MSE <- as.numeric(m[["anova"]][which(m[["anova"]][["Source"]] == "Residuals"), 4])
           (MSG - MSE) / MSG
-        }) %>%
-          as.data.frame() %>%
-          rownames_to_column("VAR") %>%
-          set_names("VAR", "h2")
+        }) |> as.data.frame() |> rownames_to_column("VAR") |> set_names("VAR", "h2")
       }
       if(what %in% c("Y", "fitted", "resid", "stdres", "se.fit")){
-        bind <- sapply(x, function(x){
-          x[["augment"]][[what]]
-        }) %>%  as_tibble()
-        bind <- cbind(x[[1]][["augment"]] %>% select_non_numeric_cols(), bind) %>%
-          as_tibble()
+        bind <- map(x, \(m) m[["augment"]][[what]]) |> as_tibble()
+        bind <- cbind(x[[1]][["augment"]] |> select_non_numeric_cols(), bind) |> as_tibble()
       }
       if(what == "details"){
-        bind <- sapply(x, function(x){
-          x[["details"]][[2]]
-        }) %>%
-          as_tibble() %>%
-          mutate(Parameters = x[[1]][["details"]][["Parameters"]]) %>%
-          column_to_first(Parameters)
+        bind <- map(x, \(m) m[["details"]][[2]]) |> as_tibble() |> mutate(Parameters = x[[1]][["details"]][["Parameters"]]) |> column_to_first(Parameters)
       }
     }
   }
 
+  if(has_class(x, "ge_means")){
+    if (is.null(what)) what <- "ge_means"
+    what <- rlang::arg_match(what, values = check19)
 
-  if(has_class(x,  "ge_means")){
-    if (is.null(what)){
-      what <- "ge_means"
-    }
-    if (!what %in% c(check19)) {
-      stop("Invalid value in 'what' for object of class 'ge_means'. Allowed are ", paste(check19, collapse = ", "), call. = FALSE)
-    }
     if(what == "ge_means"){
-      bind <- sapply(x, function(x) {
-        x[["ge_means_long"]][["Mean"]]
-      }) %>%
-        as_tibble() %>%
-        add_cols(ENV = x[[1]][["ge_means_long"]][["ENV"]],
-                 GEN = x[[1]][["ge_means_long"]][["GEN"]]) %>%
-        column_to_first(ENV, GEN)
+      bind <- map(x, \(m) m[["ge_means_long"]][["Mean"]]) |> as_tibble() |> add_cols(ENV = x[[1]][["ge_means_long"]][["ENV"]], GEN = x[[1]][["ge_means_long"]][["GEN"]]) |> column_to_first(ENV, GEN)
     }
     if(what == "env_means"){
-      bind <- sapply(x, function(x) {
-        x[["env_means"]][["Mean"]]
-      }) %>%
-        as_tibble() %>%
-        add_cols(ENV = x[[1]][["env_means"]][["ENV"]]) %>%
-        column_to_first(ENV)
+      bind <- map(x, \(m) m[["env_means"]][["Mean"]]) |> as_tibble() |> add_cols(ENV = x[[1]][["env_means"]][["ENV"]]) |> column_to_first(ENV)
     }
     if(what == "gen_means"){
-      bind <- sapply(x, function(x) {
-        x[["gen_means"]][["Mean"]]
-      }) %>%
-        as_tibble() %>%
-        add_cols(GEN = x[[1]][["gen_means"]][["GEN"]]) %>%
-        column_to_first(GEN)
+      bind <- map(x, \(m) m[["gen_means"]][["Mean"]]) |> as_tibble() |> add_cols(GEN = x[[1]][["gen_means"]][["GEN"]]) |> column_to_first(GEN)
     }
   }
 
-  if (has_class(x,  "Annicchiarico")) {
-    if (is.null(what)){
-      what <- "Wi"
-    }
-    if (!what %in% c(check17)) {
-      stop("Invalid value in 'what' for object of class 'Annicchiarico'. Allowed are ", paste(check17, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[["general"]][[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["general"]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Annicchiarico")) {
+    if (is.null(what)) what <- "Wi"
+    what <- rlang::arg_match(what, values = check17)
+    bind <- map(x, \(m) m[["general"]][[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["general"]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "Schmildt")) {
-    if (is.null(what)){
-      what <- "Wi"
-    }
-    if (!what %in% c(check18)) {
-      stop("Invalid value in 'what' for object of class 'Schmildt'. Allowed are ", paste(check18, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[["general"]][[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["general"]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Schmildt")) {
+    if (is.null(what)) what <- "Wi"
+    what <- rlang::arg_match(what, values = check18)
+    bind <- map(x, \(m) m[["general"]][[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["general"]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "ge_stats")) {
-    if (is.null(what)){
-      what <- "stats"
-    }
-    if (!what  %in%  check16) {
-      stop("Invalid value in 'what' for object of class 'ge_stats'. Allowed are ", paste(check16, collapse = ", "), call. = FALSE)
-    }
-    bind <- do.call(cbind, lapply(x, function(x) {
-      if(what == "stats"){
-        x %>% select(-contains("_R"), -contains("GEN"))
-      } else{
-        x %>% select(contains("_R"))
-      }
-    })) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      pivot_longer(cols = contains(".")) %>%
-      separate(name, into = c("var", "stat"), sep = "\\.") %>%
-      pivot_wider(values_from = value, names_from = stat) %>%
-      column_to_first(var) %>%
-      arrange(var)
+  if (has_class(x, "ge_stats")) {
+    if (is.null(what)) what <- "stats"
+    what <- rlang::arg_match(what, values = check16)
+
+    bind <- do.call(cbind, lapply(x, function(m) {
+      if(what == "stats") m |> select(-contains("_R"), -contains("GEN")) else m |> select(contains("_R"))
+    })) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> pivot_longer(cols = contains(".")) |> separate(name, into = c("var", "stat"), sep = "\\.") |> pivot_wider(values_from = value, names_from = stat) |> column_to_first(var) |> arrange(var)
   }
 
-  if (has_class(x,  "Thennarasu")) {
-    if (is.null(what)){
-      what <- "N1"
-    }
-    if (!what %in% c(check15)) {
-      stop("Invalid value in 'what' for object of class 'Thennarasu'. Allowed are ", paste(check15, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Thennarasu")) {
+    if (is.null(what)) what <- "N1"
+    what <- rlang::arg_match(what, values = check15)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "Huehn")) {
-    if (is.null(what)){
-      what <- "S1"
-    }
-    if (!what %in% c(check14)) {
-      stop("Invalid value in 'what' for object of class 'Huehn'. Allowed are ", paste(check14, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Huehn")) {
+    if (is.null(what)) what <- "S1"
+    what <- rlang::arg_match(what, values = check14)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "gai")) {
-    if (is.null(what)){
-      what <- "GAI"
-    }
-    if (!what %in% check13) {
-      stop("Invalid value in 'what' for object of class 'gai'. Allowed are ", paste(check13, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "gai")) {
+    if (is.null(what)) what <- "GAI"
+    what <- rlang::arg_match(what, values = check13)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "ge_effects")) {
-    bind <- sapply(x, function(x) {
-      make_long(x)[[3]]
-    }) %>%
-      as_tibble()
-    factors <- x[[1]] %>%
-      make_long() %>%
-      select(1:2)
+  if (has_class(x, "ge_effects")) {
+    bind <- map(x, \(m) make_long(m)[[3]]) |> as_tibble()
+    factors <- x[[1]] |> make_long() |> select(1:2)
     bind <- cbind(factors, bind)
   }
 
-  if (has_class(x,  "superiority")) {
-    if (is.null(what)){
-      what <- "Pi_a"
-    }
-    if (!what %in% c(check12)) {
-      stop("Invalid value in 'what' for object of class 'superiority'. Allowed are ", paste(check12, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[["index"]][[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["index"]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "superiority") || has_class(x, "lin_binns")) {
+    if (is.null(what)) what <- "Pi_a"
+    what <- rlang::arg_match(what, values = check12)
+    bind <- map(x, \(m) m[["index"]][[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["index"]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "Shukla")) {
-    if (is.null(what)){
-      what <- "ShuklaVar"
-    }
-    if (!what %in% c(check11)) {
-      stop("Invalid value in 'what' for object of class 'Shukla'. Allowed are ", paste(check11, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Shukla")) {
+    if (is.null(what)) what <- "ShuklaVar"
+    what <- rlang::arg_match(what, values = check11)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "Fox")) {
-    if (is.null(what)){
-      what <- "TOP"
-    }
-    if (!what %in% c(check10)) {
-      stop("Invalid value in 'what' for object of class 'Fox'. Allowed are ", paste(check10, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "Fox")) {
+    if (is.null(what)) what <- "TOP"
+    what <- rlang::arg_match(what, values = check10)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "ge_reg")) {
-    if (is.null(what)){
-      what <- "b1"
-    }
-    if (!what %in% c(check9)) {
-      stop("Invalid value in 'what' for object of class 'ge_reg'. Allowed are ", paste(check9, collapse = ", "), call. = FALSE)
-    }
+  if (has_class(x, "ge_reg") || has_class(x, "eberhart_russell")) {
+    if (is.null(what)) what <- "b1"
+    what <- rlang::arg_match(what, values = check9)
+
     if(what %in% c("coefs", "anova")){
       if(what == "coefs"){
-        bind <-
-          lapply(x, function(x){
-            x$regression
-          }) %>%
-          rbind_fill_id(.id = "TRAIT")
-      } else{
-        bind <-
-          lapply(x, function(x){
-            x$anova
-          }) %>%
-          rbind_fill_id(.id = "TRAIT")
+        bind <- lapply(x, \(m) m$regression) |> rbind_fill_id(.id = "TRAIT")
+      } else {
+        bind <- lapply(x, \(m) m$anova) |> rbind_fill_id(.id = "TRAIT")
       }
-    } else{
-      bind <- sapply(x, function(x) {
-        x[["regression"]][[what]]
-      }) %>%
-        as_tibble() %>%
-        mutate(GEN = x[[1]][["regression"]][["GEN"]]) %>%
-        column_to_first(GEN)
+    } else {
+      bind <- map(x, \(m) m[["regression"]][[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["regression"]][["GEN"]]) |> column_to_first(GEN)
     }
-
   }
 
-  if (has_class(x,  "ecovalence")) {
-    if (is.null(what)){
-      what <- "Ecoval"
-    }
-    if (!what %in% check8) {
-      stop("Invalid value in 'what' for object of class 'ecovalence'. Allowed are ", paste(check8, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "ecovalence")) {
+    if (is.null(what)) what <- "Ecoval"
+    what <- rlang::arg_match(what, values = check8)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "ammi_indexes")) {
-    if (is.null(what)){
-      what <- "WAAS"
-    }
-    if (!what %in% c(check7)) {
-      stop("Invalid value in 'what' for object of class 'ammi_indexes'. Allowed are ", paste(check7, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "plaisted_peterson")) {
+    if (is.null(what)) what <- "theta"
+    what <- rlang::arg_match(what, values = check8.1)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "blup_ind")) {
-    if (is.null(what)){
-      what <- "HMRPGV"
-    }
-    if (!what %in% c(check6)) {
-      stop("Invalid value in 'what' for object of class 'blup_ind'. Allowed are ", paste(check6, collapse = ", "), call. = FALSE)
-    }
-    bind <- sapply(x, function(x) {
-      x[[what]]
-    }) %>%
-      as_tibble() %>%
-      mutate(GEN = x[[1]][["GEN"]]) %>%
-      column_to_first(GEN)
+  if (has_class(x, "ammi_indexes")) {
+    if (is.null(what)) what <- "WAAS"
+    what <- rlang::arg_match(what, values = check7)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
   }
 
-  if (has_class(x,  "performs_ammi")) {
-    if (is.null(what)){
-      what <- "ipca_expl"
+  if (has_class(x, "blup_ind")) {
+    if (is.null(what)) what <- "HMRPGV"
+    what <- rlang::arg_match(what, values = check6)
+    bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["GEN"]]) |> column_to_first(GEN)
+  }
+
+  if (has_class(x, c("performs_ammi", "ammi"))) {
+    if (is.null(what)) what <- "ipca_expl"
+    what <- rlang::arg_match(what, values = c("Y", check2, check5))
+
+    if (what == "Y" || what %in% check2) {
+      bind <- map(x, \(m) m$model[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["model"]][["Code"]], TYPE = x[[1]][["model"]][["type"]]) |> dplyr::filter(TYPE == {{type}}) |> remove_cols(TYPE) |> column_to_first(GEN)
     }
-    if (!what %in% c("Y", check2, check5)) {
-      stop("Invalid value in 'what' for object of class 'performs_ammi'.")
-    }
-    if (what == "Y" | what %in% check2) {
-      bind <- sapply(x, function(x) {
-        x$model[[what]]
-      }) %>%
-        as_tibble() %>%
-        mutate(GEN = x[[1]][["model"]][["Code"]],
-               TYPE = x[[1]][["model"]][["type"]]) %>%
-        dplyr::filter(TYPE == {{type}}) %>%
-        remove_cols(TYPE) %>%
-        column_to_first(GEN)
-    }
-    if (what  %in% check5) {
-      what <- case_when(
-        what == "ipca_ss" ~ "Sum Sq",
-        what == "ipca_ms" ~ "Mean Sq",
-        what == "ipca_fval" ~ "F value",
-        what == "ipca_pval" ~ "Pr(>F)",
-        what == "ipca_expl" ~ "Proportion",
-        what == "ipca_accum" ~ "Accumulated"
-      )
-      bind <- sapply(x, function(x) {
-        val <- x[["PCA"]][[what]]
-      }) %>%
-        as_tibble() %>%
-        mutate(PC = x[[1]][["PCA"]][["PC"]],
-               DF = x[[1]][["PCA"]][["Df"]]) %>%
-        column_to_first(PC, DF)
+    if (what %in% check5) {
+      what_mapped <- case_when(what == "ipca_ss" ~ "Sum Sq", what == "ipca_ms" ~ "Mean Sq", what == "ipca_fval" ~ "F value", what == "ipca_pval" ~ "Pr(>F)", what == "ipca_expl" ~ "Proportion", what == "ipca_accum" ~ "Accumulated")
+      bind <- map(x, \(m) m[["PCA"]][[what_mapped]]) |> as_tibble() |> mutate(PC = x[[1]][["PCA"]][["PC"]], DF = x[[1]][["PCA"]][["Df"]]) |> column_to_first(PC, DF)
     }
   }
 
   if (has_class(x, c("waas", "waas_means"))){
-    if (is.null(what)){
-      what <- "WAAS"
-    }
-    if (!what %in% c("details", check1, check2)) {
-      stop("Invalid value in 'what' for object of class '", class(x), "'. Allowed are ", paste(check1, collapse = ", "), call. = FALSE)
-    }
+    if (is.null(what)) what <- "WAAS"
+    what <- rlang::arg_match(what, values = c("details", check1, check2))
+
     if (what == "details") {
-      bind <- sapply(x, function(x) {
-        val <- x[["Details"]][["Values"]] %>% as.character()
-      }) %>%
-        as_tibble() %>%
-        mutate(Parameters = x[[1]][["Details"]][["Parameters"]]) %>%
-        column_to_first(Parameters)
+      bind <- map(x, \(m) as.character(m[["Details"]][["Values"]])) |> as_tibble() |> mutate(Parameters = x[[1]][["Details"]][["Parameters"]]) |> column_to_first(Parameters)
     }
-    if (what %in% check1 | what  %in% check2) {
-      bind <- sapply(x, function(x) {
-        x$model[[what]]
-      }) %>%
-        as_tibble() %>%
-        mutate(GEN = x[[1]][["model"]][["Code"]],
-               TYPE = x[[1]][["model"]][["type"]]) %>%
-        dplyr::filter(TYPE == {{type}}) %>%
-        remove_cols(TYPE) %>%
-        column_to_first(GEN)
+    if (what %in% check1 || what %in% check2) {
+      bind <- map(x, \(m) m$model[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["model"]][["Code"]], TYPE = x[[1]][["model"]][["type"]]) |> dplyr::filter(TYPE == {{type}}) |> remove_cols(TYPE) |> column_to_first(GEN)
     }
   }
 
-  if(verbose == TRUE){
-    message("Class of the model: ", paste(class(x), collapse = ", "))
-    message("Variable extracted: ", what)
+  if (has_class(x, "FW")) {
+    if (is.null(what)) what <- "estimates"
+    what <- rlang::arg_match(what, values = check36)
+
+    if (what %in% c("estimates", "predictions")) {
+        bind <- lapply(x, \(m) m[[what]]) |> rbind_fill_id(.id = "TRAIT")
+    } else if (what == "var_e") {
+        bind <- map(x, \(m) m[[what]]) |> as_tibble() |> mutate(GEN = names(x[[1]][[what]])) |> column_to_first(GEN)
+    } else if (what == "var_e_weighted") {
+        bind <- map(x, \(m) m[[what]]) |> as_tibble()
+    }
   }
+
+  if(verbose){
+    cli::cli_inform("Class of the model: {.val {class(x)}}")
+    cli::cli_inform("Variable extracted: {what}")
+  }
+
   return(bind)
 }
 

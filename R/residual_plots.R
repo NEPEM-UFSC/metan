@@ -19,7 +19,7 @@
 #' @param labels Logical argument. If `TRUE` labels the points outside
 #' confidence interval limits.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param band.alpha,point.alpha The transparency of confidence band in the Q-Q
 #'   plot and the points, respectively. Must be a number between 0 (opaque) and
@@ -68,7 +68,7 @@ residual_plots <- function(x,
                            var = 1,
                            conf = 0.95,
                            labels = FALSE,
-                           plot_theme = theme_metan(),
+                           plot_theme = theme_metan_minimal(),
                            band.alpha = 0.2,
                            point.alpha = 0.8,
                            fill.hist = "gray",
@@ -90,11 +90,11 @@ residual_plots <- function(x,
     var_name <- var
   }
   if(!var_name %in% names(x)){
-    stop("Variable not found in ", match.call()[["x"]] , call. = FALSE)
+    cli::cli_abort("Variable not found in ", match.call()[["x"]] )
   }
   x <- x[[var]]
-  df <- x$augment %>%
-    add_row_id(var = "id") %>%
+  df <- x$augment |>
+    add_row_id(var = "id") |>
     arrange(stdres)
   P <- ppoints(nrow(df))
   df$z <- qnorm(P)
@@ -145,7 +145,7 @@ residual_plots <- function(x,
                 slope = coef[2],
                 col = col.line,
                 size = 1) +
-    geom_ribbon(aes_(ymin = ~lower, ymax = ~upper),
+    geom_ribbon(aes(ymin = lower, ymax = upper),
                 alpha = band.alpha) +
     labs(x = "Theoretical quantiles",
          y = "Sample quantiles") +

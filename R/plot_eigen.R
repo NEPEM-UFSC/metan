@@ -11,7 +11,7 @@
 #'   variable of `x`.
 #' @param export Export (or not) the plot. Default is `TRUE`.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param file.type If `export = TRUE`, define the type of file to be
 #'   exported. Default is `pdf`, Graphic can also be exported in
@@ -48,7 +48,7 @@
 #'
 #'}
 #'
-plot_eigen <- function(x, var = 1, export = FALSE, plot_theme = theme_metan(), file.type = "pdf",
+plot_eigen <- function(x, var = 1, export = FALSE, plot_theme = theme_metan_minimal(), file.type = "pdf",
     file.name = NULL, width = 6, height = 6, size.shape = 3.5, size.line = 1, size.tex.lab = 12,
     y.lab = "Eigenvalue", y2.lab = "Accumulated variance", x.lab = "Number of multiplicative terms",
     resolution = 300, ...) {

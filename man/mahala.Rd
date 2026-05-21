@@ -29,7 +29,7 @@ hierarchical clustering.
 library(metan)
 library(dplyr)
 # Compute the mean for genotypes
-means <- mean_by(data_ge, GEN) \%>\%
+means <- mean_by(data_ge, GEN) |>
          column_to_rownames("GEN")
 
 # Compute the covariance matrix
@@ -39,9 +39,9 @@ covmat <- cov(means)
 dist <- mahala(means, covmat)
 
 # Dendrogram
-dend <- dist \%>\%
-        as.dist() \%>\%
-        hclust() \%>\%
+dend <- dist |>
+        as.dist() |>
+        hclust() |>
         as.dendrogram()
 plot(dend)
 }

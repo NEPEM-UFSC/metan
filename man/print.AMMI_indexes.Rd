@@ -31,7 +31,7 @@ in the R console. The results can also be exported to the directory into a
 \examples{
 \donttest{
 library(metan)
-model <- performs_ammi(data_ge, ENV, GEN, REP, GY) \%>\%
+model <- performs_ammi(data_ge, ENV, GEN, REP, GY) |>
          ammi_indexes()
 print(model)
 }

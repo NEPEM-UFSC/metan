@@ -41,20 +41,20 @@
 split_factors <- function(.data, ..., keep_factors = FALSE) {
   grouped <- group_by(.data, ...)
   names <- eval_bare(expr(paste(!!!group_keys(grouped), sep = " | ")))
-  gd <- grouped %>%
-    group_split(.keep = keep_factors) %>%
+  gd <- grouped |>
+    group_split(.keep = keep_factors) |>
     set_names(names)
-  return(gd %>% set_class("split_factors"))
+  return(gd |> set_class("split_factors"))
 }
 #' @name split_factors
 #' @export
 as.split_factors <- function(.data, keep_factors = FALSE) {
-  grouped <- .data %>% group_by(across(where(is.factor)))
+  grouped <- .data |> group_by(across(where(is.factor)))
   names <- eval_bare(expr(paste(!!!group_keys(grouped), sep = " | ")))
-  gd <- grouped %>%
-    group_split(.keep = keep_factors) %>%
+  gd <- grouped |>
+    group_split(.keep = keep_factors) |>
     set_names(names)
-  return(gd %>% set_class("split_factors"))
+  return(gd |> set_class("split_factors"))
 }
 #' @name split_factors
 #' @export

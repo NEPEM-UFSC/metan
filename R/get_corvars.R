@@ -35,12 +35,12 @@ get_corvars <- function (n = 10,
   # Adapted from MASS::mvrnorm()
   p <- length(mu)
   if (!all(dim(sigma) == c(p, p))) {
-    stop("incompatible arguments")
+    cli::cli_abort("incompatible arguments")
   }
   eS <- eigen(sigma, symmetric = TRUE)
   ev <- eS$values
   if (!all(ev >= -tol * abs(ev[1L]))) {
-    stop("'sigma' is not positive definite")
+    cli::cli_abort("'sigma' is not positive definite")
   }
   if(missing(seed)){
     seed <- .Random.seed[3]

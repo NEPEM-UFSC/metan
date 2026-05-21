@@ -43,13 +43,13 @@ rbind_fill_id <- function(..., .id = NULL, .fill = NA){
         )
     dfs <- list(...)
     if(length(dfs) == 1){
-        dfs <- reduce(dfs, unnest) %>% set_class("list")
+        dfs <- reduce(dfs, unnest) |> set_class("list")
     }
     if(is.null(names(dfs))){
         names(dfs) <- set_name
     }
     bind <-
-        bind_rows(dfs, .id = .id) %>%
+        bind_rows(dfs, .id = .id) |>
         replace_na(everything(), replacement = .fill)
     return(bind)
 }

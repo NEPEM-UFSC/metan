@@ -14,10 +14,10 @@ sel_gen(x)
 }
 \arguments{
 \item{x}{An object created with the functions \code{\link[=ammi_indexes]{ammi_indexes()}},
-\code{\link[=anova_ind]{anova_ind()}}, \code{\link[=anova_joint]{anova_joint()}}, \code{\link[=can_corr]{can_corr()}} \code{\link[=ecovalence]{ecovalence()}},  \code{\link[=Fox]{Fox()}},
-\code{\link[=gai]{gai()}}, \code{\link[=gamem]{gamem()}},\code{\link[=gafem]{gafem()}}, \code{\link[=ge_acv]{ge_acv()}}, \code{\link[=ge_means]{ge_means()}}, \code{\link[=ge_reg]{ge_reg()}},
+\code{\link[=anova_ind]{anova_ind()}}, \code{\link[=anova_joint]{anova_joint()}}, \code{\link[=can_corr]{can_corr()}} \code{\link[=ecovalence]{ecovalence()}},  \code{\link[=finlay_wilkinson]{finlay_wilkinson()}}, \code{\link[=Fox]{Fox()}},
+\code{\link[=gai]{gai()}}, \code{\link[=gamem]{gamem()}},\code{\link[=gafem]{gafem()}}, \code{\link[=ge_acv]{ge_acv()}}, \code{\link[=ge_means]{ge_means()}}, \code{\link[=eberhart_russell]{eberhart_russell()}},
 \code{\link[=gytb]{gytb()}}, \code{\link[=mgidi]{mgidi()}}, \code{\link[=performs_ammi]{performs_ammi()}}, \code{\link[=blup_indexes]{blup_indexes()}}, \code{\link[=Shukla]{Shukla()}},
-\code{\link[=superiority]{superiority()}}, \code{\link[=waas]{waas()}} or \code{\link[=waasb]{waasb()}}.}
+\code{\link[=lin_binns]{lin_binns()}}, \code{\link[=waas]{waas()}} or \code{\link[=waasb]{waasb()}}.}
 
 \item{what}{What should be captured from the model. See more in section
 \strong{Details}.}
@@ -143,7 +143,15 @@ MSE).
 \item \code{"POLAR_R"} The rank for Power Law Residuals.
 }
 
-\strong{Objects of class \code{ge_reg}:}
+\strong{Objects of class \code{FW}:}
+\itemize{
+\item \code{"estimates"} The genotype intercepts and slopes of the regression (default).
+\item \code{"predictions"} The predicted values.
+\item \code{"var_e"} The residual variances for each genotype.
+\item \code{"var_e_weighted"} The pooled weighted error variance.
+}
+
+\strong{Objects of class \code{eberhart_russell}:}
 \itemize{
 \item \code{GEN}: the genotypes.
 \item \code{b0} and \code{b1} (default): the intercept and slope of the regression,
@@ -229,7 +237,7 @@ the top third (default).
 \item \code{"GAI_R"} The rank for the GAI values.
 }
 
-\strong{Objects of class \code{superiority}:}
+\strong{Objects of class \code{lin_binns}:}
 \itemize{
 \item \code{"Pi_a"} The superiority measure for all environments (default).
 \item \code{"R_a"} The rank for Pi_a.
@@ -423,8 +431,8 @@ of stability from AMMI model. Ann. Biol. Res. 3:3126-3136.
 \seealso{
 \code{\link[=ammi_indexes]{ammi_indexes()}}, \code{\link[=anova_ind]{anova_ind()}}, \code{\link[=anova_joint]{anova_joint()}}, \code{\link[=ecovalence]{ecovalence()}},
 \code{\link[=Fox]{Fox()}}, \code{\link[=gai]{gai()}}, \code{\link[=gamem]{gamem()}}, \code{\link[=gafem]{gafem()}}, \code{\link[=ge_acv]{ge_acv()}}, \code{\link[=ge_polar]{ge_polar()}}
-\code{\link[=ge_means]{ge_means()}}, \code{\link[=ge_reg]{ge_reg()}}, \code{\link[=mgidi]{mgidi()}}, \code{\link[=mtsi]{mtsi()}}, \code{\link[=mps]{mps()}}, \code{\link[=mtmps]{mtmps()}},
-\code{\link[=performs_ammi]{performs_ammi()}}, \code{\link[=blup_indexes]{blup_indexes()}}, \code{\link[=Shukla]{Shukla()}}, \code{\link[=superiority]{superiority()}}, \code{\link[=waas]{waas()}},
+\code{\link[=ge_means]{ge_means()}}, \code{\link[=eberhart_russell]{eberhart_russell()}}, \code{\link[=finlay_wilkinson]{finlay_wilkinson()}}, \code{\link[=mgidi]{mgidi()}}, \code{\link[=mtsi]{mtsi()}}, \code{\link[=mps]{mps()}}, \code{\link[=mtmps]{mtmps()}},
+\code{\link[=performs_ammi]{performs_ammi()}}, \code{\link[=blup_indexes]{blup_indexes()}}, \code{\link[=Shukla]{Shukla()}}, \code{\link[=lin_binns]{lin_binns()}}, \code{\link[=waas]{waas()}},
 \code{\link[=waasb]{waasb()}}
 }
 \author{

@@ -4,7 +4,7 @@
 \alias{Shukla}
 \title{Shukla's stability variance parameter}
 \usage{
-Shukla(.data, env, gen, rep, resp, verbose = TRUE)
+Shukla(.data, env, gen, rep = NULL, resp, verbose = TRUE)
 }
 \arguments{
 \item{.data}{The dataset containing the columns related to Environments,

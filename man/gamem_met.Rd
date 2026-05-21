@@ -159,8 +159,8 @@ get_model_data(model, "genpar")
 # Example 2: Unbalanced trials                                  #
 # assuming all factors as random effects                        #
 #===============================================================#
-un_data <- data_ge \%>\%
-             remove_rows(1:3) \%>\%
+un_data <- data_ge |>
+             remove_rows(1:3) |>
              droplevels()
 
 model2 <- gamem_met(un_data,

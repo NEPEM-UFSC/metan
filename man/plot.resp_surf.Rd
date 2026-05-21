@@ -10,7 +10,7 @@
   ylab = NULL,
   resolution = 100,
   bins = 10,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   ...
 )
 }
@@ -26,7 +26,7 @@ values produce high-resolution plots but may increase the computation time.}
 \item{bins}{The number of bins shown in the plot. Defaults to \code{10}.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{...}{Currently not used}

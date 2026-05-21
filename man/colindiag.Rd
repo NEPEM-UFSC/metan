@@ -66,14 +66,14 @@ col_diag <- colindiag(cor_iris, n = n)
 
 
 # Using a data frame
-col_diag_gen <- data_ge2 \%>\%
-                group_by(GEN) \%>\%
+col_diag_gen <- data_ge2 |>
+                group_by(GEN) |>
                 colindiag()
 
 # Diagnostic by levels of a factor
 # For variables with "N" in variable name
-col_diag_gen <- data_ge2 \%>\%
-                group_by(GEN) \%>\%
+col_diag_gen <- data_ge2 |>
+                group_by(GEN) |>
                 colindiag(contains("N"))
 }
 }

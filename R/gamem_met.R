@@ -173,8 +173,8 @@
 #' # Example 2: Unbalanced trials                                  #
 #' # assuming all factors as random effects                        #
 #' #===============================================================#
-#' un_data <- data_ge %>%
-#'              remove_rows(1:3) %>%
+#' un_data <- data_ge |>
+#'              remove_rows(1:3) |>
 #'              droplevels()
 #'
 #'model2 <- gamem_met(un_data,
@@ -197,18 +197,18 @@ gamem_met <- function(.data,
                       prob = 0.05,
                       verbose = TRUE) {
   if (!random %in% c("env", "gen", "all")) {
-    stop("The argument 'random' must be one of the 'gen', 'env', or 'all'.")
+    cli::cli_abort("The argument 'random' must be one of the 'gen', 'env', or 'all'.")
   }
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
     if(!missing(block)){
       results <-
-        .data %>%
+        .data |>
         doo(gamem_met,
             env = {{env}},
             gen = {{gen}},
@@ -220,7 +220,7 @@ gamem_met <- function(.data,
             verbose = verbose)
     } else{
       results <-
-        .data %>%
+        .data |>
         doo(gamem_met,
             env = {{env}},
             gen = {{gen}},
@@ -234,25 +234,25 @@ gamem_met <- function(.data,
   }
   block_test <- missing(block)
   if(!missing(block)){
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
              {{rep}},
-             {{block}}) %>%
+             {{block}}) |>
       mutate(across(everything(), as.factor))
   } else{
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
-             {{rep}}) %>%
+             {{rep}}) |>
       mutate(across(everything(), as.factor))
   }
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
   if(!missing(block)){
-    factors %<>% set_names("ENV", "GEN", "REP", "BLOCK")
+    factors <- factors |> set_names("ENV", "GEN", "REP", "BLOCK")
   } else{
-    factors %<>% set_names("ENV", "GEN", "REP")
+    factors <- factors |> set_names("ENV", "GEN", "REP")
   }
   model_fixed <-
     case_when(
@@ -288,10 +288,14 @@ gamem_met <- function(.data,
   listres <- list()
   vin <- 0
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     check_labels(data)
     if(has_na(data)){
@@ -299,7 +303,7 @@ gamem_met <- function(.data,
       has_text_in_num(data)
     }
     if(!is_balanced_trial(data, ENV, GEN, Y) && random == "env"){
-      warning("Fitting a model with unbalanced data considering genotype as fixed effect is not suggested.", call. = FALSE)
+      warning("Fitting a model with unbalanced data considering genotype as fixed effect is not suggested.")
     }
     Nenv <- nlevels(data$ENV)
     Ngen <- nlevels(data$GEN)
@@ -308,22 +312,22 @@ gamem_met <- function(.data,
     ovmean <- mean(data$Y)
     fixed_mod <- lm(model_fixed, data = data)
     Complete <-
-      lmerTest::lmer(model_formula, data = data) %>%
-      suppressWarnings() %>%
+      lmerTest::lmer(model_formula, data = data) |>
+      suppressWarnings() |>
       suppressMessages()
     LRT <-
-      lmerTest::ranova(Complete, reduce.terms = FALSE) %>%
-      mutate(model = lrt_groups) %>%
-      column_to_first(model) %>%
-      suppressWarnings() %>%
+      lmerTest::ranova(Complete, reduce.terms = FALSE) |>
+      mutate(model = lrt_groups) |>
+      column_to_first(model) |>
+      suppressWarnings() |>
       suppressMessages()
     fixed <- anova(Complete)
     var_eff <-
-      lme4::VarCorr(Complete) %>%
-      as.data.frame() %>%
-      select_cols(1, 4) %>%
-      arrange(grp) %>%
-      rename(Group = grp, Variance = vcov) %>%
+      lme4::VarCorr(Complete) |>
+      as.data.frame() |>
+      dplyr::select(1, 4) |>
+      arrange(grp) |>
+      rename(Group = grp, Variance = vcov) |>
       add_cols(Percent = (Variance / sum(Variance)) * 100)
     if(random %in% c("gen", "all")){
       GV <- as.numeric(var_eff[which(var_eff[1] == "GEN"), 2])
@@ -349,35 +353,35 @@ gamem_met <- function(.data,
     }
     bups <- lme4::ranef(Complete)
     bINT <-
-      data.frame(Names = rownames(bups[["GEN:ENV"]])) %>%
-      separate(Names, into = c("GEN", "ENV"), sep = ":") %>%
-      add_cols(BLUPge = bups[["GEN:ENV"]][[1]]) %>%
+      data.frame(Names = rownames(bups[["GEN:ENV"]])) |>
+      separate(Names, into = c("GEN", "ENV"), sep = ":") |>
+      add_cols(BLUPge = bups[["GEN:ENV"]][[1]]) |>
       as_factor(1:2)
     Details <-
       rbind(ge_details(data, ENV, GEN, Y),
             tribble(~Parameters,  ~Y,
                     "Ngen", Ngen,
-                    "Nenv", Nenv)) %>%
+                    "Nenv", Nenv)) |>
       rename(Values = Y)
     if(mod1){
       ran_ef <- c("GEN, GEN:ENV")
       fix_ef <- c("ENV, REP(ENV)")
       rand_ef <-
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        mean_by(data, GEN) %>%
+        mean_by(data, GEN) |>
         add_cols(BLUPg = bups$GEN$`(Intercept)`,
                  Predicted = BLUPg + ovmean,
                  Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
-        arrange(-Predicted) %>%
+                 UL = Predicted + Limits) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPgen, by = "GEN") %>%
-            select(ENV, GEN, REP, BLUPg, BLUPge) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPgen, by = "GEN") |>
+            select(ENV, GEN, REP, BLUPg, BLUPge) |>
             add_cols(`BLUPg+ge` = BLUPge + BLUPg,
                      Predicted = predict(Complete))
         )
@@ -385,176 +389,176 @@ gamem_met <- function(.data,
     } else if(mod2){
       ran_ef <- c("GEN, BLOCK(ENV:REP), GEN:ENV")
       fix_ef <- c("ENV, REP(ENV)")
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        mean_by(data, GEN) %>%
+        mean_by(data, GEN) |>
         add_cols(BLUPg = bups$GEN$`(Intercept)`,
                  Predicted = BLUPg + ovmean,
                  Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
-        arrange(-Predicted) %>%
+                 UL = Predicted + Limits) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
-        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) |>
+        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") |>
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) |>
         as_factor(1:3)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPgen, by = "GEN") %>%
-            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) %>%
-            select(ENV, REP, BLOCK, GEN, BLUPg, BLUPge, BLUPbre) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPgen, by = "GEN") |>
+            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) |>
+            select(ENV, REP, BLOCK, GEN, BLUPg, BLUPge, BLUPbre) |>
             add_cols(`BLUPg+ge+bre` = BLUPge + BLUPg + BLUPbre,
-                     Predicted = `BLUPg+ge+bre` + left_join(data_factors, data %>% mean_by(ENV, REP), by = c("ENV", "REP"))$Y)
+                     Predicted = `BLUPg+ge+bre` + left_join(data_factors, data |> mean_by(ENV, REP), by = c("ENV", "REP"))$Y)
         )
       BLUPenv <- NULL
     } else if (mod3){
       ran_ef <- c("REP(ENV), ENV, GEN:ENV")
       fix_ef <- c("GEN")
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <- NULL
       BLUPenv <-
-        mean_by(data, ENV) %>%
+        mean_by(data, ENV) |>
         add_cols(BLUPe =  bups$ENV$`(Intercept)`,
-                 Predicted = BLUPe + ovmean) %>%
-        arrange(-Predicted) %>%
-        add_cols(Rank = rank(-Predicted)) %>%
+                 Predicted = BLUPe + ovmean) |>
+        arrange(-Predicted) |>
+        add_cols(Rank = rank(-Predicted)) |>
         column_to_first(Rank)
       blupRWE <-
-        data.frame(Names = rownames(bups$`REP:ENV`)) %>%
-        separate(Names, into = c("REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPre = bups$`REP:ENV`[[1]]) %>%
+        data.frame(Names = rownames(bups$`REP:ENV`)) |>
+        separate(Names, into = c("REP", "ENV"), sep = ":") |>
+        add_cols(BLUPre = bups$`REP:ENV`[[1]]) |>
         as_factor(1:2)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPenv, by = "ENV") %>%
-            left_join(blupRWE, by = c("ENV", "REP")) %>%
-            select(ENV, GEN, REP, BLUPe, BLUPge, BLUPre) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPenv, by = "ENV") |>
+            left_join(blupRWE, by = c("ENV", "REP")) |>
+            select(ENV, GEN, REP, BLUPe, BLUPge, BLUPre) |>
             add_cols(`BLUPge+e+re` = BLUPge + BLUPe + BLUPre,
                      Predicted = `BLUPge+e+re` + left_join(data_factors, mean_by(data, GEN), by = c("GEN"))$Y)
         )
     } else if (mod4){
       ran_ef <- c("BLOCK(ENV:REP), REP(ENV), ENV, GEN:ENV")
       fix_ef <- c("GEN")
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <- NULL
       BLUPenv <-
-        mean_by(data, ENV) %>%
+        mean_by(data, ENV) |>
         add_cols(BLUPe =  bups$ENV$`(Intercept)`,
-                 Predicted = BLUPe + ovmean) %>%
-        arrange(-Predicted) %>%
-        add_cols(Rank = rank(-Predicted)) %>%
+                 Predicted = BLUPe + ovmean) |>
+        arrange(-Predicted) |>
+        add_cols(Rank = rank(-Predicted)) |>
         column_to_first(Rank)
       blupRWE <-
-        data.frame(Names = rownames(bups$`REP:ENV`)) %>%
-        separate(Names, into = c("REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPre = bups$`REP:ENV`[[1]]) %>%
+        data.frame(Names = rownames(bups$`REP:ENV`)) |>
+        separate(Names, into = c("REP", "ENV"), sep = ":") |>
+        add_cols(BLUPre = bups$`REP:ENV`[[1]]) |>
         as_factor(1:2)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
-        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) |>
+        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") |>
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) |>
         as_factor(1:3)
       genCOEF <-
-        summary(Complete)[["coefficients"]] %>%
-        as.data.frame() %>%
-        rownames_to_column("GEN") %>%
-        replace_string(GEN, pattern = "GEN") %>%
-        rename(Y = Estimate) %>%
+        summary(Complete)[["coefficients"]] |>
+        as.data.frame() |>
+        rownames_to_column("GEN") |>
+        replace_string(GEN, pattern = "GEN") |>
+        rename(Y = Estimate) |>
         as_factor(1)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPenv, by = "ENV") %>%
-            left_join(blupRWE, by = c("ENV", "REP")) %>%
-            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) %>%
-            select(ENV, REP, BLOCK, GEN, BLUPe, BLUPge, BLUPre, BLUPbre) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPenv, by = "ENV") |>
+            left_join(blupRWE, by = c("ENV", "REP")) |>
+            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) |>
+            select(ENV, REP, BLOCK, GEN, BLUPe, BLUPge, BLUPre, BLUPbre) |>
             add_cols(`BLUPe+ge+re+bre` = BLUPge + BLUPe + BLUPre + BLUPbre,
                      Predicted = `BLUPe+ge+re+bre` + left_join(data_factors, genCOEF, by = "GEN")$Y)
         )
     } else if (mod5){
       ran_ef <- c("GEN, REP(ENV), ENV, GEN:ENV")
       fix_ef <- c("-")
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        mean_by(data, GEN) %>%
+        mean_by(data, GEN) |>
         add_cols(BLUPg = bups$GEN$`(Intercept)`,
                  Predicted = BLUPg + ovmean,
                  Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
-        arrange(-Predicted) %>%
+                 UL = Predicted + Limits) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
       BLUPenv <-
-        mean_by(data, ENV) %>%
+        mean_by(data, ENV) |>
         add_cols(BLUPe =  bups$ENV$`(Intercept)`,
                  Predicted = BLUPe + ovmean,
-                 Rank = rank(-Predicted)) %>%
-        arrange(-Predicted) %>%
+                 Rank = rank(-Predicted)) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
-      blupRWE <- data.frame(Names = rownames(bups$`REP:ENV`)) %>%
-        separate(Names, into = c("REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPre = bups$`REP:ENV`[[1]]) %>%
-        arrange(ENV) %>%
+      blupRWE <- data.frame(Names = rownames(bups$`REP:ENV`)) |>
+        separate(Names, into = c("REP", "ENV"), sep = ":") |>
+        add_cols(BLUPre = bups$`REP:ENV`[[1]]) |>
+        arrange(ENV) |>
         as_factor(1:2)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPgen, by = "GEN") %>%
-            left_join(BLUPenv, by = "ENV") %>%
-            left_join(blupRWE, by = c("ENV", "REP")) %>%
-            select(GEN, ENV, REP, BLUPe, BLUPg, BLUPge, BLUPre) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPgen, by = "GEN") |>
+            left_join(BLUPenv, by = "ENV") |>
+            left_join(blupRWE, by = c("ENV", "REP")) |>
+            select(GEN, ENV, REP, BLUPe, BLUPg, BLUPge, BLUPre) |>
             add_cols(`BLUPg+e+ge+re` = BLUPge + BLUPe + BLUPg + BLUPre,
                      Predicted = `BLUPg+e+ge+re` + ovmean)
         )
     } else if (mod6){
       ran_ef <- c("GEN, BLOCK(ENV:REP), REP(ENV), ENV, GEN:ENV")
       fix_ef <- c("-")
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        mean_by(data, GEN) %>%
+        mean_by(data, GEN) |>
         add_cols(BLUPg = bups$GEN$`(Intercept)`,
                  Predicted = BLUPg + ovmean,
                  Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
-        arrange(-Predicted) %>%
+                 UL = Predicted + Limits) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
       BLUPenv <-
-        mean_by(data, ENV) %>%
+        mean_by(data, ENV) |>
         add_cols(BLUPe =  bups$ENV$`(Intercept)`,
                  Predicted = BLUPe + ovmean,
-                 Rank = rank(-Predicted)) %>%
-        arrange(-Predicted) %>%
+                 Rank = rank(-Predicted)) |>
+        arrange(-Predicted) |>
         column_to_first(Rank)
-      blupRWE <- data.frame(Names = rownames(bups$`REP:ENV`)) %>%
-        separate(Names, into = c("REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPre = bups$`REP:ENV`[[1]]) %>%
-        arrange(ENV) %>%
+      blupRWE <- data.frame(Names = rownames(bups$`REP:ENV`)) |>
+        separate(Names, into = c("REP", "ENV"), sep = ":") |>
+        add_cols(BLUPre = bups$`REP:ENV`[[1]]) |>
+        arrange(ENV) |>
         as_factor(1:2)
       blupBRE <-
-        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) %>%
-        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") %>%
-        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) %>%
+        data.frame(Names = rownames(bups$`BLOCK:REP:ENV`)) |>
+        separate(Names, into = c("BLOCK", "REP", "ENV"), sep = ":") |>
+        add_cols(BLUPbre = bups$`BLOCK:REP:ENV`[[1]]) |>
         as_factor(1:3)
       BLUPint <-
         suppressWarnings(
-          left_join(data_factors, bINT, by = c("ENV", "GEN")) %>%
-            left_join(BLUPgen, by = "GEN") %>%
-            left_join(BLUPenv, by = "ENV") %>%
-            left_join(blupRWE, by = c("ENV", "REP")) %>%
-            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) %>%
-            select(GEN, ENV, REP, BLOCK, BLUPg, BLUPe, BLUPge, BLUPre, BLUPbre) %>%
+          left_join(data_factors, bINT, by = c("ENV", "GEN")) |>
+            left_join(BLUPgen, by = "GEN") |>
+            left_join(BLUPenv, by = "ENV") |>
+            left_join(blupRWE, by = c("ENV", "REP")) |>
+            left_join(blupBRE, by = c("ENV", "REP", "BLOCK")) |>
+            select(GEN, ENV, REP, BLOCK, BLUPg, BLUPe, BLUPge, BLUPre, BLUPbre) |>
             add_cols(`BLUPg+e+ge+re+bre` = BLUPg + BLUPge + BLUPe + BLUPre + BLUPbre,
                      Predicted = `BLUPg+e+ge+re+bre` + ovmean)
         )
     }
     residuals <- data.frame(fortify.merMod(Complete))
     residuals$reff <- BLUPint$BLUPge
-    temp <- structure(list(fixed = fixed %>% rownames_to_column("SOURCE") %>% as_tibble(),
+    temp <- structure(list(fixed = fixed |> rownames_to_column("SOURCE") |> as_tibble(),
                            random = var_eff,
                            LRT = LRT,
                            BLUPgen = BLUPgen,
@@ -569,38 +573,33 @@ gamem_met <- function(.data,
                            ESTIMATES = genpar,
                            formula = model_formula), class = "waasb")
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
   if (verbose == TRUE) {
-    message("Method: REML/BLUP\n", appendLF = FALSE)
-    message("Random effects: ", ran_ef, "\n", appendLF = FALSE)
-    message("Fixed effects: ", fix_ef, "\n", appendLF = FALSE)
-    message("Denominador DF: Satterthwaite's method\n", appendLF = FALSE)
-    cat("---------------------------------------------------------------------------\n")
-    cat("P-values for Likelihood Ratio Test of the analyzed traits\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_bullets(c(
+      "*" = "Method: {.strong REML/BLUP}",
+      "*" = "Random effects: {.val {ran_ef}}",
+      "*" = "Fixed effects: {.val {fix_ef}}",
+      "*" = "Denominator DF: {.emph Satterthwaite's method}"
+    ))
+    cli::cli_h2("P-values for Likelihood Ratio Test of the analyzed traits")
     print.data.frame(sapply(listres, function(x){
       x$LRT[["Pr(>Chisq)"]]
-    }) %>%
-      as.data.frame() %>%
-      add_cols(model = listres[[1]][["LRT"]][["model"]]) %>%
+    }) |>
+      as.data.frame() |>
+      add_cols(model = listres[[1]][["LRT"]][["model"]]) |>
       column_to_first(model), row.names = FALSE, digits = 3)
-    cat("---------------------------------------------------------------------------\n")
     if (length(which(unlist(lapply(listres, function(x) {
-      x[["LRT"]] %>% dplyr::filter(model == "GEN:ENV") %>% pull(`Pr(>Chisq)`)
+      x[["LRT"]] |> dplyr::filter(model == "GEN:ENV") |> pull(`Pr(>Chisq)`)
     })) > prob)) > 0) {
-      cat("Variables with nonsignificant GxE interaction\n")
-      cat(names(which(unlist(lapply(listres, function(x) {
-        x[["LRT"]][which(x[["LRT"]][[1]] == "GEN:ENV"), 7]
-      })) > prob)), "\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Variables with nonsignificant GxE interaction")
+      cli::cli_inform("{names(which(unlist(lapply(listres, function(x) { x[[\"LRT\"]][which(x[[\"LRT\"]][[1]] == \"GEN:ENV\"), 7] })) > prob))}")
     } else {
-      cat("All variables with significant (p < 0.05) genotype-vs-environment interaction\n")
+      cli::cli_alert_success("All variables with significant (p < 0.05) genotype-vs-environment interaction")
     }
   }
   invisible(set_class(listres, "waasb"))
 }
+

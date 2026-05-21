@@ -7,13 +7,12 @@
 #'
 #' This function compute the weighted average of absolute scores, estimated as
 #' follows:
-#'\loadmathjax
-#'\mjsdeqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times EP_k|/ \sum_{k =
+#'\deqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times EP_k|/ \sum_{k =
 #'1}^{p}EP_k}
 #'
-#' where \mjseqn{WAAS_i} is the weighted average of absolute scores of the
-#' *i*th genotype; \mjseqn{IPCA_{ik}} is the score of the *i*th genotype
-#' in the *k*th IPCA; and \mjseqn{EP_k} is the explained variance of the *k*th
+#' where \eqn{WAAS_i} is the weighted average of absolute scores of the
+#' *i*th genotype; \eqn{IPCA_{ik}} is the score of the *i*th genotype
+#' in the *k*th IPCA; and \eqn{EP_k} is the explained variance of the *k*th
 #' IPCA for *k = 1,2,..,p*, considering *p* the number of significant
 #' PCAs, or a declared number of PCAs. For example if `prob = 0.05`, all
 #' axis that are significant considering this probability level are used. The
@@ -178,34 +177,34 @@ waas <- function(.data,
                  ind_anova = FALSE,
                  verbose = TRUE) {
     if(is.numeric(mresp)){
-        stop("Using a numeric vector in 'mresp' is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'mresp = c(100, 100, 0)'.\nNew code: 'mresp = c(\"h, h, l\")", call. = FALSE)
+        cli::cli_abort("Using a numeric vector in 'mresp' is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'mresp = c(100, 100, 0)'.\nNew code: 'mresp = c(\"h, h, l\")")
     }
     if(!missing(block)){
-        factors  <- .data %>%
+        factors  <- .data |>
             select({{env}},
                    {{gen}},
                    {{rep}},
-                   {{block}}) %>%
+                   {{block}}) |>
             mutate(across(everything(), as.factor))
     } else{
-        factors  <- .data %>%
+        factors  <- .data |>
             select({{env}},
                    {{gen}},
-                   {{rep}}) %>%
+                   {{rep}}) |>
             mutate(across(everything(), as.factor))
     }
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <-  vars |> select_numeric_cols()
     if(!missing(block)){
-        factors %<>% set_names("ENV", "GEN", "REP", "BLOCK")
+        factors <-  factors |> set_names("ENV", "GEN", "REP", "BLOCK")
     } else{
-        factors %<>% set_names("ENV", "GEN", "REP")
+      factors <-  factors |> set_names("ENV", "GEN", "REP")
     }
     nvar <- ncol(vars)
     if (!is.null(naxis)) {
         if (length(naxis) != nvar) {
             warning("Invalid length in 'naxis'. Setting naxis = ", naxis[[1]],
-                    " to all the ", nvar, " variables.", call. = FALSE)
+                    " to all the ", nvar, " variables.")
             naxis <- replicate(nvar, naxis[[1]])
         }
     }
@@ -213,19 +212,19 @@ waas <- function(.data,
         mresp <- replicate(nvar, 100)
         minresp <- 100 - mresp
     } else {
-        mresp <- unlist(strsplit(mresp, split="\\s*(\\s|,)\\s*")) %>% all_lower_case()
+        mresp <- unlist(strsplit(mresp, split="\\s*(\\s|,)\\s*")) |> all_lower_case()
         if(!any(mresp %in% c("h", "l", "H", "L"))){
             if(!mresp[[1]] %in% c("h", "l")){
-                stop("Argument 'mresp' must have only h or l.", call. = FALSE)
+                cli::cli_abort("Argument 'mresp' must have only h or l.")
             } else{
                 warning("Argument 'mresp' must have only h or l. Setting mresp = ", mresp[[1]],
-                        " to all the ", nvar, " variables.", call. = FALSE)
+                        " to all the ", nvar, " variables.")
                 mresp <- replicate(nvar, mresp[[1]])
             }
         }
         if (length(mresp) != nvar) {
             warning("Invalid length in 'mresp'. Setting mresp = ", mresp[[1]],
-                    " to all the ", nvar, " variables.", call. = FALSE)
+                    " to all the ", nvar, " variables.")
             mresp <- replicate(nvar, mresp[[1]])
         }
 
@@ -241,12 +240,12 @@ waas <- function(.data,
         if (length(wresp) != nvar) {
 
             warning("Invalid length in 'wresp'. Setting wresp = ", wresp[[1]],
-                    " to all the ", nvar, " variables.", call. = FALSE)
+                    " to all the ", nvar, " variables.")
             PesoResp <- replicate(nvar, wresp[[1]])
             PesoWAASB <- 100 - PesoResp
         }
         if (min(wresp) < 0 | max(wresp) > 100) {
-            stop("The range of the numeric vector 'wresp' must be equal between 0 and 100.")
+            cli::cli_abort("The range of the numeric vector 'wresp' must be equal between 0 and 100.")
         }
     }
 
@@ -256,7 +255,7 @@ waas <- function(.data,
     listres <- list()
     vin <- 0
     for (var in 1:nvar) {
-        data <- factors %>%
+        data <- factors |>
             mutate(Y = vars[[var]])
         check_labels(data)
         if(has_na(data)){
@@ -268,7 +267,7 @@ waas <- function(.data,
         minimo <- min(Nenv, Ngen) - 1
         vin <- vin + 1
         if(ind_anova == TRUE){
-            individual <- data %>% anova_ind(ENV, GEN, REP, Y)
+            individual <- data |> anova_ind(ENV, GEN, REP, Y)
         } else{
             individual = NULL
         }
@@ -286,22 +285,23 @@ waas <- function(.data,
             SigPC1 <- naxis[vin]
         }
         if (SigPC1 > minimo) {
-            stop("The number of axis to be used must be lesser than or equal to ",
+            cli::cli_abort("The number of axis to be used must be lesser than or equal to ",
                  minimo, " [min(GEN-1;ENV-1)]")
         } else {
             Pesos <- slice(model$PCA[7], 1:SigPC1)
             WAAS <-
-                Escores %>%
-                select(contains("PC")) %>%
-                abs() %>%
-                t() %>%
-                as.data.frame() %>%
-                slice(1:SigPC1) %>%
+                Escores |>
+                select(contains("PC")) |>
+                abs() |>
+                t() |>
+                as.data.frame() |>
+                slice(1:SigPC1) |>
                 mutate(Percent = Pesos$Proportion)
             WAASAbs <- mutate(Escores, WAAS = sapply(WAAS[, -ncol(WAAS)], weighted.mean, w = WAAS$Percent))
             if (nvar > 1) {
-                WAASAbs %<>%
-                    group_by(type) %>%
+                WAASAbs <-
+                  WAASAbs |>
+                    group_by(type) |>
                     mutate(PctResp = (mresp[vin] - minresp[vin])/(max(Y) - min(Y)) * (Y - max(Y)) + mresp[vin],
                            PctWAAS = (0 - 100)/(max(WAAS) - min(WAAS)) * (WAAS - max(WAAS)) + 0,
                            wRes = PesoResp[vin],
@@ -310,11 +310,12 @@ waas <- function(.data,
                            OrWAAS = rank(WAAS),
                            OrPC1 = rank(abs(PC1)),
                            WAASY = ((PctResp * wRes) + (PctWAAS * wWAAS))/(wRes + wWAAS),
-                           OrWAASY = rank(-WAASY)) %>%
+                           OrWAASY = rank(-WAASY)) |>
                     ungroup()
             } else {
-                WAASAbs %<>%
-                    group_by(type) %>%
+              WAASAbs <-
+                WAASAbs |>
+                    group_by(type) |>
                     mutate(PctResp = (mresp - minresp)/(max(Y) - min(Y)) * (Y - max(Y)) + mresp,
                            PctWAAS = (0 - 100)/(max(WAAS) - min(WAAS)) * (WAAS - max(WAAS)) + 0,
                            wRes = PesoResp,
@@ -323,20 +324,20 @@ waas <- function(.data,
                            OrWAAS = rank(WAAS),
                            OrPC1 = rank(abs(PC1)),
                            WAASY = ((PctResp * wRes) + (PctWAAS * wWAAS))/(wRes + wWAAS),
-                           OrWAASY = rank(-WAASY)) %>%
+                           OrWAASY = rank(-WAASY)) |>
                     ungroup()
             }
-            min_group <- Escores %>% group_by(type) %>% top_n(1, -Y) %>% select(type, Code, Y) %>% slice(1) %>% as.data.frame()
-            max_group <- Escores %>% group_by(type) %>% top_n(1, Y) %>% select(type, Code, Y) %>% slice(1) %>% as.data.frame()
-            min <- MeansGxE %>% top_n(1, -Y) %>% select(ENV, GEN, Y) %>% slice(1)
-            max <- MeansGxE %>% top_n(1, Y) %>% select(ENV, GEN, Y) %>% slice(1)
+            min_group <- Escores |> group_by(type) |> top_n(1, -Y) |> select(type, Code, Y) |> slice(1) |> as.data.frame()
+            max_group <- Escores |> group_by(type) |> top_n(1, Y) |> select(type, Code, Y) |> slice(1) |> as.data.frame()
+            min <- MeansGxE |> top_n(1, -Y) |> select(ENV, GEN, Y) |> slice(1)
+            max <- MeansGxE |> top_n(1, Y) |> select(ENV, GEN, Y) |> slice(1)
             Details <-
                 rbind(ge_details(data, ENV, GEN, Y),
                       tribble(~Parameters,  ~Y,
                               "wresp", PesoResp[vin],
                               "mresp", mresp[vin],
                               "Ngen", Ngen,
-                              "Nenv", Nenv)) %>%
+                              "Nenv", Nenv)) |>
                 rename(Values = Y)
             # Details <- tibble(Parameters = c("Ngen", "Nenv", "OVmean","Min", "Max", "MinENV", "MaxENV", "MinGEN", "MaxGEN", "SigPC"),
             #                   Values = c(Ngen, Nenv, round(mean(MeansGxE$Y), 4),
@@ -359,12 +360,10 @@ waas <- function(.data,
                           class = "waas")
 
             if (verbose == TRUE) {
-                cat("variable", paste(names(vars[var])),"\n")
-                cat("---------------------------------------------------------------------------\n")
-                cat("AMMI analysis table\n")
-                cat("---------------------------------------------------------------------------\n")
+                cli::cli_h1("Variable {names(vars[var])}")
+                cli::cli_h2("AMMI analysis table")
                 print(as.data.frame(model$ANOVA), digits = 3, row.names = FALSE)
-                cat("---------------------------------------------------------------------------\n\n")
+                cli::cli_text("")
             }
         }
     }
@@ -372,16 +371,12 @@ waas <- function(.data,
         if (length(which(unlist(lapply(listres, function(x) {
             x[["probint"]]
         })) > prob)) > 0) {
-            cat("------------------------------------------------------------\n")
-            cat("Variables with nonsignificant GxE interaction\n")
-            cat(names(which(unlist(lapply(listres, function(x) {
-                x[["probint"]]
-            })) > prob)), "\n")
-            cat("------------------------------------------------------------\n")
+            cli::cli_h2("Variables with nonsignificant GxE interaction")
+            cli::cli_inform("{names(which(unlist(lapply(listres, function(x) { x[[\"probint\"]} )) > prob))}")
         } else {
-            cat("All variables with significant (p < 0.05) genotype-vs-environment interaction\n")
+            cli::cli_alert_success("All variables with significant (p < 0.05) genotype-vs-environment interaction")
         }
-        cat("Done!\n")
+        cli::cli_alert_success("Done!")
     }
     invisible(structure(listres, class = "waas"))
 }
@@ -456,24 +451,16 @@ print.waas <- function(x, export = FALSE, file.name = NULL, digits = 4, ...) {
     on.exit(options(opar))
     for (i in 1:length(x)) {
         var <- x[[i]]
-        cat("Variable", names(x)[i], "\n")
-        cat("---------------------------------------------------------------------------\n")
-        cat("Individual analysis of variance\n")
-        cat("---------------------------------------------------------------------------\n")
+        cli::cli_h1("Variable {names(x)[i]}")
+        cli::cli_h2("Individual analysis of variance")
         print(var$individual$individual, ...)
-        cat("---------------------------------------------------------------------------\n")
-        cat("AMMI analysis table\n")
-        cat("---------------------------------------------------------------------------\n")
+        cli::cli_h2("AMMI analysis table")
         print(var$ANOVA, ...)
-        cat("---------------------------------------------------------------------------\n")
-        cat("Weighted average of the absolute scores\n")
-        cat("---------------------------------------------------------------------------\n")
+        cli::cli_h2("Weighted average of the absolute scores")
         print(var$model, ...)
-        cat("---------------------------------------------------------------------------\n")
-        cat("Some information regarding the analysis\n")
-        cat("---------------------------------------------------------------------------\n")
+        cli::cli_h2("Some information regarding the analysis")
         print(var$Details, ...)
-        cat("\n\n\n")
+        cli::cli_text("")
     }
     if (export == TRUE) {
         sink()
@@ -534,7 +521,7 @@ predict.waas <- function(object, naxis = 2, ...) {
     cal <- match.call()
     if (length(object) != length(naxis)) {
         warning("Invalid length in 'naxis'. Setting 'mresp = ", naxis[[1]],
-                "' to all the ", length(object), " variables.", call. = FALSE)
+                "' to all the ", length(object), " variables.")
         naxis <- replicate(length(object), naxis[[1]])
     }
 
@@ -542,16 +529,16 @@ predict.waas <- function(object, naxis = 2, ...) {
     varin <- 1
     for (var in 1:length(object)) {
         objectin <- object[[var]]
-        MEDIAS <- objectin$MeansGxE %>% select(ENV, GEN, Y)
+        MEDIAS <- objectin$MeansGxE |> select(ENV, GEN, Y)
         Nenv <- length(unique(MEDIAS$ENV))
         Ngen <- length(unique(MEDIAS$GEN))
         minimo <- min(Nenv, Ngen) - 1
         if (naxis[var] > minimo) {
-            stop("The number of axis to be used must be lesser than or equal to min(GEN-1;ENV-1), in this case, ",
-                 minimo, ".", call. = FALSE)
+            cli::cli_abort("The number of axis to be used must be lesser than or equal to min(GEN-1;ENV-1), in this case, ",
+                 minimo, ".")
         } else {
             if (naxis[var] == 0) {
-                warning("Predicted values of AMMI0 model are in colum 'pred_ols'.", call. = FALSE)
+                warning("Predicted values of AMMI0 model are in colum 'pred_ols'.")
             }
             ovmean <- mean(MEDIAS$Y)
             x1 <- model.matrix(~factor(MEDIAS$ENV) - 1)
@@ -564,7 +551,7 @@ predict.waas <- function(object, naxis = 2, ...) {
             LL <- s$d[1:naxis[var]]
             V <- s$v[, 1:naxis[var]]
             temp <-
-                MEDIAS %>%
+                MEDIAS |>
                 add_cols(pred_ols = Y - res_ols,
                          res_ammi = ((z1 %*% U) * (x1 %*% V)) %*% LL,
                          pred_ammi = pred_ols + res_ammi)
@@ -574,3 +561,4 @@ predict.waas <- function(object, naxis = 2, ...) {
     }
     invisible(listres)
 }
+

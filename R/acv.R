@@ -1,19 +1,18 @@
 #' Adjusted Coefficient of Variation
-#' \loadmathjax
 #' @description
 #' `r badge('stable')`
 #'
 #'  Computes the scale-adjusted coefficient of variation,
 #'   *acv*, (Doring and Reckling, 2018) to account for the systematic
-#'   dependence of \mjseqn{\sigma^2} from \mjseqn{\mu}. The *acv* is
+#'   dependence of \eqn{\sigma^2} from \eqn{\mu}. The *acv* is
 #'   computed as follows:
-#'   \mjsdeqn{acv = \frac{\sqrt{10^{\tilde v_i}}}{\mu_i}\times 100}
-#'   where \mjseqn{\tilde v_i} is the adjusted logarithm of the variance
+#'   \deqn{acv = \frac{\sqrt{10^{\tilde v_i}}}{\mu_i}\times 100}
+#'   where \eqn{\tilde v_i} is the adjusted logarithm of the variance
 #'   computed as:
-#' \mjsdeqn{\tilde v_i = a + (b - 2)\frac{1}{n}\sum m_i + 2m_i + e_i}
-#' being \mjseqn{a} and \mjseqn{b} the coefficients of the linear regression for
-#' \mjseqn{log_{10}} of the variance over the \mjseqn{log_{10}} of the mean;
-#' \mjseqn{ m_i} is the \mjseqn{log_{10}} of the mean, and \mjseqn{ e_i} is the
+#' \deqn{\tilde v_i = a + (b - 2)\frac{1}{n}\sum m_i + 2m_i + e_i}
+#' being \eqn{a} and \eqn{b} the coefficients of the linear regression for
+#' \eqn{log_{10}} of the variance over the \eqn{log_{10}} of the mean;
+#' \eqn{ m_i} is the \eqn{log_{10}} of the mean, and \eqn{ e_i} is the
 #' Power Law Residuals (POLAR), i.e., the residuals for the previously described
 #' regression.
 #' @param mean A numeric vector with mean values.
@@ -53,7 +52,7 @@
 #' }
 acv <- function(mean, var, na.rm = FALSE) {
   if(na.rm == FALSE & has_na(mean) | na.rm == FALSE & has_na(var)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    cli::cli_warn("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     mean <- na.omit(mean)
     var <- na.omit(var)
   }
@@ -62,10 +61,10 @@ acv <- function(mean, var, na.rm = FALSE) {
     var <- na.omit(var)
   }
   if(!is.numeric(mean) | !is.numeric(var)){
-    stop("Argument 'mean' and 'var' must be numeric.")
+    cli::cli_abort("Argument 'mean' and 'var' must be numeric.")
   }
   if(length(mean) != length(var)){
-    stop("'mean' and 'var' must have the same length.")
+    cli::cli_abort("'mean' and 'var' must have the same length.")
   }
   mi <- log10(mean)
   m <- mean(mi)

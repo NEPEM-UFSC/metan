@@ -6,17 +6,16 @@
 #' Computes the Smith (1936) and Hazel (1943) index given economic weights and
 #' phenotypic and genotypic variance-covariance matrices. The Smith-Hazel index
 #' is computed as follows:
-#'\loadmathjax
-#'\mjsdeqn{\bf{b = P^{-1}Aw}}
+#'\deqn{\bf{b = P^{-1}Aw}}
 #'
-#' where \mjseqn{\bf{P}} and \mjseqn{\bf{G}} are phenotypic and genetic
-#' covariance matrices, respectively, and \mjseqn{\bf{b}} and \mjseqn{\bf{w}}
+#' where \eqn{\bf{P}} and \eqn{\bf{G}} are phenotypic and genetic
+#' covariance matrices, respectively, and \eqn{\bf{b}} and \eqn{\bf{w}}
 #' are vectors of index coefficients and economic weightings, respectively.
 #'
-#' The genetic worth \mjseqn{I} of an individual
+#' The genetic worth \eqn{I} of an individual
 #' genotype based on traits *x*, *y*, ..., *n*, is calculated as:
 #'
-#'\mjsdeqn{I = b_xG_x + b_yG_y + ... + b_nG_n}
+#'\deqn{I = b_xG_x + b_yG_y + ... + b_nG_n}
 #'
 #' where *b* the index coefficient for the traits *x*, *y*, ...,
 #' *n*, respectively, and *G* is the individual genotype BLUPs for the
@@ -78,22 +77,22 @@ Smith_Hazel <- function(.data,
                         SI = 15,
                         weights = NULL){
   if(!use_data %in% c("blup", "pheno")){
-    stop("Argument 'use_data = ", match.call()["use_data"], "'", "invalid. It must be either 'blup' or 'pheno'.")
+    cli::cli_abort("Argument 'use_data = {match.call()['use_data']}' invalid. It must be either 'blup' or 'pheno'.")
   }
   if(has_class(.data, "gamem")){
     ifelse(is.null(weights),
            weights <- rep(1, length(.data)),
            weights <- weights)
     mat <-
-      gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) %>%
-      mean_by(GEN) %>%
-      column_to_rownames("GEN") %>%
+      gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) |>
+      mean_by(GEN) |>
+      column_to_rownames("GEN") |>
       as.matrix()
     pcov <-
-      gmd(.data, "data", verbose = FALSE) %>%
-      mean_by(GEN) %>%
-      column_to_rownames("GEN") %>%
-      as.matrix() %>%
+      gmd(.data, "data", verbose = FALSE) |>
+      mean_by(GEN) |>
+      column_to_rownames("GEN") |>
+      as.matrix() |>
       cov()
     gcov <- gmd(.data, "gcov", verbose = FALSE)
     gcov <- gcov[rownames(pcov), rownames(pcov)]
@@ -101,10 +100,10 @@ Smith_Hazel <- function(.data,
   } else{
     ifelse(missing(weights), weights <- rep(1, ncol(.data)), weights <- weights)
     if(missing(pcov) || missing(gcov)){
-      stop("The genotypic and phenotypic covariance matrices must be informed.", call. = FALSE)
+      cli::cli_abort("The genotypic and phenotypic covariance matrices must be informed.")
     } else{
       if(!isSymmetric(pcov) || !isSymmetric(gcov)){
-        stop("The genotypic and phenotypic covariance matrices must be symmetric.", call. = FALSE)
+        cli::cli_abort("The genotypic and phenotypic covariance matrices must be symmetric.")
       } else{
         pcov <- as.matrix(pcov)
         gcov <- as.matrix(gcov)
@@ -116,9 +115,9 @@ Smith_Hazel <- function(.data,
   ngs <- round(nrow(mat) * (SI/100), 0)
   b <- solve_svd(pcov) %*% gcov %*% weights
   index <-
-    mat %*% b %>%
-    as.data.frame() %>%
-    rownames_to_column("GEN") %>%
+    mat %*% b |>
+    as.data.frame() |>
+    rownames_to_column("GEN") |>
     arrange(-V1)
   sel_gen <- head(index, ngs)[[1]]
   if(length(sel_gen)==1){
@@ -133,17 +132,17 @@ Smith_Hazel <- function(.data,
            SD = Xs - Xo,
            SDperc = (Xs - Xo) / abs(Xo) * 100)
   vars <- tibble(VAR = colnames(mat),
-                 sense = weights) %>%
+                 sense = weights) |>
     mutate(sense = ifelse(sense < 0, "decrease", "increase"))
   if(has_class(.data, "gamem")){
     sel_dif_trait <-
-      left_join(sel_dif_trait, h2, by = "VAR") %>%
+      left_join(sel_dif_trait, h2, by = "VAR") |>
       add_cols(SG = SD * h2,
                SGperc = SG / abs(Xo) * 100)
   }
   sel_dif_trait <-
-    sel_dif_trait %>%
-    left_join(vars, by = "VAR") %>%
+    sel_dif_trait |>
+    left_join(vars, by = "VAR") |>
     mutate(goal = case_when(
       sense == "decrease" & SDperc < 0  |  sense == "increase" & SDperc > 0 ~ 100,
       TRUE ~ 0
@@ -154,8 +153,8 @@ Smith_Hazel <- function(.data,
               any_of(c("SDperc", "SGperc")),
               stats = c("min, mean, max, sum"))
   b <-
-    data.frame(b) %>%
-    rownames_to_column("VAR") %>%
+    data.frame(b) |>
+    rownames_to_column("VAR") |>
     add_cols(gen_weights = weights)
 
 
@@ -168,7 +167,7 @@ Smith_Hazel <- function(.data,
          sel_gen = sel_gen,
          gcov = gcov,
          pcov = pcov)
-  return(results %>% set_class("sh"))
+  return(results |> set_class("sh"))
 }
 
 
@@ -217,13 +216,13 @@ plot.sh <- function(x,
                     col.sel = "red",
                     col.nonsel = "black",
                     ...) {
-    data <- x$index %>% add_cols(sel = "Selected")
+    data <- x$index |> add_cols(sel = "Selected")
     data[["sel"]][(round(nrow(data) * (SI/100), 0) + 1):nrow(data)] <- "Nonselected"
     cutpoint <- min(subset(data, sel == "Selected")$V1)
     p <-
       ggplot(data = data, aes(x = reorder(GEN, V1), y = V1)) +
-      geom_hline(yintercept = cutpoint, col = col.sel, size = size.line) +
-      geom_path(colour = "black", group = 1, size = size.line) +
+      geom_hline(yintercept = cutpoint, col = col.sel, linewidth = size.line) +
+      geom_path(colour = "black", group = 1, linewidth = size.line) +
       geom_point(size = size.point, aes(fill = sel), shape = 21, colour = "black", stroke  = size.point / 10) +
       scale_x_discrete() +
       theme_minimal() +
@@ -287,27 +286,18 @@ print.sh <- function(x, export = FALSE, file.name = NULL, digits = 4, ...) {
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
-  cat("\n-----------------------------------------------------------------------------------\n")
-  cat("Index coefficients\n")
-  cat("-----------------------------------------------------------------------------------\n")
+  cli::cli_h2("Index coefficients")
   print(x$b)
-  cat("\n-----------------------------------------------------------------------------------\n")
-  cat("Genetic worth\n")
-  cat("-----------------------------------------------------------------------------------\n")
+  cli::cli_h2("Genetic worth")
   print(x$index)
-  cat("\n-----------------------------------------------------------------------------------\n")
-  cat("Selection gain\n")
-  cat("-----------------------------------------------------------------------------------\n")
+  cli::cli_h2("Selection gain")
   print(x$sel_dif_trait)
-  cat("\n-----------------------------------------------------------------------------------\n")
-  cat("Phenotypic variance-covariance matrix\n")
-  cat("-----------------------------------------------------------------------------------\n")
+  cli::cli_h2("Phenotypic variance-covariance matrix")
   print(x$pcov, digits = 2)
-  cat("\n-----------------------------------------------------------------------------------\n")
-  cat("Genotypic variance-covariance matrix\n")
-  cat("-----------------------------------------------------------------------------------\n")
+  cli::cli_h2("Genotypic variance-covariance matrix")
   print(x$gcov, digits = 2)
   if (export == TRUE) {
     sink()
   }
 }
+

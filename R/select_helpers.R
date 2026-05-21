@@ -47,7 +47,7 @@ NULL
 #'   variables contains greater and less characteres than `n`,
 #'   respectively.
 #' @param vars A character vector of variable names. When called from inside
-#'   selecting functions like [select_cols()] these are automatically
+#'   selecting functions like [select_cols][utils_rows_cols] these are automatically
 #'   set to the names of the table.
 #' @importFrom dplyr intersect
 #' @export
@@ -77,35 +77,35 @@ NULL
 #'
 #'
 #' # Select variables that start with "C" and not end with "D".
-#' data_ge2 %>%
-#' select_cols(difference_var("C", "D"))
+#' data_ge2 |>
+#' dplyr::select(difference_var("C", "D"))
 #'
 #' # Select variables that start with "C" and end with "D".
-#' data_ge2 %>%
-#' select_cols(intersect_var("C", "D"))
+#' data_ge2 |>
+#' dplyr::select(intersect_var("C", "D"))
 #'
 #' # Select variables that start with "C" or end with "D".
-#' data_ge2 %>%
-#' select_cols(union_var("C", "D"))
+#' data_ge2 |>
+#' dplyr::select(union_var("C", "D"))
 #'
 #' # Select variables with width name of 4
-#' data_ge2 %>%
-#' select_cols(width_of(4))
+#' data_ge2 |>
+#' dplyr::select(width_of(4))
 #'
 #' # Select variables with width name greater than 2
-#' data_ge2 %>%
-#' select_cols(width_greater_than(2))
+#' data_ge2 |>
+#' dplyr::select(width_greater_than(2))
 #'
 #' # Select variables with width name less than 3
-#' data_ge2 %>%
-#' select_cols(width_less_than(3))
+#' data_ge2 |>
+#' dplyr::select(width_less_than(3))
 #'
 #' # Creating data with messy column names
 #' df <- head(data_ge, 3)
 #' colnames(df) <- c("Env", "gen", "Rep", "GY", "hm")
-#' select_cols(df, lower_case_only())
-#' select_cols(df, upper_case_only())
-#' select_cols(df, title_case_only())
+#' dplyr::select(df, lower_case_only())
+#' dplyr::select(df, upper_case_only())
+#' dplyr::select(df, title_case_only())
 #' }
 #'
 difference_var <- function(prefix, suffix) {

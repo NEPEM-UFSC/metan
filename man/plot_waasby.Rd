@@ -10,7 +10,7 @@ plot_waasby(
   export = F,
   file.type = "pdf",
   file.name = NULL,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   width = 6,
   height = 6,
   size.shape = 3.5,
@@ -39,7 +39,7 @@ Graphic can also be exported in \verb{*.tiff} format by declaring
 \code{NULL}, i.e. the files are automatically named.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{width}{The width "inch" of the plot. Default is \code{8}.}

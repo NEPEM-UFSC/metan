@@ -86,14 +86,14 @@ for (i in 1:100) {
 pb <- progress(max = 10)
 foo <- function(...){
    run_progress(pb, ...)
-   rnorm(100) \%>\%  mean()
+   rnorm(100) |>  mean()
  }
 (a <- sapply(1:10, FUN = foo, sleep = 0.05))
 
 ######## A purrr functional programming approach ##########
 foo2 <- function(...){
      run_progress(pb2, ...)
-     rnorm(100) \%>\%  mean()
+     rnorm(100) |>  mean()
 }
 pb2 <- progress(max = 10000,
                 style = 4,

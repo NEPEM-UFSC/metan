@@ -51,41 +51,60 @@
 #' # Select variables that stats with 'N' and ends with 'L';
 #' # Compute the mean of these variables by ENV and GEN;
 #' # Rescale the variables that ends with 'L' whithin ENV;
-#' data_ge2 %>%
-#'   select(ENV, GEN, starts_with("N"), ends_with("L")) %>%
-#'   mean_by(ENV, GEN) %>%
-#'   group_by(ENV) %>%
-#'   resca(ends_with("L")) %>%
+#' data_ge2 |>
+#'   select(ENV, GEN, starts_with("N"), ends_with("L")) |>
+#'   mean_by(ENV, GEN) |>
+#'   group_by(ENV) |>
+#'   resca(ends_with("L")) |>
 #'   head(n = 13)
 #'}
 #'
 resca <- function(.data = NULL, ..., values = NULL, new_min = 0, new_max = 100, na.rm = TRUE, keep = TRUE) {
-  if(!missing(.data) && !missing(values)){
-    stop("You cannot inform a vector of values if a data frame is used as input.")
+
+  # Validação inicial
+  if(!missing(.data) && !is.null(values)){
+    cli::cli_abort("You cannot inform a vector of values if a data frame is used as input.")
   }
+
+  # Função interna de reescalonamento (evita repetição)
+  rescc <- function(x) {
+    rng <- max(x, na.rm = na.rm) - min(x, na.rm = na.rm)
+    if (rng == 0) return(rep(new_min, length(x))) # Evita divisão por zero
+    (new_max - new_min) / rng * (x - max(x, na.rm = na.rm)) + new_max
+  }
+
+  # CASO 1: Input é um Data Frame
   if(!missing(.data)){
+
+    # Seleção de colunas numéricas
     if(missing(...)){
-      vars <- select_numeric_cols(.data)
-    } else{
-      vars <- select_cols(.data, ...) %>%  select_numeric_cols()
-    }
-    rescc <- function(x){
-      (new_max - new_min)/(max(x, na.rm = na.rm) - min(x, na.rm = na.rm)) * (x - max(x, na.rm = na.rm)) + new_max
-    }
-    if(is_grouped_df(.data)){
-      dplyr::do(.data, resca(., ...))
-    }
-    if (keep == TRUE){
-    .data %>% mutate(across(any_of(names(vars)), list(res = rescc)))
+      vars <- names(select_numeric_cols(.data))
     } else {
-      .data %>%
-        mutate(across(any_of(names(vars)), list(res = rescc))) %>%
-        select(contains("res"))
+      vars <- .data |>
+        dplyr::select(...) |>
+        select_numeric_cols() |>
+        names()
     }
+
+    # O mutate(across(...)) já respeita grupos automaticamente.
+    # Não use dplyr::do() ou recursão com resca(.).
+    res <- .data |>
+      dplyr::mutate(dplyr::across(dplyr::all_of(vars), rescc, .names = "{.col}_res"))
+
+    if (keep) {
+      return(res)
+    } else {
+      return(dplyr::select(res, dplyr::contains("_res")))
+    }
+
   } else {
-    new_v <- function(v) {
-      (new_max - new_min)/(max(values, na.rm = na.rm) - min(values, na.rm = na.rm)) * (v - max(values, na.rm = na.rm)) + new_max
-    }
-    sapply(values, new_v)
+
+    # CASO 2: Input é um Vetor (values)
+    if (is.null(values)) return(NULL)
+
+    rng <- max(values, na.rm = na.rm) - min(values, na.rm = na.rm)
+    if (rng == 0) return(rep(new_min, length(values)))
+
+    return((new_max - new_min) / rng * (values - max(values, na.rm = na.rm)) + new_max)
   }
 }

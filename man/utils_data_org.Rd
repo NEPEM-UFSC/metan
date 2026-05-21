@@ -53,7 +53,7 @@ genotype, and replication, format the data to be used in the Selegen software
 library(metan)
 df_ge <- ge_simula(ngen = 2,
                    nenv = 3,
-                   nrep = 2) \%>\%
+                   nrep = 2) |>
          add_cols(ENV = c(rep("CACIQUE", 4),
                           rep("FREDERICO", 4),
                           rep("SANTA_MARIA", 4)))
@@ -69,7 +69,7 @@ recode_factor(df_ge,
               new_factor = ENV_CODE)
 
 # Format the data to be used in the Selegen software (model 54)
-df <- df_to_selegen_54(df_ge, ENV, GEN, REP) \%>\%
+df <- df_to_selegen_54(df_ge, ENV, GEN, REP) |>
 recode_factor(ENV, prefix = "E", new_factor = ENV)
 }
 

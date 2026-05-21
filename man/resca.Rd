@@ -74,11 +74,11 @@ head(
 # Select variables that stats with 'N' and ends with 'L';
 # Compute the mean of these variables by ENV and GEN;
 # Rescale the variables that ends with 'L' whithin ENV;
-data_ge2 \%>\%
-  select(ENV, GEN, starts_with("N"), ends_with("L")) \%>\%
-  mean_by(ENV, GEN) \%>\%
-  group_by(ENV) \%>\%
-  resca(ends_with("L")) \%>\%
+data_ge2 |>
+  select(ENV, GEN, starts_with("N"), ends_with("L")) |>
+  mean_by(ENV, GEN) |>
+  group_by(ENV) |>
+  resca(ends_with("L")) |>
   head(n = 13)
 }
 

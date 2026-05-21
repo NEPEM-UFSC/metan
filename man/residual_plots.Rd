@@ -9,7 +9,7 @@ residual_plots(
   var = 1,
   conf = 0.95,
   labels = FALSE,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   band.alpha = 0.2,
   point.alpha = 0.8,
   fill.hist = "gray",
@@ -41,7 +41,7 @@ default).}
 confidence interval limits.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{band.alpha, point.alpha}{The transparency of confidence band in the Q-Q

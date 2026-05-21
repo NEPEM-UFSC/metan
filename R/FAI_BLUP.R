@@ -71,17 +71,17 @@ fai_blup <- function(.data,
   # proposal and application on elephant grass breeding for bioenergy. GCB
   # Bioenergy 10(1): 52-60. doi: 10.1111/gcbb.12443'
   if(!use_data %in% c("blup", "pheno")){
-    stop("Argument 'use_data = ", match.call()["use_data"], "'", "invalid. It must be either 'blup' or 'pheno'.")
+    cli::cli_abort("Argument 'use_data = {match.call()['use_data']}' invalid. It must be either 'blup' or 'pheno'.")
   }
   if (!has_class(.data, c("data.frame", "tbl_df", "tbl", "waasb", "gamem"))) {
-    stop("The .data must be an object of class 'waasb', 'gamem' or a data.frame/tbl_df.")
+    cli::cli_abort("The .data must be an object of class 'waasb', 'gamem' or a data.frame/tbl_df.")
   }
   if(!has_class(.data, c("waasb", "gamem")) & any(sapply(.data, is.numeric)) == FALSE){
-    stop("All columns in .data must be numeric.")
+    cli::cli_abort("All columns in .data must be numeric.")
   }
   nvar <- ifelse(has_class(.data, c("waasb", "gamem")), length(.data), ncol(.data))
   if (nvar == 1) {
-    stop("The multitrait stability index cannot be computed with one single variable.")
+    cli::cli_abort("The multitrait stability index cannot be computed with one single variable.")
   }
   ifelse(missing(DI),
          ideotype.D <- rep("max", nvar),
@@ -94,16 +94,16 @@ fai_blup <- function(.data,
                 ideotype.U <- unlist(strsplit(UI, split=", ")),
                 ideotype.U <- UI))
   if (length(ideotype.D) != nvar || length(ideotype.U) != nvar) {
-    stop("The length of DI and UI must be the same length of data.")
+    cli::cli_abort("The length of DI and UI must be the same length of data.")
   }
   if(has_class(.data, c("gamem", "waasb"))){
     means <-
-      gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) %>%
-      mean_by(GEN) %>%
+      gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) |>
+      mean_by(GEN) |>
       column_to_rownames("GEN")
   } else {
     if(has_class(.data, c("data.frame", "matrix")) & !has_rownames(.data)){
-      stop("Please, provide rownames (with genotype's code).")
+      cli::cli_abort("Please, provide rownames (with genotype's code).")
     }
     means <- .data
   }
@@ -114,8 +114,7 @@ fai_blup <- function(.data,
   }
   if (any(apply(means, 2, function(x) sd(x) == 0) == TRUE)) {
     nam <- paste(names(means[, apply(means, 2, function(x) sd(x) == 0)]), collapse = " ")
-    stop("The genotype effect was not significant for the variables ",
-         nam, ". Please, remove them and try again.")
+    cli::cli_abort("The genotype effect was not significant for the variables {nam}. Please, remove them and try again.")
   }
   normalize.means <- scale(means, center = FALSE, scale = apply(means, 2, sd))
   cor.means <- cor(normalize.means)
@@ -231,7 +230,7 @@ fai_blup <- function(.data,
   GID <- DEM[1:nrow(scores), (nrow(scores) + 1):nrow(sd.scores)]
   spatial.prob <- (1/GID)/(replicate(IN, c(as.numeric(apply((1/GID), 1, sum)))))
   ideotype.rank <- lapply(1:IN, function(i) {
-    sort(spatial.prob[, i] %>% replace_na(replace = 0), decreasing = TRUE)
+    sort(spatial.prob[, i] |> replace_na(replace = 0), decreasing = TRUE)
   })
   names(ideotype.rank) <- paste("ID", 1:IN, sep = "")
   means.factor <- means[, names.pos.var.factor]
@@ -241,7 +240,7 @@ fai_blup <- function(.data,
                        Xo = colMeans(means.factor),
                        Xs = colMeans(means.factor[names(ideotype.rank[[i]])[1:ngs],]),
                        SD = colMeans(means.factor[names(ideotype.rank[[i]])[1:ngs],]) - colMeans(means.factor),
-                       SDperc = (colMeans(means.factor[names(ideotype.rank[[i]])[1:ngs], ]) - colMeans(means.factor))/abs(colMeans(means.factor)) * 100)) %>%
+                       SDperc = (colMeans(means.factor[names(ideotype.rank[[i]])[1:ngs], ]) - colMeans(means.factor))/abs(colMeans(means.factor)) * 100)) |>
         rownames_to_column("VAR")
     })
     names(selection.diferential) <- paste("ID", 1:IN, sep = "")
@@ -250,7 +249,7 @@ fai_blup <- function(.data,
       h2 <- gmd(.data, "h2", verbose = FALSE)
       selection.diferential <-
         lapply(selection.diferential, function(x){
-          left_join(x, h2, by = "VAR") %>%
+          left_join(x, h2, by = "VAR") |>
             add_cols(SG = SD * h2,
                      SGperc = SG / Xo * 100)
         })
@@ -258,14 +257,14 @@ fai_blup <- function(.data,
     if(is.character(DI)){
       vars <-
         tibble(VAR = colnames(means),
-               sense = ideotype.D) %>%
+               sense = ideotype.D) |>
         mutate(sense = case_when(sense == "max" ~ "increase",
                                  sense == "min" ~ "decrease",
                                  sense == "mean" ~ "keep",
                                  !sense  %in% c("max", "min", "mean") ~ "none"))
       selection.diferential <-
         lapply(selection.diferential, function(x){
-          left_join(x, vars, by = "VAR") %>%
+          left_join(x, vars, by = "VAR") |>
             mutate(goal = case_when(
               sense == "decrease" & SDperc < 0  |  sense == "increase" & SDperc > 0 ~ 100,
               TRUE ~ 0
@@ -286,32 +285,24 @@ fai_blup <- function(.data,
     selection.diferential <- NULL
   }
   if (verbose == TRUE) {
-    cat("\n-----------------------------------------------------------------------------------\n")
-    cat("Principal Component Analysis\n")
-    cat("-----------------------------------------------------------------------------------\n")
+    cli::cli_h2("Principal Component Analysis")
     print(round_cols(pca, digits = 2))
-    cat("\n-----------------------------------------------------------------------------------\n")
-    cat("Factor Analysis\n")
-    cat("-----------------------------------------------------------------------------------\n")
+    cli::cli_h2("Factor Analysis")
     print(round_cols(fa, digits = 2))
-    cat("\n-----------------------------------------------------------------------------------\n")
-    cat("Comunalit Mean:", mean(comunalits), "\n")
+    cli::cli_inform("Comunalit Mean: {mean(comunalits)}")
     if (!is.null(ngs)) {
-      cat("Selection differential\n")
-      cat("-----------------------------------------------------------------------------------\n")
+      cli::cli_h2("Selection differential")
       print(selection.diferential$ID1)
-      cat("\n-----------------------------------------------------------------------------------\n")
-      cat("Selected genotypes\n")
-      cat(names(ideotype.rank[[1]])[1:ngs])
-      cat("\n-----------------------------------------------------------------------------------\n")
+      cli::cli_h2("Selected genotypes")
+      cli::cli_inform("{names(ideotype.rank[[1]])[1:ngs]}")
     }
   }
   return(structure(list(data = means,
                         cormat = cor.means,
-                        eigen = data.frame(pca) %>% rownames_to_column("PC") %>% as_tibble(),
-                        FA = data.frame(fa) %>% rownames_to_column("Variable") %>% as_tibble(),
-                        canonical_loadings = data.frame(canonical.loadings) %>% rownames_to_column("Variable") %>% as_tibble(),
-                        FAI = data.frame(ideotype.rank) %>% rownames_to_column("Genotype") %>% as_tibble(),
+                        eigen = data.frame(pca) |> rownames_to_column("PC") |> as_tibble(),
+                        FA = data.frame(fa) |> rownames_to_column("Variable") |> as_tibble(),
+                        canonical_loadings = data.frame(canonical.loadings) |> rownames_to_column("Variable") |> as_tibble(),
+                        FAI = data.frame(ideotype.rank) |> rownames_to_column("Genotype") |> as_tibble(),
                         sel_dif_trait = selection.diferential,
                         sel_gen = lapply(ideotype.rank, function(x){names(x)[1:ngs]}),
                         construction_ideotypes = construction.ideotypes,
@@ -383,15 +374,15 @@ plot.fai_blup <- function(x,
                           col.nonsel = "black",
                           ...) {
 
-  data <- x$FAI %>%
-    select_cols(Genotype, paste("ID", ideotype, sep = "")) %>%
-  add_cols(sel = "Selected") %>%
+  data <- x$FAI |>
+    dplyr::select(Genotype, paste("ID", ideotype, sep = "")) |>
+  add_cols(sel = "Selected") |>
     set_names("Genotype", "FAI", "sel")
   data[["sel"]][(round(nrow(data) * (SI/100), 0) + 1):nrow(data)] <- "Nonselected"
   cutpoint <- min(subset(data, sel == "Selected")$FAI)
   p <- ggplot(data = data, aes(x = reorder(Genotype, FAI), y = FAI)) +
-    geom_hline(yintercept = cutpoint, col = col.sel, size = size.line) +
-    geom_path(colour = "black", group = 1, size = size.line) +
+    geom_hline(yintercept = cutpoint, col = col.sel, linewidth = size.line) +
+    geom_path(colour = "black", group = 1, linewidth = size.line) +
     geom_point(size = size.point, aes(fill = sel), shape = 21, colour = "black", stroke  = size.point / 10) +
     scale_x_discrete() +
     theme_minimal() +
@@ -421,3 +412,4 @@ plot.fai_blup <- function(x,
   }
   return(p)
 }
+

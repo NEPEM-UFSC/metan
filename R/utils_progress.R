@@ -52,14 +52,14 @@
 #' pb <- progress(max = 10)
 #' foo <- function(...){
 #'    run_progress(pb, ...)
-#'    rnorm(100) %>%  mean()
+#'    rnorm(100) |>  mean()
 #'  }
 #' (a <- sapply(1:10, FUN = foo, sleep = 0.05))
 #'
 #' ######## A purrr functional programming approach ##########
 #' foo2 <- function(...){
 #'      run_progress(pb2, ...)
-#'      rnorm(100) %>%  mean()
+#'      rnorm(100) |>  mean()
 #' }
 #' pb2 <- progress(max = 10000,
 #'                 style = 4,
@@ -87,7 +87,7 @@ progress <- function(min = 0,
               char = char,
               style = style,
               width = width,
-              time = time) %>%
+              time = time) |>
            set_class("pb_metan"))
 }
 #' @name utils_progress
@@ -99,7 +99,7 @@ run_progress <- function(pb,
                          sleep = 0){
   Sys.sleep(sleep)
   elapsed <-
-    as.numeric(difftime(Sys.time(), pb$time, units = "secs")) %>%
+    as.numeric(difftime(Sys.time(), pb$time, units = "secs")) |>
     sec_to_hms()
   temp <- switch(
     pb$style,
@@ -113,12 +113,12 @@ run_progress <- function(pb,
          text = paste(text, paste(pb$leftd, '%s%s', pb$rightd, sep = ""), '% s%%', elapsed))
   )
   step <- round(actual / pb$max * (pb$width - temp$extra))
-  temp$text %>%
+  temp$text |>
     sprintf(strrep(pb$char, step),
             strrep(' ', pb$width - step - temp$extra),
-            round(actual / pb$max * 100, digits = digits)) %>%
+            round(actual / pb$max * 100, digits = digits)) |>
     cat("\r")
   if(actual == pb$max){
-    cat("\n")
+    cli::cli_inform("")
   }
 }

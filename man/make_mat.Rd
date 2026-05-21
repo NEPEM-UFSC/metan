@@ -36,12 +36,12 @@ data.
 \examples{
 \donttest{
 library(metan)
-matrix <- data_ge \%>\% make_mat(row = GEN, col = ENV, val = GY)
+matrix <- data_ge |> make_mat(row = GEN, col = ENV, val = GY)
 matrix
 
 # standart error of mean
 
-data_ge \%>\% make_mat(GEN, ENV, GY, sem)
+data_ge |> make_mat(GEN, ENV, GY, sem)
 }
 }
 \author{

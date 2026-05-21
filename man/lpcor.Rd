@@ -47,11 +47,11 @@ data frame or a correlation matrix.
 library(metan)
 partial1 <- lpcor(iris)
 
-# Alternatively using the pipe operator \%>\%
-partial2 <- iris \%>\% lpcor()
+# Alternatively using the pipe operator |>
+partial2 <- iris |> lpcor()
 
 # Using a correlation matrix
-partial3 <- cor(iris[1:4]) \%>\%
+partial3 <- cor(iris[1:4]) |>
             lpcor(n = nrow(iris))
 
 # Select all numeric variables and compute the partial correlation

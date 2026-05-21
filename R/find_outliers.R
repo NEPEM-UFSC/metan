@@ -17,7 +17,7 @@
 #' @param verbose If `verbose = TRUE` then some results are shown in the
 #'   console.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @export
@@ -40,18 +40,18 @@ find_outliers <- function(.data =  NULL,
                           plot_theme = theme_metan()) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(find_outliers,
           var = {{var}},
           plots = plots,
           coef = coef,
           verbose = verbose,
-          plot_theme = plot_theme) %>%
+          plot_theme = plot_theme) |>
       as.data.frame()
       names(results)[[which(names(results) == "data")]] <- "outliers"
     return(results)
@@ -60,8 +60,8 @@ find_outliers <- function(.data =  NULL,
     var_name <- as.numeric(.data)
     dd <- data.frame(.data)
   } else {
-    var_name <- .data %>% dplyr::select({{var}}) %>% unlist() %>% as.numeric()
-    dd <- data.frame(.data %>% select({{var}}))
+    var_name <- .data |> dplyr::select({{var}}) |> unlist() |> as.numeric()
+    dd <- data.frame(.data |> select({{var}}))
   }
   tot <- sum(!is.na(var_name))
   na1 <- sum(is.na(var_name))
@@ -81,22 +81,17 @@ find_outliers <- function(.data =  NULL,
   na2 <- sum(is.na(var_name2))
   if ((na2 - na1) > 0) {
     if(verbose == TRUE){
-      cat("Trait:", colnames(dd), "\n")
-      cat("Number of possible outliers:", na2 - na1, "\n")
-      cat("Line(s):", names_out, "\n")
-      cat("Proportion: ", round((na2 - na1)/sum(!is.na(var_name2)) *
-                                  100, 1), "%\n", sep = "")
-      cat("Mean of the outliers:", round(mo, 3), "\n")
-      cat("Maximum of the outliers:", round(maxo, 3), " | Line",
-          names_out_max, "\n")
-      cat("Minimum of the outliers:", round(mino, 3), " | Line",
-          names_out_min, "\n")
+      cli::cli_inform("Trait: {colnames(dd)}")
+      cli::cli_inform("Number of possible outliers: {na2 - na1}")
+      cli::cli_inform("Line(s): {names_out}")
+      cli::cli_inform("Proportion: {round((na2 - na1)/sum(!is.na(var_name2)) * 100, 1)}%")
+      cli::cli_inform("Mean of the outliers: {round(mo, 3)}")
+      cli::cli_inform("Maximum of the outliers: {round(maxo, 3)} | Line {names_out_max}")
+      cli::cli_inform("Minimum of the outliers: {round(mino, 3)} | Line {names_out_min}")
       m2 <- mean(var_name2, na.rm = TRUE)
       m22 <- (sd(var_name2, na.rm = TRUE)/m2) * 100
-      cat("With outliers:    mean = ", round(m1, 3), " | CV = ",
-          round(m11, 3), "%", sep = "", "\n")
-      cat("Without outliers: mean = ", round(m2, 3), " | CV = ",
-          round(m22, 3), "%", sep = "", "\n\n")
+      cli::cli_inform("With outliers:    mean = {round(m1, 3)} | CV = {round(m11, 3)}%")
+      cli::cli_inform("Without outliers: mean = {round(m2, 3)} | CV = {round(m22, 3)}%")
     }
   }
 
@@ -180,7 +175,7 @@ find_outliers <- function(.data =  NULL,
   }
   if ((na2 - na1) == 0) {
     if(verbose == TRUE){
-      cat("No possible outlier identified. \n\n")
+      cli::cli_inform("No possible outlier identified. \n")
     }
   }
   outlier <- ifelse(((na2 - na1) == 0), 0, na2 - na1)

@@ -25,22 +25,22 @@
 #' @examples
 #' \donttest{
 #' library(metan)
-#' matrix <- data_ge %>% make_mat(row = GEN, col = ENV, val = GY)
+#' matrix <- data_ge |> make_mat(row = GEN, col = ENV, val = GY)
 #' matrix
 #'
 #' # standart error of mean
 #'
-#' data_ge %>% make_mat(GEN, ENV, GY, sem)
+#' data_ge |> make_mat(GEN, ENV, GY, sem)
 #'}
 
 make_mat <- function(.data, row, col, value, fun = mean) {
-  data <- .data %>%
+  data <- .data |>
     select({{row}},
            {{col}},
-           {{value}}) %>%
-    group_by({{row}}, {{col}}) %>%
-    summarise(across(where(is.numeric), fun, na.rm = TRUE), .groups = "drop") %>%
+           {{value}}) |>
+    group_by({{row}}, {{col}}) |>
+    summarise(across(where(is.numeric), fun, na.rm = TRUE), .groups = "drop") |>
     pivot_wider(names_from = {{col}}, values_from = {{value}})
-  data %<>% column_to_rownames(var = names(data[1]))
+  data <- data |> column_to_rownames(var = names(data[1]))
   return(data)
 }

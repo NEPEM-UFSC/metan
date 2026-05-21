@@ -50,7 +50,7 @@ set_difference(B, C)
 
 # Operations with data frames
 # Add a row id for better understanding
-sets <- data_ge \%>\% add_row_id()
+sets <- data_ge |> add_row_id()
 
 set_1 <- sets[1:5,]
 set_2 <- sets[2:6,]

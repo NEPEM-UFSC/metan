@@ -58,17 +58,17 @@ mahala_design <- function(.data,
                           by = NULL,
                           return = "distance") {
   if (!design %in% c("RCBD", "CRD")) {
-    stop("The experimental design must be RCBD or CRD.")
+    cli::cli_abort("The experimental design must be RCBD or CRD.")
   }
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
     results <-
-      .data %>%
+      .data |>
       doo(mahala_design,
           gen = {{gen}},
           rep = {{rep}},
@@ -79,12 +79,12 @@ mahala_design <- function(.data,
   }
   factors <- select(.data,
                     GEN = {{gen}},
-                    REP = {{rep}}) %>%
+                    REP = {{rep}}) |>
     as_factor(1:2)
   GEN <- factors$GEN
   REP <- factors$REP
-    vars <- .data %>%
-      select({{resp}}, -{{gen}}, -{{rep}}) %>%
+    vars <- .data |>
+      select({{resp}}, -{{gen}}, -{{rep}}) |>
       select_numeric_cols()
     nvar <- ncol(vars)
     mat <- matrix(nrow = nvar, ncol = nvar)
@@ -104,8 +104,8 @@ mahala_design <- function(.data,
       colnames(covdata)[[vin]] <- paste(names(vars[var]))
     }
     means <-
-      data.frame(cbind(GEN, covdata)) %>%
-      mean_by(GEN) %>%
+      data.frame(cbind(GEN, covdata)) |>
+      mean_by(GEN) |>
       column_to_rownames("GEN")
     covdata2 <- comb_vars(data.frame(covdata), order = "first")
     index <- data.frame(t(combn(ncol(mat), 2)))

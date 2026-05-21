@@ -49,17 +49,16 @@ An object of class \code{hz} containing:
 Computes the Smith (1936) and Hazel (1943) index given economic weights and
 phenotypic and genotypic variance-covariance matrices. The Smith-Hazel index
 is computed as follows:
-\loadmathjax
-\mjsdeqn{\bf{b = P^{-1}Aw}}
+\deqn{\bf{b = P^{-1}Aw}}
 
-where \mjseqn{\bf{P}} and \mjseqn{\bf{G}} are phenotypic and genetic
-covariance matrices, respectively, and \mjseqn{\bf{b}} and \mjseqn{\bf{w}}
+where \eqn{\bf{P}} and \eqn{\bf{G}} are phenotypic and genetic
+covariance matrices, respectively, and \eqn{\bf{b}} and \eqn{\bf{w}}
 are vectors of index coefficients and economic weightings, respectively.
 
-The genetic worth \mjseqn{I} of an individual
+The genetic worth \eqn{I} of an individual
 genotype based on traits \emph{x}, \emph{y}, ..., \emph{n}, is calculated as:
 
-\mjsdeqn{I = b_xG_x + b_yG_y + ... + b_nG_n}
+\deqn{I = b_xG_x + b_yG_y + ... + b_nG_n}
 
 where \emph{b} the index coefficient for the traits \emph{x}, \emph{y}, ...,
 \emph{n}, respectively, and \emph{G} is the individual genotype BLUPs for the

@@ -96,7 +96,7 @@ venn_plot <- function(...,
       }
     } else{
       if(length(sets) != length(names)){
-        stop("Incompatible length of names", call. = FALSE)
+        cli::cli_abort("Incompatible length of names")
       }
       names(sets) <- names
     }
@@ -108,22 +108,22 @@ venn_plot <- function(...,
       }
     } else{
       if(length(sets) != length(names)){
-        stop("Incompatible length of names", call. = FALSE)
+        cli::cli_abort("Incompatible length of names")
       }
       names(sets) <- names
     }
   }
   if (!(length(sets) %in% 2:4)) {
-    stop("Number of sets should be 2 or 4.", call. = FALSE)
+    cli::cli_abort("Number of sets should be 2 or 4.")
   }
   if (length(unique(sapply(sets, class))) != 1) {
-    stop("Vectors must be in the same class.", call. = FALSE)
+    cli::cli_abort("Vectors must be in the same class.")
   }
   if (!(sapply(sets, class)[1] %in% c("integer", "numeric", "character"))) {
-    stop("The list must contain only integers, numerics or characters.", call. = FALSE)
+    cli::cli_abort("The list must contain only integers, numerics or characters.")
   }
   if (!(alpha >= 0 & alpha <= 1)) {
-    stop("'alpha' should be between 0 and 1.", call. = FALSE)
+    cli::cli_abort("'alpha' should be between 0 and 1.")
   }
   if(length(fill) == 1){
     fill_color <- rep(fill, length(sets))
@@ -147,13 +147,13 @@ venn_plot <- function(...,
                           theta_offset = 0,
                           length.out = 200) {
       tibble(group = group,
-             theta = seq(0, 2 * pi, length.out = length.out)) %>%
+             theta = seq(0, 2 * pi, length.out = length.out)) |>
         mutate(x_raw = radius * cos(theta),
                y_raw = radius_b * sin(theta),
                x = x_offset + x_raw * cos(theta_offset) - y_raw * sin(theta_offset),
                y = y_offset + x_raw * sin(theta_offset) + y_raw * cos(theta_offset))
     }
-    columns <- names(data) %>% head(4)
+    columns <- names(data) |> head(4)
 
     # Two sets
     if (length(columns) == 2) {
@@ -166,8 +166,8 @@ venn_plot <- function(...,
         tribble(~name, ~x, ~y, ~label,
                 "A",   -1,  0,  set_difference(set_a, set_b),
                 "B",    1,  0,  set_difference(set_b, set_a),
-                "AB",   0,  0,  set_intersect(set_a, set_b)) %>%
-        rowwise() %>%
+                "AB",   0,  0,  set_intersect(set_a, set_b)) |>
+        rowwise() |>
         mutate(n = length(label),
                label = case_when(show_elements == TRUE && split_labels == TRUE ~ paste0(list(paste0(label, ifelse(1:length(label)%%split_each == 0, "\n", "|")))[[1]], collapse = ""),
                                  show_elements == TRUE && split_labels == FALSE ~ paste(label, collapse = label_sep),
@@ -179,7 +179,7 @@ venn_plot <- function(...,
       labels <-
         tribble(~name, ~x,   ~y,  ~hjust, ~vjust,
                 "A",   -.6, 1.2, 0.5,    0,
-                "B",    .6, 1.2, 0.5,    0) %>%
+                "B",    .6, 1.2, 0.5,    0) |>
         mutate(label = columns)
       return(list(shapes = d, texts = texts, labels = labels))
     }
@@ -195,15 +195,15 @@ venn_plot <- function(...,
 
       texts <-
         tribble(~name, ~x,    ~y, ~label,
-                "A",   -1,    0.75, set_a %>% set_difference(set_union(set_b, set_c)),
-                "B",    1,    0.75, set_b %>% set_difference(set_union(set_a, set_c)),
-                "C",    0,      -1, set_c %>% set_difference(set_union(set_a, set_b)),
-                "AB",   0,     0.9, set_a %>% set_intersect(set_b) %>% set_difference(set_c),
-                "AC",  -0.5, -0.15, set_a %>% set_intersect(set_c) %>% set_difference(set_b),
-                "BC",   0.5, -0.15, set_b %>% set_intersect(set_c) %>% set_difference(set_a),
-                "ABC",  0,     0.2, set_a %>% set_intersect(set_b, set_c)
-        ) %>%
-        rowwise() %>%
+                "A",   -1,    0.75, set_a |> set_difference(set_union(set_b, set_c)),
+                "B",    1,    0.75, set_b |> set_difference(set_union(set_a, set_c)),
+                "C",    0,      -1, set_c |> set_difference(set_union(set_a, set_b)),
+                "AB",   0,     0.9, set_a |> set_intersect(set_b) |> set_difference(set_c),
+                "AC",  -0.5, -0.15, set_a |> set_intersect(set_c) |> set_difference(set_b),
+                "BC",   0.5, -0.15, set_b |> set_intersect(set_c) |> set_difference(set_a),
+                "ABC",  0,     0.2, set_a |> set_intersect(set_b, set_c)
+        ) |>
+        rowwise() |>
         mutate(n = length(label),
                label = case_when(show_elements == TRUE && split_labels == TRUE ~ paste0(list(paste0(label, ifelse(1:length(label)%%split_each == 0, "\n", "|")))[[1]], collapse = ""),
                                  show_elements == TRUE && split_labels == FALSE ~ paste(label, collapse = label_sep),
@@ -217,7 +217,7 @@ venn_plot <- function(...,
         tribble(~name, ~x,    ~y,  ~hjust, ~vjust,
                 "A",   -0.8,  1.6, 0.5,    0,
                 "B",    0.8,  1.6, 0.5,    0,
-                "C",    0,   -1.5, 0.5,    1) %>%
+                "C",    0,   -1.5, 0.5,    1) |>
         mutate(label = columns)
       return(list(shapes = d, texts = texts, labels = labels))
     }
@@ -233,23 +233,23 @@ venn_plot <- function(...,
       set_d <- data[[4]]
       texts <-   tribble(
         ~name, ~x,    ~y,  ~label,
-        "A",   -1.5,  0,   set_a %>% set_difference(set_union(set_b, set_c, set_d)),
-        "B",   -0.6,  0.7, set_b %>% set_difference(set_union(set_a, set_c, set_d)),
-        "C",    0.6,  0.7, set_c %>% set_difference(set_union(set_a, set_b, set_d)),
-        "D",    1.5,  0,   set_d %>% set_difference(set_union(set_a, set_b, set_c)),
-        "AB",  -0.9,  0.3, set_a %>% set_intersect(set_b) %>% set_difference(set_c, set_d),
-        "BC",   0,    0.4, set_b %>% set_intersect(set_c) %>% set_difference(set_a, set_d),
-        "CD",   0.9,  0.3, set_c %>% set_intersect(set_d) %>% set_difference(set_a, set_b),
-        "AC",  -0.8, -0.9, set_a %>% set_intersect(set_c) %>% set_difference(set_b, set_d),
-        "BD",   0.8, -0.9, set_b %>% set_intersect(set_d) %>% set_difference(set_a, set_c),
-        "AD",   0,   -1.4, set_a %>% set_intersect(set_d) %>% set_difference(set_b, set_c),
-        "ABC", -0.5, -0.2, set_a %>% set_intersect(set_b, set_c) %>% set_difference(set_d),
-        "BCD",  0.5, -0.2, set_b %>% set_intersect(set_c, set_d) %>% set_difference(set_a),
-        "ACD", -0.3, -1.1, set_a %>% set_intersect(set_c, set_d) %>% set_difference(set_b),
-        "ABD",  0.3, -1.1, set_a %>% set_intersect(set_b, set_d) %>% set_difference(set_c),
+        "A",   -1.5,  0,   set_a |> set_difference(set_union(set_b, set_c, set_d)),
+        "B",   -0.6,  0.7, set_b |> set_difference(set_union(set_a, set_c, set_d)),
+        "C",    0.6,  0.7, set_c |> set_difference(set_union(set_a, set_b, set_d)),
+        "D",    1.5,  0,   set_d |> set_difference(set_union(set_a, set_b, set_c)),
+        "AB",  -0.9,  0.3, set_a |> set_intersect(set_b) |> set_difference(set_c, set_d),
+        "BC",   0,    0.4, set_b |> set_intersect(set_c) |> set_difference(set_a, set_d),
+        "CD",   0.9,  0.3, set_c |> set_intersect(set_d) |> set_difference(set_a, set_b),
+        "AC",  -0.8, -0.9, set_a |> set_intersect(set_c) |> set_difference(set_b, set_d),
+        "BD",   0.8, -0.9, set_b |> set_intersect(set_d) |> set_difference(set_a, set_c),
+        "AD",   0,   -1.4, set_a |> set_intersect(set_d) |> set_difference(set_b, set_c),
+        "ABC", -0.5, -0.2, set_a |> set_intersect(set_b, set_c) |> set_difference(set_d),
+        "BCD",  0.5, -0.2, set_b |> set_intersect(set_c, set_d) |> set_difference(set_a),
+        "ACD", -0.3, -1.1, set_a |> set_intersect(set_c, set_d) |> set_difference(set_b),
+        "ABD",  0.3, -1.1, set_a |> set_intersect(set_b, set_d) |> set_difference(set_c),
         "ABCD", 0,   -0.7, set_intersect(set_a, set_b, set_c, set_d)
-      ) %>%
-        rowwise() %>%
+      ) |>
+        rowwise() |>
         mutate(n = length(label),
                label = case_when(show_elements == TRUE && split_labels == TRUE ~ paste0(list(paste0(label, ifelse(1:length(label)%%split_each == 0, "\n", "|")))[[1]], collapse = ""),
                                  show_elements == TRUE && split_labels == FALSE ~ paste(label, collapse = label_sep),
@@ -262,14 +262,14 @@ venn_plot <- function(...,
                 "A",   -1.6,  0.85,      1,     1,
                 "B",   -0.8,  1.1,     0.5,     0,
                 "C",    0.8,  1.1,     0.5,     0,
-                "D",    1.6,  0.85,      0,     1) %>%
+                "D",    1.6,  0.85,      0,     1) |>
         mutate(label = columns)
       return(list(shapes = d, texts = texts, labels = labels))
     }
   }
   venn <- prepare_data(sets, show_elements, split_labels, split_each, label_sep)
-  venn$shapes %>%
-    mutate(group = LETTERS[group]) %>%
+  venn$shapes |>
+    mutate(group = LETTERS[group]) |>
     ggplot() +
     geom_polygon(aes(x = x, y = y, group = group, fill = group),
                  alpha = alpha) +

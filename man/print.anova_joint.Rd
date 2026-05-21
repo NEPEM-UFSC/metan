@@ -27,7 +27,7 @@ in the R console. The results can also be exported to the directory into a
 \examples{
 \donttest{
 library(metan)
-model <- data_ge \%>\% anova_joint(ENV, GEN, REP, c(GY, HM))
+model <- data_ge |> anova_joint(ENV, GEN, REP, c(GY, HM))
 print(model)
 }
 }

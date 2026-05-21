@@ -82,22 +82,21 @@
 #'
 #' @details `gamem` analyses data from a one-way genotype testing experiment.
 #' By default, a randomized complete block design is used according to the following model:
-#' \loadmathjax
-#' \mjsdeqn{Y_{ij} = m + g_i + r_j + e_{ij}}
-#' where \mjseqn{Y_{ij}} is the response variable of the ith genotype in the *j*th block;
-#'  *m* is the grand mean (fixed); \mjseqn{g_i} is the effect of the *i*th genotype
-#'  (assumed to be random); \mjseqn{r_j} is the effect of the *j*th replicate (assumed to be fixed);
-#'  and \mjseqn{e_{ij}} is the random error.
+#' \deqn{Y_{ij} = m + g_i + r_j + e_{ij}}
+#' where \eqn{Y_{ij}} is the response variable of the ith genotype in the *j*th block;
+#'  *m* is the grand mean (fixed); \eqn{g_i} is the effect of the *i*th genotype
+#'  (assumed to be random); \eqn{r_j} is the effect of the *j*th replicate (assumed to be fixed);
+#'  and \eqn{e_{ij}} is the random error.
 #'
 #' When `block` is informed, then a resolvable alpha design is implemented, according to the following model:
 #'
-#' \mjsdeqn{Y_{ijk} = m + g_i + r_j + b_{jk} + e_{ijk}}
-#' where where \mjseqn{y_{ijk}} is the response variable of the *i*th genotype in the
-#' *k*th block of the *j*th replicate; *m* is the intercept, \mjseqn{t_i} is
-#'  the effect for the *i*th genotype \mjseqn{r_j} is the effect of the *j*th
-#'  replicate, \mjseqn{b_{jk}} is the effect of the *k*th incomplete block of
-#'  the *j*th replicate, and \mjseqn{e_{ijk}} is the plot error effect
-#'  corresponding to \mjseqn{y_{ijk}}.
+#' \deqn{Y_{ijk} = m + g_i + r_j + b_{jk} + e_{ijk}}
+#' where where \eqn{y_{ijk}} is the response variable of the *i*th genotype in the
+#' *k*th block of the *j*th replicate; *m* is the intercept, \eqn{t_i} is
+#'  the effect for the *i*th genotype \eqn{r_j} is the effect of the *j*th
+#'  replicate, \eqn{b_{jk}} is the effect of the *k*th incomplete block of
+#'  the *j*th replicate, and \eqn{e_{ijk}} is the plot error effect
+#'  corresponding to \eqn{y_{ijk}}.
 #'
 #' @md
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
@@ -157,14 +156,14 @@ gamem <- function(.data,
                   verbose = TRUE) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
 if(is_grouped_df(.data)){
   if(!missing(block)){
     results <-
-      .data %>%
+      .data |>
       doo(gamem,
           gen = {{gen}},
           rep = {{rep}},
@@ -174,7 +173,7 @@ if(is_grouped_df(.data)){
           verbose = verbose)
   } else{
     results <-
-      .data %>%
+      .data |>
       doo(gamem,
           gen = {{gen}},
           rep = {{rep}},
@@ -186,41 +185,45 @@ if(is_grouped_df(.data)){
 }
   # RCBD
   if (missing(block) == TRUE) {
-    factors  <- .data %>%
-      select({{gen}}, {{rep}}) %>%
+    factors  <- .data |>
+      select({{gen}}, {{rep}}) |>
       mutate(across(everything(), as.factor))
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
-    factors %<>% set_names("GEN", "REP")
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <- vars |> select_numeric_cols()
+    factors <- factors |> set_names("GEN", "REP")
     listres <- list()
     nvar <- ncol(vars)
     if (verbose == TRUE) {
-      pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
     }
     model_formula <- "Y ~ REP + (1 | GEN)"
     model_fixed <- "Y ~ REP + GEN"
     ran_ef <- c("GEN")
     fix_ef <- c("REP")
     for (var in 1:nvar) {
-      data <- factors %>%
+      data <- factors |>
         mutate(Y = vars[[var]])
       check_labels(data)
       if(has_na(data)){
-        data <- remove_rows_na(data, verbose = verbose) %>% droplevels()
+        data <- remove_rows_na(data, verbose = verbose) |> droplevels()
       }
       Ngen <- nlevels(data$GEN)
       Nbloc <- nlevels(data$REP)
       ovmean <- mean(data$Y)
       fixed_mod <- lm(model_fixed, data = data)
       Complete <- suppressWarnings(suppressMessages(lmerTest::lmer(model_formula, data = data)))
-      LRT <- lmerTest::ranova(Complete, reduce.terms = FALSE) %>%
-        mutate(model = c("Complete", "Genotype")) %>%
+      LRT <- lmerTest::ranova(Complete, reduce.terms = FALSE) |>
+        mutate(model = c("Complete", "Genotype")) |>
         select(model, everything())
       fixed <- anova(Complete)
-      random <- lme4::VarCorr(Complete) %>%
-        as.data.frame() %>%
-        select(1, 4) %>%
-        arrange(grp) %>%
+      random <- lme4::VarCorr(Complete) |>
+        as.data.frame() |>
+        select(1, 4) |>
+        arrange(grp) |>
         rename(Group = grp, Variance = vcov)
       regen <- ranef(Complete, condVar = TRUE)
       GV <- as.numeric(random[1, 2])
@@ -245,39 +248,39 @@ if(is_grouped_df(.data)){
         ),
         Values = c(GV, GVper, RV, RVper, FV, h2g, h2mg, AccuGen, CVg, CVr, CVratio)
       )
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        data.frame(GEN = data %>% get_levels(GEN),
-                   BLUPg = regen$GEN$`(Intercept)`) %>%
-        add_cols(Predicted = BLUPg + ovmean) %>%
-        arrange(-Predicted) %>%
+        data.frame(GEN = data |> get_levels(GEN),
+                   BLUPg = regen$GEN$`(Intercept)`) |>
+        add_cols(Predicted = BLUPg + ovmean) |>
+        arrange(-Predicted) |>
         add_cols(Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
+                 UL = Predicted + Limits) |>
         column_to_first(Rank)
       ranef <-
         suppressWarnings(
-          left_join(data_factors, BLUPgen, by = "GEN") %>%
-            select_cols(GEN, REP, BLUPg) %>%
+          left_join(data_factors, BLUPgen, by = "GEN") |>
+            dplyr::select(GEN, REP, BLUPg) |>
             add_cols(Predicted = BLUPg + left_join(data_factors, mean_by(data, REP), by = "REP")$Y)
         )
-      min_gen <- data %>%
-        group_by(GEN) %>%
-        summarise(Y = mean(Y)) %>%
-        top_n(1, -Y) %>%
-        select(GEN, Y) %>%
+      min_gen <- data |>
+        group_by(GEN) |>
+        summarise(Y = mean(Y)) |>
+        top_n(1, -Y) |>
+        select(GEN, Y) |>
         slice(1)
-      max_gen <- data %>%
-        group_by(GEN) %>%
-        summarise(Y = mean(Y)) %>%
-        top_n(1, Y) %>%
-        select(GEN, Y) %>%
+      max_gen <- data |>
+        group_by(GEN) |>
+        summarise(Y = mean(Y)) |>
+        top_n(1, Y) |>
+        select(GEN, Y) |>
         slice(1)
-      max <- data %>%
-        top_n(1, Y) %>%
+      max <- data |>
+        top_n(1, Y) |>
         slice(1)
-      min <- data %>%
-        top_n(1, -Y) %>%
+      min <- data |>
+        top_n(1, -Y) |>
         slice(1)
       Details <- tibble(
         Parameters = c("Ngen", "OVmean", "Min", "Max", "MinGEN", "MaxGEN"),
@@ -292,7 +295,7 @@ if(is_grouped_df(.data)){
       )
       residuals <- data.frame(fortify.merMod(Complete))
       temp <- list(
-        fixed = fixed %>% rownames_to_column("SOURCE") %>% as_tibble(),
+        fixed = fixed |> rownames_to_column("SOURCE") |> as_tibble(),
         random = as_tibble(random),
         LRT = as_tibble(LRT),
         BLUPgen = BLUPgen,
@@ -304,39 +307,41 @@ if(is_grouped_df(.data)){
         Details = as_tibble(Details),
         ESTIMATES = as_tibble(ESTIMATES),
         formula = model_formula
-      ) %>%
+      ) |>
         set_class("gamem")
       if (verbose == TRUE) {
-        run_progress(pb,
-                     actual = var,
-                     text = paste("Evaluating trait", names(vars[var])))
+        cli::cli_progress_update(id = pb, set = var, force = TRUE)
       }
       listres[[paste(names(vars[var]))]] <- temp
     }
   }
   # ALPHA-LATTICE
   if (missing(block) == FALSE) {
-    factors  <- .data %>%
-      select({{gen}}, {{rep}}, {{block}}) %>%
+    factors  <- .data |>
+      select({{gen}}, {{rep}}, {{block}}) |>
       mutate(across(everything(), as.factor))
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
-    factors %<>% set_names("GEN", "REP", "BLOCK")
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <- vars |> select_numeric_cols()
+    factors <- factors |> set_names("GEN", "REP", "BLOCK")
     listres <- list()
     nvar <- ncol(vars)
     if (verbose == TRUE) {
-      pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
     }
     model_formula <- "Y ~ (1 | GEN) + REP + (1 | REP:BLOCK)"
     model_fixed <- "Y ~ GEN + REP + REP:BLOCK"
     ran_ef <- c("GEN, BLOCK(REP)")
     fix_ef <- c("REP")
     for (var in 1:nvar) {
-      data <- factors %>%
+      data <- factors |>
         mutate(Y = vars[[var]])
       check_labels(data)
       if(has_na(data)){
-        data <- remove_rows_na(data, verbose = verbose) %>% droplevels()
+        data <- remove_rows_na(data, verbose = verbose) |> droplevels()
         has_text_in_num(data)
       }
       Ngen <- nlevels(data$GEN)
@@ -344,14 +349,14 @@ if(is_grouped_df(.data)){
       ovmean <- mean(data$Y)
       fixed_mod <- lm(model_fixed, data = data)
       Complete <- suppressWarnings(suppressMessages(lmerTest::lmer(model_formula, data = data)))
-      LRT <- lmerTest::ranova(Complete, reduce.terms = FALSE) %>%
-        mutate(model = c("Complete", "Genotype", "rep:block")) %>%
+      LRT <- lmerTest::ranova(Complete, reduce.terms = FALSE) |>
+        mutate(model = c("Complete", "Genotype", "rep:block")) |>
         select(model, everything())
       fixed <- anova(Complete)
-      random <- lme4::VarCorr(Complete) %>%
-        as.data.frame() %>%
-        select(1, 4) %>%
-        arrange(grp) %>%
+      random <- lme4::VarCorr(Complete) |>
+        as.data.frame() |>
+        select(1, 4) |>
+        arrange(grp) |>
         rename(Group = grp, Variance = vcov)
       regen <- ranef(Complete, condVar = TRUE)
       GV <- as.numeric(random[1, 2])
@@ -381,45 +386,45 @@ if(is_grouped_df(.data)){
         ),
         Values = c(GV, GVper, BRV, BRper, RV, RVper, FV, h2g, h2mg, AccuGen, CVg, CVr, CVratio)
       )
-      data_factors <- data %>% select_non_numeric_cols()
+      data_factors <- data |> select_non_numeric_cols()
       BLUPgen <-
-        data.frame(GEN = data %>% get_levels(GEN),
-                   BLUPg = regen$GEN$`(Intercept)`) %>%
-        add_cols(Predicted = BLUPg + ovmean) %>%
-        arrange(-Predicted) %>%
+        data.frame(GEN = data |> get_levels(GEN),
+                   BLUPg = regen$GEN$`(Intercept)`) |>
+        add_cols(Predicted = BLUPg + ovmean) |>
+        arrange(-Predicted) |>
         add_cols(Rank = rank(-Predicted),
                  LL = Predicted - Limits,
-                 UL = Predicted + Limits) %>%
+                 UL = Predicted + Limits) |>
         column_to_first(Rank)
-      blupBWR <- data.frame(Names = rownames(regen$`REP:BLOCK`)) %>%
-        separate(Names, into = c("REP", "BLOCK"), sep = ":") %>%
-        add_cols(BLUPbre = regen$`REP:BLOCK`[[1]]) %>%
+      blupBWR <- data.frame(Names = rownames(regen$`REP:BLOCK`)) |>
+        separate(Names, into = c("REP", "BLOCK"), sep = ":") |>
+        add_cols(BLUPbre = regen$`REP:BLOCK`[[1]]) |>
         as_factor(1:2)
       ranef <-
         suppressWarnings(
-          left_join(data_factors, BLUPgen, by = "GEN") %>%
-            left_join(blupBWR, by = c("REP", "BLOCK")) %>%
-            select_cols(GEN, REP, BLOCK, BLUPg, BLUPbre) %>%
+          left_join(data_factors, BLUPgen, by = "GEN") |>
+            left_join(blupBWR, by = c("REP", "BLOCK")) |>
+            dplyr::select(GEN, REP, BLOCK, BLUPg, BLUPbre) |>
             add_cols(`BLUPg+bre` =  BLUPg + BLUPbre,
                      Predicted = `BLUPg+bre` + left_join(data_factors, mean_by(data, REP), by = "REP")$Y)
         )
-      min_gen <- data %>%
-        group_by(GEN) %>%
-        summarise(Y = mean(Y)) %>%
-        top_n(1, -Y) %>%
-        select(GEN, Y) %>%
+      min_gen <- data |>
+        group_by(GEN) |>
+        summarise(Y = mean(Y)) |>
+        top_n(1, -Y) |>
+        select(GEN, Y) |>
         slice(1)
-      max_gen <- data %>%
-        group_by(GEN) %>%
-        summarise(Y = mean(Y)) %>%
-        top_n(1, Y) %>%
-        select(GEN, Y) %>%
+      max_gen <- data |>
+        group_by(GEN) |>
+        summarise(Y = mean(Y)) |>
+        top_n(1, Y) |>
+        select(GEN, Y) |>
         slice(1)
-      max <- data %>%
-        top_n(1, Y) %>%
+      max <- data |>
+        top_n(1, Y) |>
         slice(1)
-      min <- data %>%
-        top_n(1, -Y) %>%
+      min <- data |>
+        top_n(1, -Y) |>
         slice(1)
       Details <- tibble(
         Parameters = c("Ngen", "OVmean", "Min", "Max", "MinGEN", "MaxGEN"),
@@ -434,7 +439,7 @@ if(is_grouped_df(.data)){
       )
       residuals <- as_tibble(fortify.merMod(Complete))
       temp <- list(
-        fixed = fixed %>% rownames_to_column("SOURCE") %>% as_tibble(),
+        fixed = fixed |> rownames_to_column("SOURCE") |> as_tibble(),
         random = as_tibble(random),
         LRT = as_tibble(LRT),
         BLUPgen = BLUPgen,
@@ -446,42 +451,36 @@ if(is_grouped_df(.data)){
         Details = as_tibble(Details),
         ESTIMATES = as_tibble(ESTIMATES),
         formula = model_formula
-      ) %>%
+      ) |>
         set_class("gamem")
 
       if (verbose == TRUE) {
-        run_progress(pb,
-                     actual = var,
-                     text = paste("Evaluating trait", names(vars[var])))
+        cli::cli_progress_update(id = pb, set = var, force = TRUE)
       }
       listres[[paste(names(vars[var]))]] <- temp
     }
   }
   if (verbose == TRUE) {
-    message("Method: REML/BLUP\n", appendLF = FALSE)
-    message("Random effects: ", ran_ef, "\n", appendLF = FALSE)
-    message("Fixed effects: ", fix_ef, "\n", appendLF = FALSE)
-    message("Denominador DF: Satterthwaite's method\n", appendLF = FALSE)
-    cat("---------------------------------------------------------------------------\n")
-    cat("P-values for Likelihood Ratio Test of the analyzed traits\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_bullets(c(
+      "*" = "Method: {.strong REML/BLUP}",
+      "*" = "Random effects: {.val {ran_ef}}",
+      "*" = "Fixed effects: {.val {fix_ef}}",
+      "*" = "Denominator DF: {.emph Satterthwaite's method}"
+    ))
+    cli::cli_h2("P-values for Likelihood Ratio Test of the analyzed traits")
     print.data.frame(sapply(listres, function(x){
       x$LRT[["Pr(>Chisq)"]]
-    }) %>%
-      as.data.frame() %>%
-      add_cols(model = listres[[1]][["LRT"]][["model"]]) %>%
+    }) |>
+      as.data.frame() |>
+      add_cols(model = listres[[1]][["LRT"]][["model"]]) |>
       column_to_first(model), row.names = FALSE, digits = 3)
-    cat("---------------------------------------------------------------------------\n")
     if (length(which(unlist(lapply(listres, function(x) {
-      x[["LRT"]] %>% dplyr::filter(model == "Genotype") %>% pull(`Pr(>Chisq)`)
+      x[["LRT"]] |> dplyr::filter(model == "Genotype") |> pull(`Pr(>Chisq)`)
     })) > prob)) > 0) {
-      cat("Variables with nonsignificant Genotype effect\n")
-      cat(names(which(unlist(lapply(listres, function(x) {
-        x[["LRT"]][which(x[["LRT"]][[1]] == "Genotype"), 7] %>% pull()
-      })) > prob)), "\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Variables with nonsignificant Genotype effect")
+      cli::cli_inform("{names(which(unlist(lapply(listres, function(x) { x[[\"LRT\"]][which(x[[\"LRT\"]][[1]] == \"Genotype\"), 7] |> pull() })) > prob))}")
     } else {
-      cat("All variables with significant (p < 0.05) genotype effect\n")
+      cli::cli_alert_success("All variables with significant (p < 0.05) genotype effect")
     }
   }
   invisible(structure(listres, class = "gamem"))
@@ -531,28 +530,18 @@ print.gamem <- function(x, export = FALSE, file.name = NULL, digits = 4, ...) {
   on.exit(options(opar))
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Fixed-effect anova table\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Fixed-effect anova table")
     print(var$fixed, ...)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Variance components for random effects\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Variance components for random effects")
     print(var$random, ...)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Likelihood ratio test for random effects\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Likelihood ratio test for random effects")
     print(var$LRT, ...)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Details of the analysis\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Details of the analysis")
     print(var$Details, ...)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Genetic parameters\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Genetic parameters")
     print(var$ESTIMATES, ...)
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()
@@ -585,11 +574,11 @@ print.gamem <- function(x, export = FALSE, file.name = NULL, digits = 4, ...) {
 #' }
 #'
 predict.gamem <- function(object, ...) {
-  factors <- object[[1]][["ranef"]] %>% select_non_numeric_cols()
+  factors <- object[[1]][["ranef"]] |> select_non_numeric_cols()
   numeric <- sapply(object, function(x){
     x[["ranef"]][["Predicted"]]
   })
-  return(cbind(factors, numeric) %>% as_tibble())
+  return(cbind(factors, numeric) |> as_tibble())
 }
 
 
@@ -629,7 +618,7 @@ predict.gamem <- function(object, ...) {
 #' @param labels Logical argument. If `TRUE` labels the points outside
 #' confidence interval limits.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param alpha The transparency of confidence band in the Q-Q plot. Must be a
 #' number between 0 (opaque) and 1 (full transparency).
@@ -675,7 +664,7 @@ plot.gamem <- function(x,
                        n.dodge = 1,
                        check.overlap = FALSE,
                        labels = FALSE,
-                       plot_theme = theme_metan(),
+                       plot_theme = theme_metan_minimal(),
                        alpha = 0.2,
                        fill.hist = "gray",
                        col.hist = "black",
@@ -694,10 +683,10 @@ plot.gamem <- function(x,
                        nrow = NULL,
                        ...) {
   if(!type  %in% c("res", 're', "vcomp")){
-    stop("Argument type = '", match.call()[["type"]], "' invalid. Use one of 'res', 're', or 'vcomp'", call. = FALSE)
+    cli::cli_abort("Argument type = '", match.call()[["type"]], "' invalid. Use one of 'res', 're', or 'vcomp'")
   }
   if(type %in% c("vcomp", "re") && !class(x)  %in% c("waasb", "gamem")){
-    stop("Arguments 're' and 'vcomp' valid for objects of class 'waasb' or 'gamem'. ")
+    cli::cli_abort("Arguments 're' and 'vcomp' valid for objects of class 'waasb' or 'gamem'. ")
   }
   if(is.numeric(var)){
     var_name <- names(x)[var]
@@ -705,21 +694,21 @@ plot.gamem <- function(x,
     var_name <- var
   }
   if(!var_name %in% names(x)){
-    stop("Variable not found in ", match.call()[["x"]] , call. = FALSE)
+    cli::cli_abort("Variable not found in ", match.call()[["x"]] )
   }
   if (type == "re" & max(which) >= 5) {
-    stop("When type =\"re\", 'which' must be a value between 1 and 4")
+    cli::cli_abort("When type =\"re\", 'which' must be a value between 1 and 4")
   }
   if(type == "vcomp"){
     list <- lapply(x, function(x){
-      x[["random"]] %>% select(Group, Variance)
+      x[["random"]] |> select(Group, Variance)
     })
     vcomp <- suppressWarnings(
       lapply(seq_along(list),
              function(i){
                set_names(list[[i]], "Group", names(list)[i])
-             }) %>%
-        reduce(full_join, by = "Group") %>%
+             }) |>
+        reduce(full_join, by = "Group") |>
         pivot_longer(-Group))
     p1 <-
       ggplot(vcomp, aes(x = name, y = value, fill = Group)) +
@@ -732,7 +721,7 @@ plot.gamem <- function(x,
       scale_x_discrete(guide = guide_axis(n.dodge = n.dodge, check.overlap = check.overlap)) +
       theme_bw()+
       theme(legend.position = "bottom",
-            axis.ticks = element_line(size = size.line),
+            axis.ticks = element_line(linewidth = size.line),
             axis.ticks.length = unit(0.2, "cm"),
             panel.grid = element_blank(),
             legend.title = element_blank(),
@@ -792,7 +781,7 @@ plot.gamem <- function(x,
                   slope = coef[2],
                   size = 1,
                   col = col.line) +
-      geom_ribbon(aes_(ymin = ~lower, ymax = ~upper),
+      geom_ribbon(aes(ymin = lower, ymax = upper),
                   alpha = 0.2) +
       labs(x = "Theoretical quantiles", y = "Sample quantiles") +
       ggtitle("Normal Q-Q") +
@@ -899,15 +888,15 @@ plot.gamem <- function(x,
   if (type == "re") {
     x <- x[[var]]
     blups <-
-      x$ranef %>%
-      select_cols(contains("BLUP"))
-    fact <-x$ranef %>% select_non_numeric_cols()
+      x$ranef |>
+      dplyr::select(contains("BLUP"))
+    fact <-x$ranef |> select_non_numeric_cols()
     qlist <- list()
     for (i in 1:ncol(blups)) {
       df <-
-        data.frame(blups[i]) %>%
-        distinct_all() %>%
-        add_row_id(var = "id") %>%
+        data.frame(blups[i]) |>
+        distinct_all() |>
+        add_row_id(var = "id") |>
         arrange(across(2))
       P <- ppoints(nrow(df))
       df$z <- qnorm(P)
@@ -919,13 +908,13 @@ plot.gamem <- function(x,
       zz <- qnorm(1 - (1 - conf)/2)
       SE <- (coef[2]/dnorm(df$z)) * sqrt(P * (1 - P)/n)
       fit.value <- coef[1] + coef[2] * df$z
-      df %<>% add_cols(upper = fit.value + zz * SE,
+      df <- df |> add_cols(upper = fit.value + zz * SE,
                        lower = fit.value - zz * SE,
                        label = ifelse(df[[2]] > upper | df[[2]] < lower, id, ""),
                        intercept = coef[1],
                        slope = coef[2],
                        var = paste(names(blups[i]))
-      ) %>%
+      ) |>
         set_names("id",    "blup", "z",     "upper", "lower", "label", "intercept", "slope", "var")
       qlist[[paste(names(blups[i]))]] <- df
     }
@@ -937,7 +926,7 @@ plot.gamem <- function(x,
       geom_abline(aes(intercept = intercept,
                       slope = slope),
                   size = 1, col = col.line) +
-      geom_ribbon(aes_(ymin = ~lower, ymax = ~upper),
+      geom_ribbon(aes(ymin = lower, ymax = upper),
                   alpha = 0.2) +
       labs(x = "Theoretical quantiles", y = "Sample quantiles")+
       facet_wrap( ~var, scales = "free") +
@@ -957,3 +946,5 @@ plot.gamem <- function(x,
     return(p1)
   }
 }
+
+

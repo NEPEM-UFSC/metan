@@ -32,29 +32,30 @@
 tukey_hsd <- function(model, ..., out = "long"){
   d <- match.call()
   if(!has_class(model, c("lm", "aov"))){
-    stop("object '", d[["model"]], "' must be of class 'lm' or 'aov'.", call. = FALSE)
+    cli::cli_abort("object '", d[["model"]], "' must be of class 'lm' or 'aov'.")
   }
   mod <-
-    aov(model) %>%
+    aov(model) |>
     TukeyHSD(...)
   results <-  do.call(rbind,
                       lapply(seq_along(mod), function(i){
-                        mod[i] %>%
-                          as.data.frame() %>%
-                          rownames_to_column("comparison") %>%
-                          separate(comparison, into= c("group2", "group1"), sep = "-") %>%
-                          add_cols(term = names(mod)[i], .before = group2) %>%
-                          set_names("term", "group2", "group1", "estimate", "conf.low", "conf.high", "p.adj") %>%
-                          add_cols(sign = stars_pval(p.adj)) %>%
+                        mod[i] |>
+                          as.data.frame() |>
+                          rownames_to_column("comparison") |>
+                          separate(comparison, into= c("group2", "group1"), sep = "-") |>
+                          add_cols(term = names(mod)[i], .before = group2) |>
+                          set_names("term", "group2", "group1", "estimate", "conf.low", "conf.high", "p.adj") |>
+                          add_cols(sign = stars_pval(p.adj)) |>
                           reorder_cols(group1, .before = group2)
                       })
   )
   if(out == "wide"){
-    results %<>%
-      group_by(term) %>%
+    results <- results |>
+      group_by(term) |>
       doo(~make_mat(., group1, group2, p.adj))
     return(results)
   } else{
     return(results)
   }
 }
+

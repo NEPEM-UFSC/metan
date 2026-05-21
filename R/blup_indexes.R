@@ -16,20 +16,19 @@
 #' are in Alves et al (2018), Azevedo Peixoto et al. (2018), Dias et al. (2018)
 #' and Colombari Filho et al. (2013).
 #'
-#'\loadmathjax
 #' The HMGV index is computed as
-#'\mjsdeqn{HMG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E {\frac{1}{{G{v_{ij}}}}}}}}
+#'\deqn{HMG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E {\frac{1}{{G{v_{ij}}}}}}}}
 #'
-#' where \mjseqn{E} is the number of environments included in the analysis,
-#' \mjseqn{Gv_{ij}} is the genotypic value (BLUP) for the ith genotype in the
+#' where \eqn{E} is the number of environments included in the analysis,
+#' \eqn{Gv_{ij}} is the genotypic value (BLUP) for the ith genotype in the
 #' jth environment.
 #'
 #' The RPGV index is computed as
-#' \mjsdeqn{RPGV_i = \frac{1}{E}{\sum\limits_{j = 1}^E {Gv_{ij}} /\mathop \mu
+#' \deqn{RPGV_i = \frac{1}{E}{\sum\limits_{j = 1}^E {Gv_{ij}} /\mathop \mu
 #' \nolimits_j }}
 #'
 #' The HMRPGV index is computed as
-#' \mjsdeqn{HMRPG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E
+#' \deqn{HMRPG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E
 #' {\frac{1}{{G{v_{ij}}/{\mu _j}}}} }}}
 #'
 #' @param model An object of class `waasb` computed with [waasb()] or
@@ -85,32 +84,31 @@
 # Harmonic mean genotypic values
 hmgv <- function(model){
     if (!has_class(model, "waasb")) {
-        stop("The object 'model' must be an object of class \"waasb\"")
+        cli::cli_abort("The object 'model' must be an object of class \"waasb\"")
     }
     hmgv <- function(model){
         GEPRED <-
-            model[["BLUPint"]] %>%
+            model[["BLUPint"]] |>
             make_mat(GEN, ENV, Predicted)
         HMGV <- tibble(GEN = rownames(GEPRED),
-                       Y = model[["MeansGxE"]] %>% mean_by(GEN) %>% pull(Y),
+                       Y = model[["MeansGxE"]] |> mean_by(GEN) |> pull(Y),
                        HMGV = apply(GEPRED, 1, FUN = hmean, na.rm = TRUE),
                        HMGV_R = rank(-HMGV))
         return(HMGV)
     }
-    map(model, hmgv) %>%
-        set_class("blup_ind") %>%
-        return()
+    map(model, hmgv) |>
+        set_class("blup_ind")
 }
 # Relative performance of genotypic values
 #' @name blup_indexes
 #' @export
 rpgv <- function(model){
     if (!has_class(model, "waasb")) {
-        stop("The object 'model' must be an object of class \"waasb\"")
+        cli::cli_abort("The object 'model' must be an object of class \"waasb\"")
     }
     rpgv <- function(model){
         GEPRED <-
-            model[["BLUPint"]] %>%
+            model[["BLUPint"]] |>
             make_mat(GEN, ENV, Predicted)
         Y <- model[["MeansGxE"]]
         GEMEAN <- make_mat(Y, GEN, ENV, Y)
@@ -118,26 +116,25 @@ rpgv <- function(model){
         mean_env <- apply(GEMEAN, 2, FUN = mean, na.rm = TRUE)
         RPGV <-
             tibble(GEN = rownames(GEPRED),
-                   Y = model[["MeansGxE"]] %>% mean_by(GEN) %>% pull(Y),
-                   RPGV = apply(t(t(GEPRED)/mean_env), 1, mean, na.rm = TRUE)) %>%
+                   Y = model[["MeansGxE"]] |> mean_by(GEN) |> pull(Y),
+                   RPGV = apply(t(t(GEPRED)/mean_env), 1, mean, na.rm = TRUE)) |>
             add_cols(RPGV_Y = RPGV * ovmean,
                      RPGV_R = rank(-RPGV_Y))
         return(RPGV)
     }
-    map(model, rpgv) %>%
-        set_class("blup_ind") %>%
-        return()
+    map(model, rpgv) |>
+        set_class("blup_ind")
 }
 # Harmonic mean of the relative performance of genotypic values
 #' @name blup_indexes
 #' @export
 hmrpgv <- function(model){
     if (!has_class(model, "waasb")) {
-        stop("The object 'model' must be an object of class \"waasb\"")
+        cli::cli_abort("The object 'model' must be an object of class \"waasb\"")
     }
     hmrpgv <- function(model){
         GEPRED <-
-            model[["BLUPint"]] %>%
+            model[["BLUPint"]] |>
             make_mat(GEN, ENV, Predicted)
         Y <- model[["MeansGxE"]]
         GEMEAN <- make_mat(Y, GEN, ENV, Y)
@@ -145,49 +142,48 @@ hmrpgv <- function(model){
         mean_env <- apply(GEMEAN, 2, FUN = mean, na.rm = TRUE)
         HMRPGV <-
             tibble(GEN = rownames(GEPRED),
-                   Y = Y %>% mean_by(GEN) %>% pull(Y),
-                   HMRPGV = apply(t(t(GEPRED)/mean_env), 1, hmean, na.rm = TRUE)) %>%
+                   Y = Y |> mean_by(GEN) |> pull(Y),
+                   HMRPGV = apply(t(t(GEPRED)/mean_env), 1, hmean, na.rm = TRUE)) |>
             mutate(HMRPGV_Y = HMRPGV * ovmean,
                    HMRPGV_R = rank(-HMRPGV_Y))
         return(HMRPGV)
     }
-    map(model, hmrpgv) %>%
-        set_class("blup_ind") %>%
-        return()
+    map(model, hmrpgv) |>
+        set_class("blup_ind")
 }
 #' @name blup_indexes
 #' @export
 blup_indexes <- function(model) {
     if (!is(model, "waasb")) {
-        stop("The object 'model' must be an object of class \"waasb\"")
+        cli::cli_abort("The object 'model' must be an object of class \"waasb\"")
     }
     test <- "model" %in% names(model[[1]])
-    hmgv <- hmgv(model) %>% rbind_fill_id(.id = "TRAIT")
-    rpgv <- rpgv(model) %>%  rbind_fill_id(.id = "TRAIT")
-    hmrpgv <- hmrpgv(model) %>%  rbind_fill_id(.id = "TRAIT")
+    hmgv <- hmgv(model) |> rbind_fill_id(.id = "TRAIT")
+    rpgv <- rpgv(model) |>  rbind_fill_id(.id = "TRAIT")
+    hmrpgv <- hmrpgv(model) |>  rbind_fill_id(.id = "TRAIT")
     bind <-
-        hmgv %>%
-        left_join(rpgv, by = c("TRAIT", "GEN", "Y")) %>%
+        hmgv |>
+        left_join(rpgv, by = c("TRAIT", "GEN", "Y")) |>
         left_join(hmrpgv, by = c("TRAIT", "GEN", "Y"))
     if(test){
         waasb_ind <-
-            gmd(model, "WAASB", verbose = FALSE) %>%
-            pivot_longer(-GEN, names_to = "TRAIT") %>%
+            gmd(model, "WAASB", verbose = FALSE) |>
+            pivot_longer(-GEN, names_to = "TRAIT") |>
             rename(WAASB = value)
         waasb_ran <-
-            gmd(model, "OrWAASB", verbose = FALSE) %>%
-            pivot_longer(-GEN, names_to = "TRAIT") %>%
+            gmd(model, "OrWAASB", verbose = FALSE) |>
+            pivot_longer(-GEN, names_to = "TRAIT") |>
             rename(WAASB_R = value)
         bind <-
-            bind %>%
-            left_join(waasb_ind, by = c("TRAIT", "GEN")) %>%
+            bind |>
+            left_join(waasb_ind, by = c("TRAIT", "GEN")) |>
             left_join(waasb_ran, by = c("TRAIT", "GEN"))
     }
     if(!test){
-        warning("The WAASB index was not computed.\nUse an object computed with `waasb()` to get this index.", call. = FALSE)
+        cli::cli_warn("The WAASB index was not computed.\nUse an object computed with `waasb()` to get this index.")
     }
     bind <-
-        split_factors(bind, TRAIT) %>%
+        split_factors(bind, TRAIT) |>
         set_class("blup_ind")
     return(bind)
 }

@@ -77,7 +77,7 @@
 #'
 #'
 #' # Canonical correlations for each environment
-#' cc3 <- data_ge2 %>%
+#' cc3 <- data_ge2 |>
 #'        can_corr(FG = c(PH, EH, EP),
 #'                 SG = c(EL, ED, CL, CD, CW, KW, NR),
 #'                 by = ENV,
@@ -97,12 +97,12 @@ can_corr <- function(.data,
                      collinearity = TRUE) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(can_corr,
           FG = {{FG}},
           SG = {{SG}},
@@ -115,19 +115,19 @@ can_corr <- function(.data,
           collinearity = collinearity)
     return(set_class(results, c("tbl_df",  "can_cor_group", "tbl",  "data.frame")))
   }
-  FG <- as.data.frame(select(.data, {{FG}}) %>% select_numeric_cols())
-  SG <- as.data.frame(select(.data, {{SG}}) %>% select_numeric_cols())
+  FG <- as.data.frame(select(.data, {{FG}}) |> select_numeric_cols())
+  SG <- as.data.frame(select(.data, {{SG}}) |> select_numeric_cols())
   if (nrow(FG) != nrow(SG)) {
-    stop("The number of observations of 'FG', should be equal to 'SG'.")
+    cli::cli_abort("The number of observations of 'FG', should be equal to 'SG'.")
   }
   if (ncol(FG) > ncol(SG)) {
-    stop("The number of variables in 'FG' should be lesser than or equal to the number of variables in 'SG'.")
+    cli::cli_abort("The number of variables in 'FG' should be lesser than or equal to the number of variables in 'SG'.")
   }
   if (!test %in% c("Bartlett", "Rao")) {
-    stop("The argument 'test' is incorrect, it should be 'Bartlett' or 'Rao'.")
+    cli::cli_abort("The argument 'test' is incorrect, it should be 'Bartlett' or 'Rao'.")
   }
   if (!is.numeric(prob) | prob <= 0 || prob > 1) {
-    stop("The argument 'prob' is incorrect. It should be numeric with values between 0 and 1.")
+    cli::cli_abort("The argument 'prob' is incorrect. It should be numeric with values between 0 and 1.")
   }
   if (use == "cov") {
     MC <- cov(cbind(FG, SG))
@@ -259,56 +259,36 @@ can_corr <- function(.data,
     colin <- NULL
   }
   if (verbose == TRUE) {
-    cat("---------------------------------------------------------------------------\n")
-    cat("Matrix (correlation/covariance) between variables of first group (FG)\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Matrix (correlation/covariance) between variables of first group (FG)")
     print(S11)
     if (collinearity == TRUE) {
-      cat("---------------------------------------------------------------------------\n")
-      cat("Collinearity within first group \n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Collinearity within first group")
       print(colindiag(FG))
     }
-    cat("---------------------------------------------------------------------------\n")
-    cat("Matrix (correlation/covariance) between variables of second group (SG)\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Matrix (correlation/covariance) between variables of second group (SG)")
     print(S22)
     if (collinearity == TRUE) {
-      cat("---------------------------------------------------------------------------\n")
-      cat("Collinearity within second group \n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Collinearity within second group")
       print(colindiag(SG))
     }
-    cat("---------------------------------------------------------------------------\n")
-    cat("Matrix (correlation/covariance) between FG and SG\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Matrix (correlation/covariance) between FG and SG")
     print(S12)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Correlation of the canonical pairs and hypothesis testing \n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Correlation of the canonical pairs and hypothesis testing")
     print(results)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Canonical coefficients of the first group \n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Canonical coefficients of the first group")
     print(Coef_FG)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Canonical coefficients of the second group \n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Canonical coefficients of the second group")
     print(Coef_SG)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Canonical loads of the first group \n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Canonical loads of the first group")
     print(Rux)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Canonical loads of the second group \n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Canonical loads of the second group")
     print(Rvy)
   }
 
   out <- list(Matrix = MC, MFG = S11, MSG = S22,
               MFG_SG = S12, Coef_FG = Coef_FG, Coef_SG = Coef_SG, Loads_FG = Rux,
               Loads_SG = Rvy, Score_FG = FG_SC, Score_SG = SG_SC, Crossload_FG = FG_CL,
-              Crossload_SG = SG_CL, Sigtest = results, collinearity = colin) %>%
+              Crossload_SG = SG_CL, Sigtest = results, collinearity = colin) |>
     add_class(class = "can_cor")
   invisible(out)
 }
@@ -327,7 +307,7 @@ can_corr <- function(.data,
 #'   `type = 3` to produce a plot with the scores of the variables in the
 #'   second group, or `type = 4` to produce a circle of correlations.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details,see
+#'   `plot_theme = theme_metan_minimal()`. For more details,see
 #'   [ggplot2::theme()].
 #' @param size.tex.pa The size of the text of the plot area. Default is
 #'   `3.5`.
@@ -381,9 +361,9 @@ can_corr <- function(.data,
 #' plot(cc1, 2)
 #'
 #' cc2 <-
-#' data_ge2 %>%
-#' mean_by(GEN) %>%
-#' column_to_rownames("GEN") %>%
+#' data_ge2 |>
+#' mean_by(GEN) |>
+#' column_to_rownames("GEN") |>
 #' can_corr(FG = c(PH, EH, EP),
 #'                SG = c(EL, ED, CL, CD, CW, KW, NR))
 #' plot(cc2, 2, labels = TRUE)
@@ -392,7 +372,7 @@ can_corr <- function(.data,
 #'
 plot.can_cor <- function(x,
                          type = 1,
-                         plot_theme = theme_metan(),
+                         plot_theme = theme_metan_minimal(),
                          size.tex.lab = 12,
                          size.tex.pa = 3.5,
                          x.lab = NULL,
@@ -410,10 +390,10 @@ plot.can_cor <- function(x,
                          labels = FALSE,
                          main = NULL, ...) {
   if(has_class(x, "can_cor_group")){
-    stop("The object 'x' must be of class 'can_cor'.")
+    cli::cli_abort("The object 'x' must be of class 'can_cor'.")
   }
   if(type == 1){
-    data = x$Sigtest %>% mutate(CCP = 1:n())
+    data = x$Sigtest |> mutate(CCP = 1:n())
     y.lab = ifelse(!missing(y.lab), y.lab, paste0("Explained variance"))
     x.lab = ifelse(!missing(x.lab), x.lab, paste0("Order of the canonical pairs"))
     if(!missing(main)){
@@ -519,13 +499,13 @@ plot.can_cor <- function(x,
         main = ""
       }
     }
-    FGV = x$Loads_FG %>% as.data.frame() %>% select(1:2) %>%
-      setNames(c("x", "y")) %>%
-      rownames_to_column("VAR") %>%
+    FGV = x$Loads_FG |> as.data.frame() |> select(1:2) |>
+      setNames(c("x", "y")) |>
+      rownames_to_column("VAR") |>
       mutate(GROUP = "First Group")
-    SGV = x$Loads_SG %>% as.data.frame() %>% select(1:2) %>%
-      setNames(c("x", "y")) %>%
-      rownames_to_column("VAR") %>%
+    SGV = x$Loads_SG |> as.data.frame() |> select(1:2) |>
+      setNames(c("x", "y")) |>
+      rownames_to_column("VAR") |>
       mutate(GROUP = "Second Group")
     datplot = rbind(FGV, SGV)
     p =   ggplot(datplot, aes(x, y, label = VAR))+
@@ -586,43 +566,27 @@ plot.can_cor <- function(x,
 #' }
 print.can_cor <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   if (has_class(x, "can_cor_group")) {
-    stop("The object must be of class 'can_cor'")
+    cli::cli_abort("The object must be of class 'can_cor'")
   }
   if (export == TRUE) {
     file.name <- ifelse(is.null(file.name) == TRUE, "Canonical print", file.name)
     sink(paste0(file.name, ".txt"))
   }
-  cat("---------------------------------------------------------------------------\n")
-  cat("Matrix (correlation/covariance) between variables of first group (FG)\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Matrix (correlation/covariance) between variables of first group (FG)")
   print(x$MFG, digits = digits)
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Collinearity diagnostic between first group\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Collinearity diagnostic between first group")
   print(colindiag(x$MFG, n = nrow(x$Score_FG)))
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Matrix (correlation/covariance) between variables of second group (SG)\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Matrix (correlation/covariance) between variables of second group (SG)")
   print(x$MSG, digits = digits)
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Collinearity diagnostic between second group\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Collinearity diagnostic between second group")
   print(colindiag(x$MSG, n = nrow(x$Score_SG)))
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Matrix (correlation/covariance) between FG and SG)\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Matrix (correlation/covariance) between FG and SG)")
   print(x$MFG_SG, digits = digits)
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Correlation of the canonical pairs and hypothesis testing \n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Correlation of the canonical pairs and hypothesis testing")
   print(x$Sigtest, digits = digits)
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Canonical coefficients of the first group \n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Canonical coefficients of the first group")
   print(x$Coef_FG, digits = digits)
-  cat("\n---------------------------------------------------------------------------\n")
-  cat("Canonical coefficients of the second group \n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Canonical coefficients of the second group")
   print(x$Coef_SG, digits = digits)
   if (export == TRUE) {
     sink()

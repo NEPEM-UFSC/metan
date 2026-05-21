@@ -7,11 +7,10 @@
 #'
 #' The half-width confidence interval is computed according to the following
 #' equation:
-#' \loadmathjax
 #'
-#' \mjsdeqn{CI_w = 0.45304^r \times 2.25152 \times n^{-0.50089}}
+#' \deqn{CI_w = 0.45304^r \times 2.25152 \times n^{-0.50089}}
 #'
-#' where \mjseqn{n} is the sample size and \mjseqn{r} is the correlation coefficient.
+#' where \eqn{n} is the sample size and \eqn{r} is the correlation coefficient.
 #'
 #'@param .data The data to be analyzed. It can be a data frame (possible with
 #'  grouped data passed from [dplyr::group_by()]) or a symmetric correlation
@@ -62,12 +61,12 @@ corr_ci <- function(.data = NA,
                     verbose = TRUE) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(corr_ci,
           ...,
           r = r,
@@ -78,13 +77,13 @@ corr_ci <- function(.data = NA,
   }
   if (any(!is.na(.data))) {
     if (!is.matrix(.data) && !is.data.frame(.data)) {
-      stop("The object 'x' must be a correlation matrix or data.frame.")
+      cli::cli_abort("The object 'x' must be a correlation matrix or data.frame.")
     }
     if (is.matrix(.data) && is.null(n)) {
-      stop("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
+      cli::cli_abort("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
     }
     if (is.data.frame(.data) && !is.null(n)) {
-      stop("You cannot informe the sample size because a data frame was used as input.")
+      cli::cli_abort("You cannot informe the sample size because a data frame was used as input.")
     }
     internal <- function(x) {
       if (is.matrix(x)) {
@@ -102,10 +101,10 @@ corr_ci <- function(.data = NA,
                         n = n,
                         CI = (0.45304^abs(Corr)) * 2.25152 * (n^-0.50089),
                         LL = Corr - CI,
-                        UL = Corr + CI) %>%
+                        UL = Corr + CI) |>
         separate(Pair, into = c("V1", "V2"), sep = "x")
       if(!is.null(sel.var)){
-        results %<>% subset(V1 == sel.var | V2 == sel.var)
+        results <- results |> subset(V1 == sel.var | V2 == sel.var)
       }
       return(results)
     }
@@ -121,7 +120,7 @@ corr_ci <- function(.data = NA,
         }
       }
       if (!missing(...)) {
-        data <- select(.data, ...) %>%
+        data <- select(.data, ...) |>
           select_numeric_cols()
         if(has_na(data)){
           data <- remove_rows_na(data)
@@ -138,15 +137,12 @@ corr_ci <- function(.data = NA,
     CI <- (0.45304^abs(r)) * 2.25152 * (n^-0.50089)
     UP <- r + CI
     LP <- r - CI
-    cat("-------------------------------------------------\n")
-    cat("Nonparametric 95% half-width confidence interval",
-        "\n")
-    cat("-------------------------------------------------\n")
-    cat(paste0("Level of significance: 5%\n",
-               "Correlation coefficient: ", r,
-               "\nSample size: ", n,
-               "\nConfidence interval: ", round(CI, 4),
-               "\nTrue parameter range from: ", round(LP, 4), " to ", round(UP, 4)), "\n")
-    cat("-------------------------------------------------\n")
+    cli::cli_h2("Nonparametric 95% half-width confidence interval")
+    cli::cli_inform("Level of significance: 5%")
+    cli::cli_inform("Correlation coefficient: {r}")
+    cli::cli_inform("Sample size: {n}")
+    cli::cli_inform("Confidence interval: {round(CI, 4)}")
+    cli::cli_inform("True parameter range from {round(LP, 4)} to {round(UP, 4)}")
   }
 }
+

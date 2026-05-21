@@ -112,7 +112,7 @@ must have one element for each row in \code{.data} when using
 \code{add_cols()} or one element for each column in \code{.data} when using
 \code{add_rows()}. Values of length 1 will be recycled when using
 \code{add_cols()}.
-\item For \code{remove_cols()} and \code{select_cols()},  \code{...} is the
+\item For \code{remove_cols()} and \code{dplyr::select()},  \code{...} is the
 column name or column index of the variable(s) to be dropped.
 \item For \code{add_prefix()} and \code{add_suffix()},  \code{...} is the column
 name to add the prefix or suffix, respectively. Select helpers are allowed.
@@ -198,7 +198,7 @@ using \code{concatenate} to add columns to a data frame with \code{add_cols()}.
 \item \code{remove_cols()}: Remove one or more columns from a data frame.
 \item \code{remove_rows()}: Remove one or more rows from a data frame.
 \item \code{reorder_cols()}: Reorder columns in a data frame.
-\item \code{select_cols()}: Select one or more columns from a data frame.
+\item \code{dplyr::select()}: Select one or more columns from a data frame.
 \item \code{select_first_col()}: Select first variable, possibly with an offset.
 \item \code{select_last_col()}: Select last variable, possibly with an offset.
 \item \code{select_numeric_cols()}: Select all the numeric columns of a data
@@ -213,20 +213,21 @@ data frame.
 \examples{
 \donttest{
 library(metan)
+library(dplyr)
 
 ################# Adding columns #################
 # Variables x and y .after last column
-data_ge \%>\%
+data_ge |>
   add_cols(x = 10,
            y = 30)
 # Variables x and y .before the variable GEN
-data_ge \%>\%
+data_ge |>
   add_cols(x = 10,
            y = 30,
            .before = GEN)
 
 # Creating a new variable based on the existing ones.
-data_ge \%>\%
+data_ge |>
   add_cols(GY2 = GY^2,
            GY2_HM = GY2 + HM,
            .after = GY)
@@ -236,7 +237,7 @@ reorder_cols(data_ge2, NKR, .before = ENV)
 reorder_cols(data_ge2, where(is.factor), .after = last_col())
 
 ######## Selecting and removing columns ##########
-select_cols(data_ge2, GEN, REP)
+dplyr::select(data_ge2, GEN, REP)
 remove_cols(data_ge2, GEN, REP)
 
 ########## Selecting and removing rows ###########
@@ -248,9 +249,9 @@ concatenate(data_ge, ENV, GEN, REP)
 concatenate(data_ge, ENV, GEN, REP, drop = TRUE)
 
 # Combine with add_cols() and replace_string()
-data_ge2 \%>\%
- add_cols(ENV_GEN = concatenate(., ENV, GEN, pull = TRUE),
-          .after = GEN) \%>\%
+data_ge2 |>
+ add_cols(ENV_GEN = concatenate(pick(everything()), ENV, GEN, pull = TRUE),
+          .after = GEN) |>
  replace_string(ENV_GEN,
                 pattern = "H",
                 replacement = "HYB_")
@@ -277,7 +278,7 @@ colnames_to_title(df)
 
 
 ################### Adding rows ##################
-data_ge \%>\%
+data_ge |>
   add_rows(GY = 10.3,
            HM = 100.11,
            .after = 1)

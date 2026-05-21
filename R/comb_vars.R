@@ -36,7 +36,7 @@
 comb_vars <- function(.data, order = "first", FUN = "+", verbose = TRUE) {
   FUN <- match.fun(FUN)
   if (!order %in% c("first", "second")) {
-    stop("The orde must be one of 'first' or 'second'.", call. = FALSE)
+    cli::cli_abort("The orde must be one of 'first' or 'second'.")
   }
   if (verbose == TRUE) {
     if (sum(lapply(.data, is.factor) == TRUE) > 0) {
@@ -45,10 +45,10 @@ comb_vars <- function(.data, order = "first", FUN = "+", verbose = TRUE) {
               " where deleted. Only the numeric variables were used.")
     }
   }
-  x <- .data[, unlist(lapply(.data, is.numeric))] %>% as.data.frame()
+  x <- .data[, unlist(lapply(.data, is.numeric))] |> as.data.frame()
   cb <- data.frame(t(combn(ncol(x), 2)))
   if (order == "second") {
-    cb %<>% arrange(X2)
+    cb <- cb |> arrange(X2)
   }
   nvars <- data.frame(matrix(nrow = nrow(x), ncol = nrow(cb)))
   for (i in 1:nrow(cb)) {
@@ -57,3 +57,4 @@ comb_vars <- function(.data, order = "first", FUN = "+", verbose = TRUE) {
   }
   return(as_tibble(nvars, rownames = NA))
 }
+

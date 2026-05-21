@@ -15,7 +15,7 @@
 #' @param file.name The name of the file for exportation, default is
 #'   `NULL`, i.e. the files are automatically named.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param width The width "inch" of the plot. Default is `8`.
 #' @param height The height "inch" of the plot. Default is `7`.
@@ -60,26 +60,26 @@
 #'                   legend.direction = "horizontal")
 #'}
 #'
-plot_waasby <- function(x, var = 1, export = F, file.type = "pdf", file.name = NULL, plot_theme = theme_metan(),
+plot_waasby <- function(x, var = 1, export = F, file.type = "pdf", file.name = NULL, plot_theme = theme_metan_minimal(),
     width = 6, height = 6, size.shape = 3.5, size.tex.lab = 12, col.shape = c("blue",
         "red"), x.lab = "WAASBY", y.lab = "Genotypes", x.breaks = waiver(), resolution = 300,
     ...) {
   x <- x[[var]]
     class <- class(x)
     if (!class %in% c("waas", "waasb", "waas_means")) {
-        stop("The object 'x' must be of class 'waas' or 'waasb'.")
+        cli::cli_abort("The object 'x' must be of class 'waas' or 'waasb'.")
     }
     if (class == "waasb") {
         data <- subset(x$model, type == "GEN", select = c(Code, WAASBY))
-         data %<>% mutate(Code = factor(data$Code, levels = data$Code)) %>%
-            arrange(desc(WAASBY)) %>%
-            mutate(Mean = ifelse(WAASBY < mean(WAASBY), "below", "above")) %>%
+         data <- data |> mutate(Code = factor(data$Code, levels = data$Code)) |>
+            arrange(desc(WAASBY)) |>
+            mutate(Mean = ifelse(WAASBY < mean(WAASBY), "below", "above")) |>
             rename(WAASY = WAASBY)
     }
     if (class %in% c("waas", "waas_means")) {
         data <- subset(x$model, type == "GEN", select = c(Code, WAASY))
-        data %<>% mutate(Code = factor(data$Code, levels = data$Code)) %>%
-            arrange(desc(WAASY)) %>%
+        data <- data |> mutate(Code = factor(data$Code, levels = data$Code)) |>
+            arrange(desc(WAASY)) |>
             mutate(Mean = ifelse(WAASY < mean(WAASY), "below", "above"))
     }
     p1 = ggplot2::ggplot(data, aes(x = reorder(Code, WAASY), y = WAASY, fill = Mean)) +
@@ -111,3 +111,4 @@ plot_waasby <- function(x, var = 1, export = F, file.type = "pdf", file.name = N
         dev.off()
     }
 }
+

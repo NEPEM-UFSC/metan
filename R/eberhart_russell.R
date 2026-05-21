@@ -1,99 +1,133 @@
-#' Eberhart and Russell's regression model
+#' Eberhart and Russell (1966) Stability Analysis
+#'
 #' @description
 #' `r badge('stable')`
+#' `eberhart_russell()` implements the classic joint regression model proposed by
+#' Eberhart and Russell (1966) to evaluate phenotypic stability and adaptability
+#' across multi-environment trials (MET).
 #'
-#' Regression-based stability analysis using the Eberhart and Russell (1966) model.
+#' The model partitions the genotype-environment (GxE) interaction into a linear
+#' response to an environmental index (adaptability, \eqn{b_1}) and non-linear
+#' deviations from the regression line (stability, \eqn{s^2_{di}}).
 #'
-#' @param .data The dataset containing the columns related to Environments, Genotypes,
-#'              replication/block and response variable(s)
-#' @param env The name of the column that contains the levels of the
-#' environments.
-#' @param gen The name of the column that contains the levels of the genotypes.
-#' @param rep The name of the column that contains the levels of the
-#' replications/blocks
-#' @param resp The response variable(s). To analyze multiple variables in a
-#' single procedure use, for example, `resp = c(var1, var2, var3)`.
-#' @param verbose Logical argument. If `verbose = FALSE` the code will run
-#'   silently.
-#' @return An object of class `ge_reg` with the folloing items for each
-#'   variable:
-#' * data: The data with means for genotype and environment combinations and the
-#' environment index
-#' * anova: The analysis of variance for the regression model.
-#' * regression: A data frame with the following columns: `GEN`, the genotypes;
-#' `b0` and `b1` the intercept and slope of the regression, respectively;
-#' `t(b1=1)` the calculated t-value; `pval_t` the p-value for the t test; `s2di`
-#' the deviations from the regression (stability parameter); `F(s2di=0)` the
-#' F-test for the deviations; `pval_f` the p-value for the F test; `RMSE` the
-#' root-mean-square error; `R2` the determination coefficient of the regression.
-#' * b0_variance: The variance of b0.
-#' * b1_variance: The variance of b1.
+#' The phenotypic mean of genotype \eqn{i} in environment \eqn{j} is modeled as:
+#' \deqn{Y_{ij} = b_0 + b_1 I_j + \delta_{ij} + \bar{\varepsilon}_{ij}}
+#'
+#' Where:
+#' * \eqn{Y_{ij}} is the mean performance of genotype \eqn{i} in environment \eqn{j}.
+#' * \eqn{b_0} is the intercept (general mean of genotype \eqn{i}).
+#' * \eqn{b_1} is the regression coefficient (slope), measuring phenotypic response/adaptability.
+#' * \eqn{I_j} is the environmental index of site \eqn{j}, computed as \eqn{I_j = \bar{Y}_{.j} - \bar{Y}_{..}}.
+#' * \eqn{\delta_{ij}} represents the deviation from the regression of genotype \eqn{i} in environment \eqn{j}.
+#' * \eqn{\bar{\varepsilon}_{ij}} is the pooled experimental error associated with the cell mean.
+#'
+#' @param .data A data frame or tibble containing the multi-environment trial dataset.
+#' @param env Unquoted column name designating trial environmental factor levels.
+#' @param gen Unquoted column name designating genotype/variety factor levels.
+#' @param rep Unquoted column name designating replication or block assignments. Used to
+#'   extract the pooled residual error from within-environment analysis of variance.
+#' @param resp Tidyselection expression identifying one or more continuous response columns to
+#'   analyze simultaneously (e.g., `c(Yield, TKW)`, `starts_with("Trait")`, or `everything()`).
+#' @param verbose Logical. If `FALSE`, console process tracking indicators and
+#'   summary log alerts are suppressed. Default is `TRUE`.
+#'
+#' @details
+#' Two critical statistical tests are executed for each genotype:
+#' 1. A **Student's t-test** under \eqn{H_0: b_1 = 1} to assess if the genotype's
+#'    response tracks the exact population average (\eqn{b_1 > 1} indicates response to premium environments;
+#'    \eqn{b_1 < 1} indicates resistance/predictability in poor environments).
+#' 2. An **F-test** under \eqn{H_0: s^2_{di} = 0} using the pooled experimental error
+#'    as the denominator. Significantly high deviations indicate poor stability (low predictability).
+#'
+#' @return An object of S3 class `eberhart_russell`, structured as a named list for each
+#'   evaluated trait containing:
+#' * `data`: A tibble tracking cell means per GxE combination alongside the calculated
+#'   environmental index (`I_j`).
+#' * `anova`: Joint analysis of variance table decomposing Degrees of Freedom, Sum of Squares,
+#'   and Mean Squares across Genotypes, Environments, GxE, Regression, and Deviations.
+#' * `regression`: A summary parameter tibble containing:
+#'   * `GEN`: Genotype identification factor levels.
+#'   * `b0`: Intercept (estimated genotype phenotypic arithmetic mean).
+#'   * `b1`: True phenotypic adaptability regression slope response.
+#'   * `t_value`: Calculated t-statistic evaluating \eqn{H_0: b_1 = 1}.
+#'   * `pval_t`: Two-tailed probability significance value for the t-test.
+#'   * `s2di`: Deviations mean square parameter variance (\eqn{s^2_{di}}).
+#'   * `F_value`: Calculated F-statistic evaluating \eqn{H_0: s^2_{di} = 0}.
+#'   * `pval_f`: Probability significance value for the F-test.
+#'   * `RMSE`: Root-Mean-Square Error of individual regression tracks.
+#'   * `R2`: Coefficient of determination indicating fitness quality of the linear trend.
+#' * `b0_variance`: Estimated standard error variance for parameter intercept calculations.
+#' * `b1_variance`: Estimated standard error variance for parameter slope calculations.
 #' @md
-#' @seealso [superiority()], [ecovalence()], [ge_stats()]
+#' @references Eberhart, S.A., and W.A. Russell. 1966. Stability parameters for comparing varieties. Crop Sci. 6:36-40. \doi{10.2135/cropsci1966.0011183X000600010011x}
+#'
+#' @seealso [finlay_wilkinson()], [metan::ge_factanal()],  [superiority()], [ecovalence()], [ge_stats()]
 #' @author Tiago Olivoto, \email{tiagoolivoto@@gmail.com}
 #' @export
 #' @examples
 #' \donttest{
 #' library(metan)
-#'reg <- ge_reg(data_ge2,
-#'              env = ENV,
-#'              gen = GEN,
-#'              rep = REP,
-#'              resp = PH)
+#'reg <-
+#'  eberhart_russell(data_ge2,
+#'                   env = ENV,
+#'                   gen = GEN,
+#'                   rep = REP,
+#'                   resp = PH)
 #'plot(reg)
 #'
 #'}
-#' @references Eberhart, S.A., and W.A. Russell. 1966. Stability parameters for comparing Varieties.
-#' Crop Sci. 6:36-40. \doi{10.2135/cropsci1966.0011183X000600010011x}
-
-ge_reg = function(.data,
-                  env,
-                  gen,
-                  rep,
-                  resp,
-                  verbose = TRUE){
+eberhart_russell <- function(.data,
+                             env,
+                             gen,
+                             rep,
+                             resp,
+                             verbose = TRUE){
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
+    .data |>
+    select({{env}}, {{gen}}, {{rep}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
+  factors <- factors |> set_names("ENV", "GEN", "REP")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
     data <-
-      factors %>%
+      factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
     data2 <-
-      data %>%
-      mean_by(ENV, GEN) %>%
+      data |>
+      mean_by(ENV, GEN) |>
       as.data.frame()
     model1 <- lm(Y ~ GEN + ENV + ENV/REP + ENV * GEN, data = data)
     modav <- anova(model1)
     mydf <-
-      data %>%
+      data |>
       mean_by(GEN, ENV)
     iamb <-
-      data %>%
-      mean_by(ENV) %>%
-      add_cols(IndAmb = Y - mean(Y)) %>%
-      select_cols(ENV, IndAmb)
+      data |>
+      mean_by(ENV) |>
+      add_cols(IndAmb = Y - mean(Y)) |>
+      dplyr::select(ENV, IndAmb)
     iamb2 <-
-      data %>%
-      mean_by(ENV, GEN) %>%
+      data |>
+      mean_by(ENV, GEN) |>
       left_join(iamb, by = "ENV")
-    meandf <- make_mat(mydf, GEN, ENV, Y) %>% rownames_to_column("GEN")
-    matx <- make_mat(mydf, GEN, ENV, Y) %>% as.matrix()
+    meandf <- make_mat(mydf, GEN, ENV, Y) |> rownames_to_column("GEN")
+    matx <- make_mat(mydf, GEN, ENV, Y) |> as.matrix()
     iij <- apply(matx, 2, mean, na.rm = TRUE) - mean(matx, na.rm = TRUE)
     sumij2 <- sum((iij)^2)
     YiIj <- matx %*% iij
@@ -104,8 +138,8 @@ ge_reg = function(.data,
         YiIj_complete[i] <- matx[missing[i],][!is.na(matx[missing[i],])] %*% iij[!is.na(matx[missing[i],])]
       }
       YiIj[which(is.na(YiIj))] <- YiIj_complete
-      warning("Genotypes ", paste(names(missing), collapse = ", "), " missing in some environments", call. = FALSE)
-      warning("Regression parameters computed after removing missing values", call. = FALSE)
+      warning("Genotypes ", paste(names(missing), collapse = ", "), " missing in some environments")
+      warning("Regression parameters computed after removing missing values")
     }
     bij <- YiIj/sumij2
     svar <- (apply(matx^2, 1, sum, na.rm = TRUE)) - (((apply(matx, 1, sum, na.rm = TRUE))^2)/ncol(matx))
@@ -198,22 +232,40 @@ ge_reg = function(.data,
                                                R2 = gof$R2),
                            bo_variance = vbo,
                            b1_variance = vb1),
-                      class = "ge_reg")
+                      class = "eberhart_russell")
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
-  return(structure(listres, class = "ge_reg"))
+  return(structure(listres, class = "eberhart_russell"))
 }
 
-
-
-#' Plot an object of class ge_reg
+#' Regression-based stability analysis (Legacy Alias)
 #'
-#' Plot the regression model generated by the function `ge_reg`.
+#' @description
+#' `r lifecycle::badge('deprecated')`
+#' `ge_reg()` was deprecated to match cleaner, un-prefixed snake_case naming conventions.
+#' Please transition script targets over to using `eberhart_russell()`.
+#'
+#' @inheritParams eberhart_russell
+#' @export
+#' @keywords internal
+ge_reg <- function(.data, env, gen, rep, resp, verbose = TRUE) {
+  deprecated_warning("1.20.0", "ge_reg()", "eberhart_russell()")
+  eberhart_russell(
+    .data = .data,
+    env = {{env}},
+    gen = {{gen}},
+    rep = {{rep}},
+    resp = {{resp}},
+    verbose = verbose
+  )
+}
+
+#' Plot an object of class eberhart_russell
+#'
+#' Plot the regression model generated by the function `eberhart_russell`.
 #'
 #'
 #' @param x An object of class `ge_factanal`
@@ -224,7 +276,7 @@ ge_reg = function(.data,
 #'   axis. `type = 2` produces a plot with the response variable in the x
 #'   axis and the slope/deviations of the regression in the y axis.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param x.lim The range of x-axis. Default is `NULL` (maximum and minimum
 #'   values of the data set). New arguments can be inserted as `x.lim =
@@ -247,7 +299,7 @@ ge_reg = function(.data,
 #' @param ... Currently not used..
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @seealso [ge_factanal()]
-#' @method plot ge_reg
+#' @method plot eberhart_russell
 #' @return An object of class `gg, ggplot`.
 #' @export
 #' @examples
@@ -257,10 +309,10 @@ ge_reg = function(.data,
 #' plot(model)
 #' }
 #'
-plot.ge_reg <- function(x,
+plot.eberhart_russell <- function(x,
                         var = 1,
                         type = 1,
-                        plot_theme = theme_metan(),
+                        plot_theme = theme_metan_minimal(),
                         x.lim = NULL,
                         x.breaks = waiver(),
                         x.lab = NULL,
@@ -272,7 +324,7 @@ plot.ge_reg <- function(x,
                         ...){
   x <- x[[var]]
   if(!type  %in% c(1, 2)){
-    stop("Argument 'type' must be either 1 or 2", call. = FALSE)
+    cli::cli_abort("Argument 'type' must be either 1 or 2")
   }
   if(type == 1){
     y.lab <- ifelse(missing(y.lab), "Response variable", y.lab)
@@ -315,13 +367,13 @@ plot.ge_reg <- function(x,
   }
 }
 
-#' Print an object of class ge_reg
+#' Print an object of class eberhart_russell
 #'
-#' Print the `ge_reg` object in two ways. By default, the results are shown
+#' Print the `eberhart_russell` object in two ways. By default, the results are shown
 #' in the R console. The results can also be exported to the directory into a
 #' *.txt file.
 #'
-#' @param x An object of class `ge_reg`.
+#' @param x An object of class `eberhart_russell`.
 #' @param export A logical argument. If `TRUE`, a *.txt file is exported to
 #'   the working directory.
 #' @param file.name The name of the file if `export = TRUE`
@@ -329,7 +381,7 @@ plot.ge_reg <- function(x,
 #' @param ... Options used by the tibble package to format the output. See
 #'   [`tibble::print()`][tibble::formatting] for more details.
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
-#' @method print ge_reg
+#' @method print eberhart_russell
 #' @export
 #' @examples
 #' \donttest{
@@ -338,7 +390,7 @@ plot.ge_reg <- function(x,
 #' model <- ge_reg(data_ge2, ENV, GEN, REP, PH)
 #' print(model)
 #' }
-print.ge_reg <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
+print.eberhart_russell <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
   if (export == TRUE) {
@@ -347,21 +399,17 @@ print.ge_reg <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Joint-regression Analysis of variance\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Joint-regression Analysis of variance")
     print(var$anova)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Regression parameters\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Regression parameters")
     print(var$regression)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Variance of b0:", var[["bo_variance"]], "\n")
-    cat("Variance of b1:", var[["b1_variance"]], "\n")
-    cat("\n\n\n")
+    cli::cli_inform("Variance of b0: {var[['bo_variance']]}")
+    cli::cli_inform("Variance of b1: {var[['b1_variance']]}")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()
   }
 }
+

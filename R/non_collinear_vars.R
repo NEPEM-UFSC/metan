@@ -47,8 +47,8 @@ non_collinear_vars <- function(.data,
     return(result)
   }
   if(!missing(...)){
-    xxx <-  select_cols(.data, ...)
-    xxx %<>% select_numeric_cols()
+    xxx <-  dplyr::select(.data, ...)
+    xxx <- xxx |> select_numeric_cols()
     if(has_na(xxx)){
       xxx <- remove_rows_na(xxx)
       has_text_in_num(xxx)
@@ -62,22 +62,22 @@ non_collinear_vars <- function(.data,
   }
   varin <- xxx
   cor.xx <- cor(xxx, use = missingval)
-  VIF <- data.frame(VIF = diag(solve_svd(cor.xx))) %>%
-    rownames_to_column("VAR") %>%
+  VIF <- data.frame(VIF = diag(solve_svd(cor.xx))) |>
+    rownames_to_column("VAR") |>
     arrange(VIF)
   repeat {
     VIF2 <- slice(VIF, -n())
     xxx2 <- .data[VIF2$VAR]
-    VIF3 <- data.frame(VIF = diag(solve_svd(cor(xxx2, use = missingval))))%>%
-      rownames_to_column("VAR") %>%
+    VIF3 <- data.frame(VIF = diag(solve_svd(cor(xxx2, use = missingval))))|>
+      rownames_to_column("VAR") |>
       arrange(VIF)
     if (max(VIF3$VIF) <= max_vif)
       break
     VIF <- VIF3
   }
-  xxx <- .data[VIF3$VAR] %>% as.data.frame()
+  xxx <- .data[VIF3$VAR] |> as.data.frame()
   selectedpred <- VIF3$VAR
-  deleted <- varin %>%
+  deleted <- varin |>
     select(-selectedpred)
   eval <- eigen(cor(xxx2))$value
   cn <- max(eval) / min(eval)

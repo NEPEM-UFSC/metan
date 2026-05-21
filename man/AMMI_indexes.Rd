@@ -30,45 +30,43 @@ for one variable.
 }
 }
 \details{
-First, let's define some symbols: \mjseqn{N'} is the number of significant
+First, let's define some symbols: \eqn{N'} is the number of significant
 interation principal component axis (IPCs) that were retained in the AMMI
-model via F tests); \mjseqn{\lambda_{n}} is the singular value for th IPC and
-correspondingly \mjseqn{\lambda_{n}^{2}} its eigen value; \mjseqn{\gamma_{in}}
-is the eigenvector value for ith genotype; \mjseqn{\delta_{jn}} is the
-eigenvector value for the th environment. \mjseqn{PC_{1}}, \mjseqn{PC_{2}},
-and \mjseqn{PC_{n}} are the scores of 1st, 2nd, and nth IPC; respectively;
-\mjseqn{\theta_{1}}, \mjseqn{\theta_{2}}, and \mjseqn{\theta_{n}}  are
+model via F tests); \eqn{\lambda_{n}} is the singular value for th IPC and
+correspondingly \eqn{\lambda_{n}^{2}} its eigen value; \eqn{\gamma_{in}}
+is the eigenvector value for ith genotype; \eqn{\delta_{jn}} is the
+eigenvector value for the th environment. \eqn{PC_{1}}, \eqn{PC_{2}},
+and \eqn{PC_{n}} are the scores of 1st, 2nd, and nth IPC; respectively;
+\eqn{\theta_{1}}, \eqn{\theta_{2}}, and \eqn{\theta_{n}}  are
 percentage sum of squares explained by the 1st, 2nd, and nth IPC,
 respectively.
-
-\loadmathjax
 \itemize{
 \item AMMI Based Stability Parameter (ASTAB) (Rao and Prabhakaran 2005).
-\mjsdeqn{ASTAB = \sum_{n=1}^{N'}\lambda_{n}\gamma_{in}^{2}}
+\deqn{ASTAB = \sum_{n=1}^{N'}\lambda_{n}\gamma_{in}^{2}}
 \item AMMI Stability Index (ASI) (Jambhulkar et al. 2017)
-\mjsdeqn{ASI = \sqrt{\left [ PC_{1}^{2} \times \theta_{1}^{2} \right ]+\left[ PC_{2}^{2} \times \theta_{2}^{2} \right ]}}
+\deqn{ASI = \sqrt{\left [ PC_{1}^{2} \times \theta_{1}^{2} \right ]+\left[ PC_{2}^{2} \times \theta_{2}^{2} \right ]}}
 \item AMMI-stability value (ASV) (Purchase et al., 2000).
-\mjsdeqn{ASV_{i}=\sqrt{\frac{SS_{IPCA1}}{SS_{IPCA2}}(\mathrm{IPC} \mathrm{A} 1)^{2}+(\mathrm{IPCA} 2)^{2}}}
+\deqn{ASV_{i}=\sqrt{\frac{SS_{IPCA1}}{SS_{IPCA2}}(\mathrm{IPC} \mathrm{A} 1)^{2}+(\mathrm{IPCA} 2)^{2}}}
 \item Sum Across Environments of Absolute Value of GEI Modelled by AMMI (AVAMGE) (Zali et al. 2012)
-\mjsdeqn{AV_{(AMGE)} = \sum_{j=1}^{E} \sum_{n=1}^{N'} \left |\lambda_{n}\gamma_{in} \delta_{jn} \right |}
+\deqn{AV_{(AMGE)} = \sum_{j=1}^{E} \sum_{n=1}^{N'} \left |\lambda_{n}\gamma_{in} \delta_{jn} \right |}
 \item Annicchiarico's D Parameter values (Da) (Annicchiarico 1997)
-\mjsdeqn{D_{a} = \sqrt{\sum_{n=1}^{N'}(\lambda_{n}\gamma_{in})^2}}
+\deqn{D_{a} = \sqrt{\sum_{n=1}^{N'}(\lambda_{n}\gamma_{in})^2}}
 \item Zhang's D Parameter (Dz) (Zhang et al. 1998)
-\mjsdeqn{D_{z} = \sqrt{\sum_{n=1}^{N'}\gamma_{in}^{2}}}
+\deqn{D_{z} = \sqrt{\sum_{n=1}^{N'}\gamma_{in}^{2}}}
 \item Sums of the Averages of the Squared Eigenvector Values (EV) (Zobel 1994)
-\mjsdeqn{EV = \sum_{n=1}^{N'}\frac{\gamma_{in}^2}{N'}}
+\deqn{EV = \sum_{n=1}^{N'}\frac{\gamma_{in}^2}{N'}}
 \item Stability Measure Based on Fitted AMMI Model (FA) (Raju 2002)
-\mjsdeqn{FA = \sum_{n=1}^{N'}\lambda_{n}^{2}\gamma_{in}^{2}}
+\deqn{FA = \sum_{n=1}^{N'}\lambda_{n}^{2}\gamma_{in}^{2}}
 \item Modified AMMI Stability Index (MASI) (Ajay et al. 2018)
-\mjsdeqn{MASI = \sqrt{ \sum_{n=1}^{N'} PC_{n}^{2} \times \theta_{n}^{2}}}
+\deqn{MASI = \sqrt{ \sum_{n=1}^{N'} PC_{n}^{2} \times \theta_{n}^{2}}}
 \item Modified AMMI Stability Value (MASV) (Ajay et al. 2019)
-\mjsdeqn{MASV = \sqrt{\sum_{n=1}^{N'-1}\left (\frac{SSIPC_{n}}{SSIPC_{n+1}} \right ) \times (PC_{n})^2   + \left (PC_{N'}\right )^2}}
+\deqn{MASV = \sqrt{\sum_{n=1}^{N'-1}\left (\frac{SSIPC_{n}}{SSIPC_{n+1}} \right ) \times (PC_{n})^2   + \left (PC_{N'}\right )^2}}
 \item Sums of the Absolute Value of the IPC Scores (SIPC) (Sneller et al. 1997)
-\mjsdeqn{SIPC = \sum_{n=1}^{N'} | \lambda_{n}^{0.5}\gamma_{in}|}
+\deqn{SIPC = \sum_{n=1}^{N'} | \lambda_{n}^{0.5}\gamma_{in}|}
 \item Absolute Value of the Relative Contribution of IPCs to the Interaction (Za) (Zali et al. 2012)
-\mjsdeqn{Za = \sum_{i=1}^{N'} | \theta_{n}\gamma_{in} |}
+\deqn{Za = \sum_{i=1}^{N'} | \theta_{n}\gamma_{in} |}
 \item Weighted average of absolute scores (WAAS) (Olivoto et al. 2019)
-\mjsdeqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times \theta_{k}/ \sum_{k = 1}^{p}\theta_{k}}
+\deqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times \theta_{k}/ \sum_{k = 1}^{p}\theta_{k}}
 }
 
 For all the statistics, simultaneous selection indexes (SSI) are also
@@ -87,10 +85,10 @@ model <-
 model_indexes <- ammi_indexes(model)
 
 
-# Alternatively (and more intuitively) using \%>\%
+# Alternatively (and more intuitively) using |>
 # If resp is not declared, all traits are analyzed
-res_ind <- data_ge \%>\%
-           performs_ammi(ENV, GEN, REP, verbose = FALSE) \%>\%
+res_ind <- data_ge |>
+           performs_ammi(ENV, GEN, REP, verbose = FALSE) |>
            ammi_indexes()
 
 rbind_fill_id(res_ind, .id = "TRAIT")

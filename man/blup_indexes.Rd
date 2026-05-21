@@ -40,20 +40,19 @@ with stability performance in a mixed-effect model framework. Some examples
 are in Alves et al (2018), Azevedo Peixoto et al. (2018), Dias et al. (2018)
 and Colombari Filho et al. (2013).
 
-\loadmathjax
 The HMGV index is computed as
-\mjsdeqn{HMG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E {\frac{1}{{G{v_{ij}}}}}}}}
+\deqn{HMG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E {\frac{1}{{G{v_{ij}}}}}}}}
 
-where \mjseqn{E} is the number of environments included in the analysis,
-\mjseqn{Gv_{ij}} is the genotypic value (BLUP) for the ith genotype in the
+where \eqn{E} is the number of environments included in the analysis,
+\eqn{Gv_{ij}} is the genotypic value (BLUP) for the ith genotype in the
 jth environment.
 
 The RPGV index is computed as
-\mjsdeqn{RPGV_i = \frac{1}{E}{\sum\limits_{j = 1}^E {Gv_{ij}} /\mathop \mu
+\deqn{RPGV_i = \frac{1}{E}{\sum\limits_{j = 1}^E {Gv_{ij}} /\mathop \mu
 \nolimits_j }}
 
 The HMRPGV index is computed as
-\mjsdeqn{HMRPG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E
+\deqn{HMRPG{V_i} = \frac{E}{{\sum\limits_{j = 1}^E
 {\frac{1}{{G{v_{ij}}/{\mu _j}}}} }}}
 }
 \examples{

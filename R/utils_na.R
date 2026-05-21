@@ -49,9 +49,9 @@
 #' @examples
 #' \donttest{
 #' library(metan)
-#' data_naz <- iris %>%
-#'               group_by(Species) %>%
-#'               doo(~head(., n = 3)) %>%
+#' data_naz <- iris |>
+#'               group_by(Species) |>
+#'               doo(~head(., n = 3)) |>
 #'               as_character(Species)
 #' data_naz
 #' data_naz[c(2:3, 6, 8), c(1:2, 4, 5)] <- NA
@@ -85,7 +85,7 @@
 #' @importFrom tidyr fill
 fill_na <- function(.data, ..., direction = "down"){
   if(!direction %in% c("down", "up", "downup", "updown")){
-    stop("Argument 'direction' must be one of 'down', 'up', 'downup', or 'updown'. ")
+    cli::cli_abort("Argument 'direction' must be one of 'down', 'up', 'downup', or 'updown'. ")
   }
   if(missing(...)){
     return(fill(.data, everything(), .direction = direction))
@@ -102,15 +102,15 @@ has_na <- function(.data){
 #' @export
 prop_na <- function(.data, ...){
   if(missing(...)){
-  df <- .data %>% select(everything())
+  df <- .data |> select(everything())
   } else{
-  df <- .data %>% select(...)
+  df <- .data |> select(...)
   }
   df <- apply(df, 2, function(x){
     round(length(which(is.na(x))) / length(x), digits = 4)
-  }) %>%
-    as.data.frame() %>%
-    rownames_to_column("variable") %>%
+  }) |>
+    as.data.frame() |>
+    rownames_to_column("variable") |>
     set_names(c("variable", "prop"))
   return(df)
 }
@@ -120,7 +120,7 @@ prop_na <- function(.data, ...){
 remove_rows_na <- function(.data, verbose = TRUE){
 row_with_na <- which(complete.cases(.data) ==  FALSE)
 if(verbose == TRUE){
-warning("Row(s) ", paste(row_with_na, collapse = ", "), " with NA values deleted.", call. = FALSE)
+    cli::cli_warn("Row(s) {.val {row_with_na}} with NA values deleted.")
 }
 return(na.omit(.data))
 }
@@ -132,7 +132,7 @@ remove_rows_all_na <- function(.data, verbose = TRUE){
     all(is.na(x))
   }))
   if(verbose == TRUE){
-    warning("Row(s) ", paste(row_with_na, collapse = ", "), " with all NA values deleted.", call. = FALSE)
+    cli::cli_warn("Row(s) {.val {row_with_na}} with all NA values deleted.")
   }
   return(.data[-row_with_na, ])
 }
@@ -142,7 +142,7 @@ remove_rows_all_na <- function(.data, verbose = TRUE){
 remove_cols_na <- function(.data, verbose = TRUE){
   cols_with_na <- names(which(sapply(.data, anyNA)))
   if(verbose == TRUE){
-    warning("Column(s) ", paste(cols_with_na, collapse = ", "), " with NA values deleted.", call. = FALSE)
+    cli::cli_warn("Column(s) {.val {cols_with_na}} with NA values deleted.")
   }
   return(select(.data, -cols_with_na))
 }
@@ -154,7 +154,7 @@ remove_cols_all_na <- function(.data, verbose = TRUE){
     all(is.na(x))
   }))
   if(verbose == TRUE){
-    warning("Column(s) ", paste(names(cols_with_na), collapse = ", "), " with all NA values deleted.", call. = FALSE)
+    cli::cli_warn("Column(s) {.val {names(cols_with_na)}} with all NA values deleted.")
   }
   return(.data[, -cols_with_na])
 }
@@ -165,7 +165,7 @@ remove_cols_all_na <- function(.data, verbose = TRUE){
 select_cols_na <- function(.data, verbose = TRUE){
   cols_with_na <- names(which(sapply(.data, anyNA)))
   if(verbose == TRUE){
-    warning("Column(s) with NAs: ", paste(cols_with_na, collapse = ", "), call. = FALSE)
+    cli::cli_warn("Column(s) with NAs: {.val {cols_with_na}}")
   }
   return(select(.data, cols_with_na))
 }
@@ -175,7 +175,7 @@ select_cols_na <- function(.data, verbose = TRUE){
 select_rows_na <- function(.data, verbose = TRUE){
   rows_with_na <- which(complete.cases(.data) == FALSE)
   if(verbose == TRUE){
-    warning("Rows(s) with NAs: ", paste(rows_with_na, collapse = ", "), call. = FALSE)
+    cli::cli_warn("Rows(s) with NAs: {.val {rows_with_na}}")
   }
   return(.data[rows_with_na, ])
 }
@@ -226,7 +226,7 @@ replace_na <- function(.data, ..., replacement = 0){
 #' @export
 random_na <- function(.data, prop){
   if( prop < 1 | prop > 100){
-    stop("Argument prob must have a 1-100 interval.")
+    cli::cli_abort("Argument prob must have a 1-100 interval.")
   }
   .data <- as.matrix(.data)
   cells <- length(.data)
@@ -249,7 +249,7 @@ has_zero <- function(.data){
   if(is.vector(.data)){
     any(.data == 0)
   } else{
-    any(apply(.data %>% replace_na(replacement = 1) == 0, 2, any) == TRUE)
+    any(apply(.data |> replace_na(replacement = 1) == 0, 2, any) == TRUE)
   }
 }
 
@@ -258,7 +258,7 @@ has_zero <- function(.data){
 remove_rows_zero <- function(.data, verbose = TRUE){
   row_with_zeros <- which(apply(.data == 0, 1, any) ==  TRUE)
   if(verbose == TRUE){
-    warning("Row(s) ", paste(row_with_zeros, collapse = ", "), " with 0s deleted.", call. = FALSE)
+    cli::cli_warn("Row(s) {.val {row_with_zeros}} with 0s deleted.")
   }
   return(remove_rows(.data, all_of(row_with_zeros)))
 }
@@ -268,7 +268,7 @@ remove_rows_zero <- function(.data, verbose = TRUE){
 remove_cols_zero <- function(.data, verbose = TRUE){
   cols_with_zero <- which(apply(.data == 0, 2, any) ==  TRUE)
   if(verbose == TRUE){
-    warning("Column(s) ", paste(names(.data[cols_with_zero]), collapse = ", "), " with 0s deleted.", call. = FALSE)
+    cli::cli_warn("Column(s) {.val {names(.data[cols_with_zero])}} with 0s deleted.")
   }
   return(remove_cols(.data, all_of(cols_with_zero)))
 }
@@ -278,7 +278,7 @@ remove_cols_zero <- function(.data, verbose = TRUE){
 select_cols_zero <- function(.data, verbose = TRUE){
   cols_with_zero <- which(apply(.data == 0, 2, any) ==  TRUE)
   if(verbose == TRUE){
-    warning("Column(s) with 0s: ", paste(names(.data[cols_with_zero]), collapse = ", "), call. = FALSE)
+    cli::cli_warn("Column(s) with 0s: {.val {names(.data[cols_with_zero])}}")
   }
   return(select(.data, cols_with_zero))
 }
@@ -288,7 +288,7 @@ select_cols_zero <- function(.data, verbose = TRUE){
 select_rows_zero <- function(.data, verbose = TRUE){
   row_with_zeros <- which(apply(.data == 0, 1, any) ==  TRUE)
   if(verbose == TRUE){
-    warning("Rows(s) with 0s: ", paste(rownames(.data[row_with_zeros,]), collapse = ", "), call. = FALSE)
+    cli::cli_warn("Rows(s) with 0s: {.val {rownames(.data[row_with_zeros,])}}")
   }
   return(.data[row_with_zeros, ])
 }

@@ -42,8 +42,10 @@
 #'   `type = 2`.
 #' @param title Logical values (Defaults to `TRUE`) to include
 #'   automatically generated titles
+#' @param arrow Logical values (Defaults to `TRUE`) to include an arrow in the
+#'   segment lines.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param axis.expand Multiplication factor to expand the axis limits by to
 #'   enable fitting of labels. Default is `1.1`.
@@ -188,7 +190,8 @@ plot_scores <- function(x,
                         max_overlaps = 20,
                         polygon = FALSE,
                         title = TRUE,
-                        plot_theme = theme_metan(),
+                        arrow = TRUE,
+                        plot_theme = theme_metan_minimal(),
                         axis.expand = 1.1,
                         x.lim = NULL,
                         y.lim = NULL,
@@ -221,7 +224,7 @@ plot_scores <- function(x,
                         size.tex.highlight = 5.5,
                         size.shape.highlight = 3.2,
                         leg.lab = c("Env", "Gen"),
-                        line.type = "solid",
+                        line.type = "dashed",
                         line.alpha = 0.9,
                         resolution = deprecated(),
                         file.type = "png",
@@ -237,14 +240,14 @@ plot_scores <- function(x,
   varname <- names(x)[var]
   x <- x[[var]]
   df <-
-    x$model %>%
+    x$model |>
     mutate(Color = ifelse(type == "ENV", col.env, col.gen))
   test <- !missing(highlight)
   if(!all(highlight %in% df$Code)){
     not_in_code <- highlight[which(!highlight %in% df$Code)]
-    stop(paste(not_in_code, collapse = ", "), " not present in the labels. Please, check and fix it.", call. = FALSE)
+    cli::cli_abort(paste(not_in_code, collapse = ", "), " not present in the labels. Please, check and fix it.")
   }
-  df %<>%
+  df <- df |>
     mutate(type2 = ifelse(Code %in% highlight, "Selected", type),
            Color = case_when(type2 == "Selected" ~ col.highlight,
                              type2 == "GEN" ~ col.gen,
@@ -260,13 +263,16 @@ plot_scores <- function(x,
                                  type2 == "ENV" ~ col.alpha.env),
            alpha.col.line = ifelse(type2 == "ENV", col.alpha.env, 0))
   if (polygon == TRUE & type != 2) {
-    stop("The polygon can be drawn with type 2 graphic only.", call. = FALSE)
+    cli::cli_abort("The polygon can be drawn with type 2 graphic only.")
   }
   if (inherits(x, "performs_ammi") & type == 3) {
-    stop("Biplot type invalid. Type 3 biplot can only be made with objects of class 'waas' or 'waasb'.", call. = FALSE)
+    cli::cli_abort("Biplot type invalid. Type 3 biplot can only be made with objects of class 'waas' or 'waasb'.")
   }
   size.tex.leg <- max(size.tex.env, size.tex.gen)/0.2917
   class <- class(x)
+  if ("ammi" %in% class) {
+    class <- "performs_ammi"
+  }
   nenv <- nrow(subset(df, type == "ENV"))
   ngen <- nrow(subset(df, type == "GEN"))
   color.bor <- c(rep(col.bor.gen, ngen), rep(col.bor.env, nenv))
@@ -305,23 +311,13 @@ plot_scores <- function(x,
       geom_vline(xintercept = mean(df$Y),
                  linetype = line.type,
                  color = col.line,
-                 size = size.line,
+                 linewidth = size.line,
                  alpha = line.alpha) +
       geom_hline(yintercept = 0,
                  linetype = line.type,
-                 size = size.line,
+                 linewidth = size.line,
                  color = col.line,
                  alpha = line.alpha) +
-      geom_segment(data = df,
-                   show.legend = FALSE,
-                   aes(x = mean,
-                       y = 0,
-                       xend = Y,
-                       yend = PC1,
-                       size = type,
-                       color = type,
-                       group = type),
-                   alpha = df$alpha.col.line) +
       {if(!test)geom_point(aes(shape = type, fill = type),
                            alpha = df$alpha.col,
                            size = df$size.shape,
@@ -333,6 +329,17 @@ plot_scores <- function(x,
                           fill = df$Color,
                           stroke = size.bor.tick,
                           color = color.bor)}+
+      geom_segment(data = df,
+                   show.legend = FALSE,
+                   aes(x = mean,
+                       y = 0,
+                       xend = Y,
+                       yend = PC1,
+                       color = type,
+                       group = type),
+                   linewidth = size.segm.line,
+                   arrow = if (arrow) arrow(length = unit(0.25, "cm")) else NULL,
+                   alpha = df$alpha.col.line) +
       plot_theme %+replace%
       theme(aspect.ratio = 1,
             axis.text = element_text(size = size.tex.lab, colour = "black"),
@@ -342,7 +349,6 @@ plot_scores <- function(x,
       scale_x_continuous(limits = x.lim, breaks = x.breaks) +
       scale_y_continuous(limits = y.lim, breaks = y.breaks) +
       scale_color_manual(name = "", values = c(col.segm.env, col.segm.gen), theme(legend.position = "none")) +
-      scale_size_manual(name = "", values = c(size.segm.line, size.segm.line), theme(legend.position = "none"))+
       scale_shape_manual(labels = leg.lab, values = c(shape.env, shape.gen)) +
       {if(!test)scale_fill_manual(labels = leg.lab, values = c(col.env, col.gen))} +
       {if(test)scale_fill_identity()} +
@@ -374,18 +380,18 @@ plot_scores <- function(x,
     first <- tidy_strings(first, sep = "")
     second <- tidy_strings(second, sep = "")
     if(class %in% c("waas", "performs_ammi", "waasb")){
-      PCA <- x$PCA %>% select_cols(PC, Proportion, Accumulated)
+      PCA <- x$PCA |> dplyr::select(PC, Proportion, Accumulated)
       if(!extract_string(first) == "PC"){
-        stop("Argument 'first' invalid. Please, use 'PC1', 'PC2', ..., 'PCn'.", call. = FALSE)
+        cli::cli_abort("Argument 'first' invalid. Please, use 'PC1', 'PC2', ..., 'PCn'.")
       }
       if(!extract_string(second) == "PC"){
-        stop("Argument 'second' invalid. Please, use 'PC1', 'PC2', ..., 'PCn'.", call. = FALSE)
+        cli::cli_abort("Argument 'second' invalid. Please, use 'PC1', 'PC2', ..., 'PCn'.")
       }
       if(extract_number(first) > nrow(PCA)){
-        stop("The number of principal components in 'first' is greater than those in model (", nrow(PCA), ").", call. = FALSE)
+        cli::cli_abort("The number of principal components in 'first' is greater than those in model (", nrow(PCA), ").")
       }
       if(extract_number(second) > nrow(PCA)){
-        stop("The number of principal components in 'second' is greater than those in model (", nrow(PCA), ").", call. = FALSE)
+        cli::cli_abort("The number of principal components in 'second' is greater than those in model (", nrow(PCA), ").")
       }
       PCA <- subset(PCA, PC %in% c(first, second))
       if(!is.null(y.lab)){
@@ -406,7 +412,7 @@ plot_scores <- function(x,
       y.lab <- paste0(second, " (", round(x$proportion[as.numeric(substr(second, 3, nchar(second)))], 2), "%)")
       x.lab <- paste0(first, " (", round(x$proportion[as.numeric(substr(first, 3, nchar(first)))], 2), "%)")
     }
-    df <- df %>% select_cols(type, Code, all_of(first), all_of(second), Color, size.text,
+    df <- df |> dplyr::select(type, Code, all_of(first), all_of(second), Color, size.text,
                              size.shape, alpha.col, alpha.col.line)
     if (!is.null(x.lim)) {
       x.lim <- x.lim
@@ -423,22 +429,12 @@ plot_scores <- function(x,
       geom_vline(xintercept = 0,
                  linetype = line.type,
                  color = col.line,
-                 size = size.line,
+                 linewidth = size.line,
                  alpha = line.alpha) +
       geom_hline(yintercept = 0,
                  linetype = line.type,
-                 color = col.line, size = size.line,
+                 color = col.line, linewidth = size.line,
                  alpha = line.alpha) +
-      geom_segment(data = df,
-                   show.legend = FALSE,
-                   aes(x = 0,
-                       y = 0,
-                       xend = !!sym(first),
-                       yend = !!sym(second),
-                       size = type,
-                       color = type,
-                       group = type),
-                   alpha = df$alpha.col.line) +
       {if(!test)geom_point(aes(shape = type, fill = type),
                            alpha = df$alpha.col,
                            size = df$size.shape,
@@ -450,6 +446,17 @@ plot_scores <- function(x,
                           fill = df$Color,
                           stroke = size.bor.tick,
                           color = color.bor)}+
+      geom_segment(data = df,
+                   show.legend = FALSE,
+                   aes(x = 0,
+                       y = 0,
+                       xend = !!sym(first),
+                       yend = !!sym(second),
+                       color = type,
+                       group = type),
+                   linewidth = size.segm.line,
+                   arrow = if (arrow) arrow(length = unit(0.25, "cm")) else NULL,
+                   alpha = df$alpha.col.line) +
       plot_theme %+replace%
       theme(aspect.ratio = 1,
             axis.text = element_text(size = size.tex.lab, colour = "black"),
@@ -459,7 +466,6 @@ plot_scores <- function(x,
       scale_x_continuous(limits = x.lim, breaks = x.breaks) +
       scale_y_continuous(limits = y.lim, breaks = y.breaks) +
       scale_color_manual(name = "", values = c(col.segm.env, col.segm.gen), theme(legend.position = "none")) +
-      scale_size_manual(name = "", values = c(size.segm.line, size.segm.line), theme(legend.position = "none"))+
       scale_shape_manual(labels = leg.lab, values = c(shape.env, shape.gen)) +
       {if(!test)scale_fill_manual(labels = leg.lab, values = c(col.env, col.gen))} +
       {if(test)scale_fill_identity()} +
@@ -520,7 +526,7 @@ plot_scores <- function(x,
                      xend = 0,
                      yend = 0,
                      linetype = 2,
-                     size = size.segm.line,
+                     linewidth = size.segm.line,
                      color = col.gen,
                      data = segs,
                      show.legend = FALSE,
@@ -566,12 +572,12 @@ plot_scores <- function(x,
         geom_vline(xintercept = m1,
                    linetype = line.type,
                    color = col.line,
-                   size = size.line,
+                   linewidth = size.line,
                    alpha = line.alpha) +
         geom_hline(yintercept = m2,
                    linetype = line.type,
                    color = col.line,
-                   size = size.line,
+                   linewidth = size.line,
                    alpha = line.alpha)+
         {if(!test)geom_point(aes(shape = type, fill = type),
                              alpha = df$alpha.col,
@@ -620,12 +626,12 @@ plot_scores <- function(x,
         geom_vline(xintercept = m1,
                    linetype = line.type,
                    color = col.line,
-                   size = size.line,
+                   linewidth = size.line,
                    alpha = line.alpha) +
         geom_hline(yintercept = m2,
                    linetype = line.type,
                    color = col.line,
-                   size = size.line,
+                   linewidth = size.line,
                    alpha = line.alpha)+
         {if(!test)geom_point(aes(shape = type, fill = type),
                              alpha = df$alpha.col,
@@ -706,21 +712,21 @@ plot_scores <- function(x,
 
   if (type == 4) {
     if(class == "waas_means"){
-      EscENV <- subset(df, type ==  "ENV") %>%
-        select_cols(Code, Y, PC1) %>%
+      EscENV <- subset(df, type ==  "ENV") |>
+        dplyr::select(Code, Y, PC1) |>
         rename(ENV = Code)
-      EscGEN <- subset(df, type ==  "GEN") %>%
-        select_cols(Code, Y, PC1) %>%
+      EscGEN <- subset(df, type ==  "GEN") |>
+        dplyr::select(Code, Y, PC1) |>
         rename(GEN = Code)
       data <- x$ge_means
       data <- suppressMessages(
         suppressWarnings(
           mutate(data,
-                 envPC1 = left_join(data, EscENV %>% select(ENV, PC1))$PC1,
-                 genPC1 = left_join(data, EscGEN %>% select(GEN, PC1))$PC1,
-                 nominal = left_join(data, EscGEN %>% select(GEN, Y))$Y + genPC1 * envPC1)
+                 envPC1 = left_join(data, EscENV |> select(ENV, PC1))$PC1,
+                 genPC1 = left_join(data, EscGEN |> select(GEN, PC1))$PC1,
+                 nominal = left_join(data, EscGEN |> select(GEN, Y))$Y + genPC1 * envPC1)
         )
-      )%>%
+      )|>
         as.data.frame()
     } else{
       data <- as.data.frame(x[["MeansGxE"]])
@@ -743,9 +749,9 @@ plot_scores <- function(x,
     p4 <- ggplot2::ggplot(data, aes(x = envPC1, y = nominal, group = GEN)) +
       {if(color)geom_line(data = subset(data, envPC1 %in% c(max(envPC1), min(envPC1))),
                           aes(colour = GEN),
-                          size = 0.8)} +
+                          linewidth = 0.8)} +
       {if(!color)geom_line(data = subset(data, envPC1 %in% c(max(envPC1), min(envPC1))),
-                           size = 0.8)} +
+                           linewidth = 0.8)} +
       {if(repel)geom_label_repel(data = subset(data, envPC1 == min(envPC1)),
                                  aes(label = GEN, color = GEN),
                                  size = size.tex.gen,
@@ -794,4 +800,5 @@ plot_scores <- function(x,
     }
   }
 }
+
 

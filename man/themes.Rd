@@ -9,9 +9,9 @@
 \alias{alpha_color}
 \title{Personalized theme for ggplot2-based graphics}
 \usage{
-theme_metan(grid = "none", col.grid = "white", color.background = "gray95")
+theme_metan(grid = "both", col.grid = "gray", color.background = "white")
 
-theme_metan_minimal()
+theme_metan_minimal(basesize = 14)
 
 transparent_color()
 
@@ -28,6 +28,8 @@ grids.}
 \item{col.grid}{The color for the grid lines}
 
 \item{color.background}{The color for the panel background.}
+
+\item{basesize}{The base size of the font. Defaults to 14.}
 
 \item{n}{The number of colors. This works well for up to about eight colours,
 but after that it becomes hard to tell the different colours apart.}

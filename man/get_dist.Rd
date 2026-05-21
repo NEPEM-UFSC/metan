@@ -24,9 +24,9 @@ from several objects to be further analyzed using \code{\link[=pairs_mantel]{pai
 \examples{
 \donttest{
 library(metan)
-d <- data_ge2 \%>\%
-      mean_by(GEN) \%>\%
-      column_to_rownames("GEN") \%>\%
+d <- data_ge2 |>
+      mean_by(GEN) |>
+      column_to_rownames("GEN") |>
       clustering()
 get_dist(d)
 }

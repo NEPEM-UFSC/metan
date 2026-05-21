@@ -32,46 +32,46 @@
 #' }
 ge_details <- function(.data, env, gen, resp){
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    env_data <- mean_by(data, ENV, na.rm = TRUE) %>%
-      add_cols(TYPE = "Env") %>%
+    env_data <- mean_by(data, ENV, na.rm = TRUE) |>
+      add_cols(TYPE = "Env") |>
       rename(CODE = "ENV")
-    gen_data <- mean_by(data, GEN, na.rm = TRUE) %>%
-      add_cols(TYPE = "Gen")%>%
+    gen_data <- mean_by(data, GEN, na.rm = TRUE) |>
+      add_cols(TYPE = "Gen")|>
       rename(CODE = "GEN")
     df_bind <-
-      rbind(env_data, gen_data) %>%
+      rbind(env_data, gen_data) |>
       column_to_first(TYPE, CODE)
     min_group <-
-      df_bind %>%
-      group_by(TYPE) %>%
-      top_n(1, -Y) %>%
-      select(TYPE, CODE, Y) %>%
-      slice(1) %>%
+      df_bind |>
+      group_by(TYPE) |>
+      top_n(1, -Y) |>
+      select(TYPE, CODE, Y) |>
+      slice(1) |>
       as.data.frame()
     max_group <-
-      df_bind %>%
-      group_by(TYPE) %>%
-      top_n(1, Y) %>%
-      select(TYPE, CODE, Y) %>%
-      slice(1) %>%
+      df_bind |>
+      group_by(TYPE) |>
+      top_n(1, Y) |>
+      select(TYPE, CODE, Y) |>
+      slice(1) |>
       as.data.frame()
-    min <- data %>% top_n(1, -Y) %>% select(ENV, GEN, Y) %>% slice(1)
-    max <- data %>% top_n(1, Y) %>% select(ENV, GEN, Y) %>% slice(1)
+    min <- data |> top_n(1, -Y) |> select(ENV, GEN, Y) |> slice(1)
+    max <- data |> top_n(1, Y) |> select(ENV, GEN, Y) |> slice(1)
     desc_st <- desc_stat(data, stats = c("mean, se, sd.pop, cv"), verbose = FALSE, na.rm = TRUE)
     temp <- tibble(Parameters = c("Mean", "SE", "SD", "CV", "Min", "Max", "MinENV", "MaxENV", "MinGEN", "MaxGEN"),
                    Values = c(round(desc_st[1, 2], 2),
@@ -88,10 +88,10 @@ ge_details <- function(.data, env, gen, resp){
   }
   bind <-
     do.call(cbind, lapply(listres, function(x) {
-    val <- x[["Values"]] %>% as.character()
-  })) %>%
-    as_tibble() %>%
-    mutate(Parameters = listres[[1]][["Parameters"]]) %>%
+    val <- x[["Values"]] |> as.character()
+  })) |>
+    as_tibble() |>
+    mutate(Parameters = listres[[1]][["Parameters"]]) |>
     select(Parameters, everything())
   return(bind)
 }

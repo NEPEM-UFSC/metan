@@ -38,7 +38,7 @@
 #' @param legend.position The position of the legend when using `fill` argument.
 #'   Defaults to `"bottom"`.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @return An object of class `gg, ggplot`.
 #' @md
@@ -48,19 +48,19 @@
 #' library(metan)
 #' library(dplyr)
 #' # Traits that contains "E"
-#' data_ge2 %>%
-#'   select(contains('E')) %>%
-#'   corr_ci() %>%
+#' data_ge2 |>
+#'   select(contains('E')) |>
+#'   corr_ci() |>
 #'   plot_ci()
 #'
 #' # Group by environment
 #' # Traits PH, EH, EP, EL, and ED
 #' # Select only correlations with PH
 #'
-#'data_ge2 %>%
+#'data_ge2 |>
 #'  corr_ci(PH, EP, EL, ED, CW,
 #'          sel.var = "PH",
-#'          by = ENV) %>%
+#'          by = ENV) |>
 #'  plot_ci(fill = ENV)
 
 #'}
@@ -82,15 +82,15 @@ plot_ci <- function(object,
                     legend.position = "bottom",
                     plot_theme = theme_metan()) {
   if (!has_class(object, "tbl_df")) {
-    stop("The object must be a 'data.frame' or a 'tbl_df'.")
+    cli::cli_abort("The object must be a 'data.frame' or a 'tbl_df'.")
   }
   if (!any(colnames(object) %in% c("Pair", "Corr"))) {
-    stop("It appers that the object was not generate by the function 'coor_ci()'.")
+    cli::cli_abort("It appers that the object was not generate by the function 'coor_ci()'.")
   }
   n <- object[1, which(colnames(object) == "n")]
   x.lab <- ifelse(is.null(x.lab) == F, x.lab, paste0("Pairwise combinations"))
   y.lab <- ifelse(is.null(y.lab) == F, y.lab, paste0("Pearson's correlation coefficient"))
-  object %<>% mutate(Pair = paste(V1, V2, sep = " x "))
+  object <- object |> mutate(Pair = paste(V1, V2, sep = " x "))
   if(reorder == TRUE){
     if(!missing(fill)){
       p <-
@@ -155,3 +155,4 @@ plot_ci <- function(object,
   }
   return(p)
 }
+

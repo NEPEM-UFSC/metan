@@ -45,10 +45,10 @@
 bind_cv <- function(..., bind = "boot", sort = TRUE) {
   class <- list(...)
   if (sum(lapply(class, function(x) class(x) != "cvalidation") == TRUE) > 0) {
-    stop("The object must be of the class 'cv_ammi', 'cv_ammif', or 'cv_blup'.")
+    cli::cli_abort("The object must be of the class 'cv_ammi', 'cv_ammif', or 'cv_blup'.")
   }
   if (!bind %in% c("boot", "means")) {
-    stop(paste("Invalid argument bind = '", bind, "'. It must be one of the 'means' or 'boot'",
+    cli::cli_abort(paste("Invalid argument bind = '", bind, "'. It must be one of the 'means' or 'boot'",
                sep = ""))
   }
   dots <- list(...)
@@ -62,7 +62,7 @@ bind_cv <- function(..., bind = "boot", sort = TRUE) {
       x$RMSPDmean
     }))
     if (sort == TRUE) {
-      data <- data %>% arrange(mean)
+      data <- data |> arrange(mean)
     }
   }
   return(structure(list(RMSPD = data), class = "cvalidation"))

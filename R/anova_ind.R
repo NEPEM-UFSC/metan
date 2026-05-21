@@ -89,46 +89,50 @@ anova_ind <- function(.data,
                       verbose = TRUE) {
 
   if(!missing(block)){
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
              {{rep}},
-             {{block}}) %>%
+             {{block}}) |>
       mutate(across(everything(), as.factor))
   } else{
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
-             {{rep}}) %>%
+             {{rep}}) |>
       mutate(across(everything(), as.factor))
   }
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
   if(!missing(block)){
-    factors %<>% set_names("ENV", "GEN", "REP", "BLOCK")
+    factors <- factors |> set_names("ENV", "GEN", "REP", "BLOCK")
   } else{
-    factors %<>% set_names("ENV", "GEN", "REP")
+    factors <- factors |> set_names("ENV", "GEN", "REP")
   }
   listres <- list()
   nvar <- ncol(vars)
+  var <- 0
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    grouped <- data %>% split(dplyr::pull(., ENV))
+    grouped <- data |> dplyr::group_split(ENV)
     if(missing(block)){
       formula <- as.formula(paste0("Y ~ GEN + REP"))
       individual <- do.call(rbind, lapply(grouped, function(x) {
         anova <-
-          aov(formula, data = x) %>%
-          anova() %>%
-          suppressMessages() %>%
+          aov(formula, data = x) |>
+          anova() |>
+          suppressMessages() |>
           suppressWarnings()
         DFB <- anova[2, 1]
         MSB <- anova[2, 3]
@@ -161,17 +165,15 @@ anova_ind <- function(.data,
                         AS = AS)
       }))
       if (verbose == TRUE) {
-        run_progress(pb,
-                     actual = var,
-                     text = paste("Evaluating trait", names(vars[var])))
+        cli::cli_progress_update(id = pb, set = var, force = TRUE)
       }
     } else{
       formula <- as.formula(paste0("Y ~ GEN + REP + REP:BLOCK"))
       individual <- do.call(rbind, lapply(grouped, function(x) {
         anova <-
-          aov(formula, data = x) %>%
-          anova() %>%
-          suppressMessages() %>%
+          aov(formula, data = x) |>
+          anova() |>
+          suppressMessages() |>
           suppressWarnings()
         DFG <- anova[1, 1]
         MSG <- anova[1, 3]
@@ -210,9 +212,7 @@ anova_ind <- function(.data,
                         AS = AS)
       }))
       if (verbose == TRUE) {
-        run_progress(pb,
-                     actual = var,
-                     text = paste("Evaluating trait", names(vars[var])))
+        cli::cli_progress_update(id = pb, set = var, force = TRUE)
       }
     }
     temp <- list(individual = as_tibble(rownames_to_column(individual, "ENV")),
@@ -247,7 +247,7 @@ anova_ind <- function(.data,
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- data_ge %>% anova_ind(ENV, GEN, REP, c(GY, HM))
+#' model <- data_ge |> anova_ind(ENV, GEN, REP, c(GY, HM))
 #' print(model)
 #' }
 print.anova_ind <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
@@ -259,13 +259,10 @@ print.anova_ind <- function(x, export = FALSE, file.name = NULL, digits = 3, ...
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Within-environment ANOVA results\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Within-environment ANOVA results")
     print(var[[1]])
-    cat("---------------------------------------------------------------------------\n")
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()

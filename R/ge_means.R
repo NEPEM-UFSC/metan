@@ -38,22 +38,22 @@
 #'
 ge_means <- function(.data, env, gen, resp) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       add_cols(Mean = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    ge_m <- data %>%
+    ge_m <- data |>
       mean_by(ENV, GEN)
     g_m <- mean_by(data, GEN)
     e_m <- mean_by(data, ENV)

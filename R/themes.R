@@ -1,5 +1,6 @@
 #' Personalized theme for ggplot2-based graphics
 #'
+#' @param basesize The base size of the font. Defaults to 14.
 #' @param grid Control the grid lines in plot. Defaults to `"both"` (x and
 #'   y major grids). Allows also `grid = "x"` for grids in x axis only,
 #'   `grid = "y"` for grid in y axis only, or `grid = "none"` for no
@@ -26,18 +27,18 @@
 #' @export
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #'
-theme_metan = function (grid = "none", col.grid = "white", color.background = "gray95") {
+theme_metan = function (grid = "both", col.grid = "gray", color.background = "white") {
   if(grid == "x"){
-    grid_x <- element_line(color = col.grid)
+    grid_x <- element_line(color = col.grid, linetype = 2)
     grid_y <- element_blank()
   }
   if(grid == "y"){
-    grid_y <- element_line(color = col.grid)
+    grid_y <- element_line(color = col.grid, linetype = 2)
     grid_x <- element_blank()
   }
   if(grid == "both"){
-    grid_y <- element_line(color = col.grid)
-    grid_x <- element_line(color = col.grid)
+    grid_y <- element_line(color = col.grid, linetype = 2)
+    grid_x <- element_line(color = col.grid, linetype = 2)
   }
   if(grid == "none"){
     grid_x <- element_blank()
@@ -60,15 +61,15 @@ theme_metan = function (grid = "none", col.grid = "white", color.background = "g
           panel.grid.major.y = grid_y,
           panel.grid.minor = element_blank(),
           panel.background = element_rect(fill = color.background),
-          panel.border = element_rect(colour = "black", fill = NA, size = 1),
+          panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
           strip.background = element_rect(color = "black", fill = NA))
 }
 
 #' @name themes
 #' @export
 #'
-theme_metan_minimal = function () {
-  theme_bw() %+replace% # allows the entered values to be overwritten
+theme_metan_minimal = function (basesize = 14) {
+  theme_bw(base_size = basesize) %+replace% # allows the entered values to be overwritten
     theme(axis.ticks.length = unit(.2, "cm"),
           plot.title = element_text(face = "bold", hjust = 0, vjust = 3),
           plot.subtitle = element_text(face = "italic", hjust = 0, vjust = 2, size = 8),
@@ -80,7 +81,7 @@ theme_metan_minimal = function () {
           plot.margin = margin(0.3, 0.1, 0.1, 0.1, "cm"),
           legend.title = element_blank(),
           axis.text = element_text(colour = "black"),
-          panel.grid = element_blank(),
+          panel.grid.minor = element_blank(),
           panel.border = element_blank(),
           panel.background = element_blank(),
           axis.line.x.bottom = element_line(),
@@ -114,3 +115,4 @@ alpha_color <- function(color, alpha = 50) {
         alpha = (100 - alpha) * 255 / 100)
   )
 }
+

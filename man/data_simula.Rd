@@ -86,7 +86,7 @@ gen_data <-
 gen_data
 inspect(gen_data, plot = TRUE)
 
-aov(V1 ~ GEN + REP, data = gen_data) \%>\% anova()
+aov(V1 ~ GEN + REP, data = gen_data) |> anova()
 
 # Genotype-environment data
 # 5 genotypes, 3 environments, 4 replicates and 2 traits
@@ -97,7 +97,7 @@ ge_simula(ngen = 5,
           nvars = 2,
           seed = 1)
 ge_plot(df, ENV, GEN, V1)
-aov(V1 ~ ENV*GEN + ENV/REP, data = df) \%>\% anova()
+aov(V1 ~ ENV*GEN + ENV/REP, data = df) |> anova()
 
 # Change genotype effect (trait 1 with fewer differences among genotypes)
 # Define different intercepts for the two traits

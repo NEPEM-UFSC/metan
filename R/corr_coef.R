@@ -21,7 +21,7 @@
 #'
 reorder_cormat <- function(x){
   if(!is.matrix(x) | nrow(x) != ncol(x)){
-    stop("object 'x' must be a square matrix.", call. = FALSE)
+    cli::cli_abort("object 'x' must be a square matrix.")
   }
   hc <- hclust(as.dist((1 - x) / 2))
   x <- x[hc$order, hc$order]
@@ -43,13 +43,12 @@ NULL
 #' these two variables and m other variables from which we want to remove the
 #' effects. The estimate of the partial correlation coefficient between i and j
 #' excluding the effect of m other variables is given by:
-#' \loadmathjax
-#' \mjsdeqn{r_{ij.m} = \frac{{- {a_{ij}}}}{{\sqrt {{a_{ii}}{a_{jj}}}}}}
+#' \deqn{r_{ij.m} = \frac{{- {a_{ij}}}}{{\sqrt {{a_{ii}}{a_{jj}}}}}}
 #'
-#' Where \mjseqn{r_{ij.m}} is the partial correlation coefficient between
+#' Where \eqn{r_{ij.m}} is the partial correlation coefficient between
 #' variables i and j, without the effect of the other m variables;
-#' \mjseqn{a_{ij}} is the ij-order element of the inverse of the linear
-#' correlation matrix; \mjseqn{a_{ii}}, and \mjseqn{a_{jj}} are the elements of
+#' \eqn{a_{ij}} is the ij-order element of the inverse of the linear
+#' correlation matrix; \eqn{a_{ii}}, and \eqn{a_{jj}} are the elements of
 #' orders ii and jj, respectively, of the inverse of the simple correlation
 #' matrix.
 #'
@@ -111,13 +110,13 @@ corr_coef <- function(data,
 
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     data <- group_by(data, {{by}})
   }
   if(is_grouped_df(data)){
     corr_coef <-
-      data %>%
+      data |>
         doo(corr_coef,
             ...,
             type = type,
@@ -134,7 +133,7 @@ corr_coef <- function(data,
         x <- select_numeric_cols(data)
       }
       if(!missing(...)){
-        x <- select(data, ...) %>% select_numeric_cols()
+        x <- select(data, ...) |> select_numeric_cols()
       }
       if(has_na(x)){
         rlang::warn("Missing values in the data. Option 'pairwise.complete.obs' used to compute correlation with all complete pairs of observations.")
@@ -170,8 +169,7 @@ corr_coef <- function(data,
         nvar <- ncol(cor.x)
         df <- n - nvar
         if (df < 0) {
-          warning("The number of variables is higher than the number of individuals. Hypothesis testing will not be made.",
-                  call. = FALSE)
+          cli::cli_warn("The number of variables is higher than the number of individuals. Hypothesis testing will not be made.")
         }
         m <- as.matrix(cor.x)
         X.resid <- -(solve_svd(m))
@@ -213,15 +211,11 @@ corr_coef <- function(data,
       file.name <- ifelse(is.null(file.name) == TRUE, "corr_coef print", file.name)
       sink(paste0(file.name, ".txt"))
     }
-    cat("---------------------------------------------------------------------------\n")
-    cat("Pearson's correlation coefficient\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Pearson's correlation coefficient")
     print(x$cor, digits = digits)
-    cat("---------------------------------------------------------------------------\n")
-    cat("p-values for the correlation coefficients\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("p-values for the correlation coefficients")
     print(x$pval, digits = digits)
-    cat("\n\n\n")
+    cli::cli_inform("")
     if (export == TRUE) {
       sink()
     }
@@ -330,11 +324,11 @@ corr_coef <- function(data,
       correl <- make_upper_tri(correl)
     }
     bind_data <-
-      expand.grid(dimnames(correl)) %>%
+      expand.grid(dimnames(correl)) |>
       mutate(cor = as.vector(correl),
              pval = as.vector(pval),
-             pval_star = pval) %>%
-      set_names("v1", "v2", "cor", "pval", "pval_star") %>%
+             pval_star = pval) |>
+      set_names("v1", "v2", "cor", "pval", "pval_star") |>
       dplyr::filter(!is.na(pval))
     if(signif == "stars"){
       bind_data <-
@@ -342,12 +336,12 @@ corr_coef <- function(data,
         mutate(pval_star = case_when(pval < 0.001 ~ "***",
                                      between(pval, 0.001, 0.01) ~ "**",
                                      between(pval, 0.01, 0.05) ~ "*",
-                                     pval >= 0.05 ~ "ns")) %>%
-        set_names("v1", "v2", "cor", "pval", "pval_star") %>%
+                                     pval >= 0.05 ~ "ns")) |>
+        set_names("v1", "v2", "cor", "pval", "pval_star") |>
         dplyr::filter(!is.na(pval))
     } else{
       bind_data <-
-        expand.grid(dimnames(correl)) %>%
+        expand.grid(dimnames(correl)) |>
         mutate(cor = as.vector(correl),
                pval = as.vector(pval),
                pval_star <- case_when(
@@ -355,8 +349,8 @@ corr_coef <- function(data,
                  between(pval, 0.001, 0.01) ~ "**",
                  between(pval, 0.01, 0.05) ~ "*",
                  pval >= 0.05 ~ "ns"
-               )) %>%
-        set_names("v1", "v2", "cor", "pval", "pval_star") %>%
+               )) |>
+        set_names("v1", "v2", "cor", "pval", "pval_star") |>
         dplyr::filter(!is.na(pval))
     }
     if(show == "signif"){

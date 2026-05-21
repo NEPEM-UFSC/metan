@@ -112,9 +112,9 @@ respectively, with a \code{replacement} value.
 \examples{
 \donttest{
 library(metan)
-data_naz <- iris \%>\%
-              group_by(Species) \%>\%
-              doo(~head(., n = 3)) \%>\%
+data_naz <- iris |>
+              group_by(Species) |>
+              doo(~head(., n = 3)) |>
               as_character(Species)
 data_naz
 data_naz[c(2:3, 6, 8), c(1:2, 4, 5)] <- NA

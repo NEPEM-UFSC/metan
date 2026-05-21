@@ -69,37 +69,37 @@ anova_joint <- function(.data,
                         block = NULL,
                         verbose = TRUE) {
   if(!missing(block)){
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
              {{rep}},
-             {{block}}) %>%
+             {{block}}) |>
       mutate(across(everything(), as.factor))
   } else{
-    factors  <- .data %>%
+    factors  <- .data |>
       select({{env}},
              {{gen}},
-             {{rep}}) %>%
+             {{rep}}) |>
       mutate(across(everything(), as.factor))
   }
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
 
   if(!missing(block)){
-    factors %<>% set_names(c("ENV", "GEN", "REP", "BLOCK"))
+    factors <- factors |> set_names(c("ENV", "GEN", "REP", "BLOCK"))
   } else{
-    factors %<>% set_names(c("ENV", "GEN", "REP"))
+    factors <- factors |> set_names(c("ENV", "GEN", "REP"))
   }
   listres <- list()
   nvar <- ncol(vars)
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(mean = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    msr <- data %>%
+    msr <- data |>
       split_factors(ENV, keep_factors = T)
     if(missing(block)){
       msr <- do.call(rbind,
@@ -108,9 +108,9 @@ anova_joint <- function(.data,
                      }))
       model <- aov(mean ~ GEN + ENV + GEN:ENV + ENV/REP, data = data)
       anova <-
-        anova(model) %>%
-        rownames_to_column("Source") %>%
-        select_rows(2, 4, 1, 3, 5) %>%
+        anova(model) |>
+        rownames_to_column("Source") |>
+        select_rows(2, 4, 1, 3, 5) |>
         as.data.frame()
 
       fcgen <- anova[3, 4] / anova[4, 4]
@@ -121,28 +121,49 @@ anova_joint <- function(.data,
       anova[1, 5:6] <- c(fcenv, pfenv)
       anova[2, 1] <- "REP(ENV)"
 
-      # genotype within environment
-      mat_sum <- xtabs(mean ~ GEN + ENV, data = data)
+      # =======================================================================
+      # GENOTYPE WITHIN ENVIRONMENT DECOMPOSITION (Robust to unbalanced data)
+      # =======================================================================
+      mat_sum   <- as.matrix(xtabs(mean ~ GEN + ENV, data = data))
+      mat_cells <- as.matrix(xtabs(~ GEN + ENV, data = data))
+
       I <- nlevels(factor(data$GEN))
       J <- nlevels(factor(data$ENV))
-      K <- nlevels(factor(data$REP))
-      sum_gen <- apply(mat_sum, 1, sum)
-      Cgen <- sum_gen ^2 / (J * K)
-      sqgen_env <- apply(apply(mat_sum, 1, function(x){x ^2}), 2, sum) / K - Cgen
+
+      # True weighted row totals (Yield and valid plots per genotype)
+      Y_i <- rowSums(mat_sum, na.rm = TRUE)
+      N_i <- rowSums(mat_cells, na.rm = TRUE)
+
+      # Exact Correction Factor adjusted for actual missing plots
+      Cgen <- (Y_i^2) / N_i
+
+      # Calculate cell sum of squares safely (avoiding division by zero)
+      SS_cells_raw <- mat_sum^2
+      valid_cells  <- mat_cells > 0
+      SS_cells_raw[valid_cells]  <- SS_cells_raw[valid_cells] / mat_cells[valid_cells]
+      SS_cells_raw[!valid_cells] <- 0
+
+      # Final Exact ENV/GEN Sum of Squares
+      sqgen_env <- rowSums(SS_cells_raw, na.rm = TRUE) - Cgen
+      names(sqgen_env) <- rownames(mat_sum)
+
       qmgen_env <- sqgen_env / (J - 1)
       fcal <- qmgen_env / anova[5, 4]
       pfcal <- pf(fcal, J - 1, anova[5, 2], lower.tail = FALSE)
       qmgen_env_tot <- sum(sqgen_env) /((J - 1) * I)
       fcalgen_env <- qmgen_env_tot / anova[5, 4]
       pfcalgen_env <- pf(fcalgen_env, ((J - 1) * I), anova[5, 2], lower.tail = FALSE)
+
       decomp <- data.frame(
-        Source = c("ENV/GEN", paste0("   ENV/", names(sum_gen))),
+        Source = c("ENV/GEN", paste0("   ENV/", names(sqgen_env))),
         Df = c((J - 1) * I, replicate(I, (J - 1))),
         `Sum Sq` = c(sum(sqgen_env), sqgen_env),
         `Mean Sq` = c(qmgen_env_tot , qmgen_env),
         `F value` = c(fcalgen_env, fcal),
-        `Pr(>F)` = c(pfcalgen_env, pfcal)
+        `Pr(>F)` = c(pfcalgen_env, pfcal),
+        check.names = FALSE
       )
+
       colnames(decomp) <- c("Source", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)")
       anova <- rbind(anova[1:4, ], decomp, anova[5, ])
       rownames(anova) <- NULL
@@ -150,15 +171,17 @@ anova_joint <- function(.data,
       msr <- tibble(Source = "MSR+/MSR-", Df = max(msr) / min(msr))
       ovmean <- tibble(Source = "OVmean", Df = mean(data$mean))
       temp <- rbind_fill_id(anova, CV, msr, ovmean)
+      # =======================================================================
+
     } else{
       msr <- do.call(rbind,
                      lapply(msr, function(x){
                        summary(aov(mean ~ GEN + REP + REP:BLOCK, data = x))[[1]][4,3]
                      }))
       model <- aov(mean ~ GEN + ENV + GEN:ENV + ENV/REP/BLOCK, data = data)
-      anova <- anova(model) %>%
-        as.data.frame() %>%
-        rownames_to_column("Source") %>%
+      anova <- anova(model) |>
+        as.data.frame() |>
+        rownames_to_column("Source") |>
         select_rows(2, 4, 5, 1, 3, 6)
       anova[2, 1] <- "REP(ENV)"
       anova[3, 1] <- "BLOCK(REP*ENV)"
@@ -169,14 +192,14 @@ anova_joint <- function(.data,
       temp <- rbind_fill_id(anova, CV, msr, ovmean)
     }
     influence <- lm.influence(model)
-    augment <- model$model %>%
+    augment <- model$model |>
       add_cols(hat = influence$hat,
                sigma = influence$sigma,
                fitted = predict(model),
                resid = residuals(model),
                stdres = rstandard(model),
-               se.fit = predict(model, se.fit = TRUE)$se.fit) %>%
-      add_cols(factors = concatenate(., GEN, REP, pull = TRUE))
+               se.fit = predict(model, se.fit = TRUE)$se.fit) |>
+      (\(x) add_cols(x, factors = concatenate(x, GEN, REP, pull = TRUE)))()
     if(missing(block)){
       augment <- column_to_first(augment, ENV, GEN, REP)
     } else{
@@ -187,12 +210,9 @@ anova_joint <- function(.data,
                                                augment = augment,
                                                details = ge_details(data, ENV, GEN, mean))
     if (verbose == TRUE) {
-      cat("variable", paste(names(vars[var])),"\n")
-      cat("---------------------------------------------------------------------------\n")
-      cat("Joint ANOVA table\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h1("Joint ANOVA table for {names(vars[var])}")
       print(as.data.frame(temp), digits = 3, row.names = FALSE)
-      cat("---------------------------------------------------------------------------\n\n")
+      cli::cli_text("")
     }
   }
   if (verbose == TRUE) {
@@ -200,16 +220,12 @@ anova_joint <- function(.data,
     if (length(which(unlist(lapply(listres, function(x) {
       x[["anova"]][index, 6]
     })) > 0.05)) > 0) {
-      cat("---------------------------------------------------------------------------\n")
-      cat("Variables with nonsignificant GxE interaction\n")
-      cat(names(which(unlist(lapply(listres, function(x) {
-        x[["anova"]][["Pr(>F)"]][index]
-      })) > 0.05)), "\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Variables with nonsignificant GxE interaction")
+      cli::cli_inform("{names(which(unlist(lapply(listres, function(x) { x[[\"anova\"]][[\"Pr(>F)\"]][index] })) > 0.05))}")
     } else {
-      cat("All variables with significant (p < 0.05) genotype-vs-environment interaction\n")
+      cli::cli_alert_success("All variables with significant (p < 0.05) genotype-vs-environment interaction")
     }
-    cat("Done!\n")
+    cli::cli_alert_success("Done!")
   }
   return(structure(listres, class = "anova_joint"))
 }
@@ -271,7 +287,7 @@ plot.anova_joint <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- data_ge %>% anova_joint(ENV, GEN, REP, c(GY, HM))
+#' model <- data_ge |> anova_joint(ENV, GEN, REP, c(GY, HM))
 #' print(model)
 #' }
 print.anova_joint <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
@@ -283,11 +299,9 @@ print.anova_joint <- function(x, export = FALSE, file.name = NULL, digits = 3, .
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     print(var)
-    cat("---------------------------------------------------------------------------\n")
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()

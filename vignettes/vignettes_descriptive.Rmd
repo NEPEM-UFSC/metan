@@ -35,7 +35,7 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 `metan` provides a simple and intuitive pipe-friendly framework for performing descriptive statistics.  A [set of functions](https://tiagoolivoto.github.io/metan/reference/utils_stats.html) can be used to compute the most used descriptive statistics quickly. In this tutorial, we will use the data example `data_ge2` as motivation examples.  See the section [Rendering engine](#rendering) to know how HTML tables were generated.
 ```{r}
 library(metan)
-inspect(data_ge2, verbose = FALSE) %>%
+inspect(data_ge2, verbose = FALSE) |>
   print_table()
 ```
 
@@ -81,7 +81,7 @@ The following `_by()` functions are available for computing the main descriptive
  - `sem_by()` For computing standard error of the mean .
 
 # Useful functions
-Other useful functions are also implemented. All of them works naturally with `%>%`, handle grouped data with `dplyr::group_by()` and multiple variables (all numeric variables from `.data` by default).
+Other useful functions are also implemented. All of them works naturally with `|>`, handle grouped data with `dplyr::group_by()` and multiple variables (all numeric variables from `.data` by default).
  
  - `av_dev()` computes the average absolute deviation.
  - `ci_mean_t()` computes t-inverval (95%) for the mean.
@@ -103,17 +103,17 @@ Let's show some examples. Note that [select helpers](https://tiagoolivoto.github
 
 ```{r}
 # Standard error of the mean for numeric variables that contains (ED)
-data_ge2 %>% 
-  sem(contains("ED")) %>% 
+data_ge2 |> 
+  sem(contains("ED")) |> 
   print_table()
 
 
 # Confidence t-interval 0.95 for the mean
 # Variables with name width greater than 3 characters
 # Grouped by levels of ENV
-data_ge2 %>%
-  group_by(ENV) %>%
-  ci_mean_t(width_greater_than(3)) %>% 
+data_ge2 |>
+  group_by(ENV) |>
+  ci_mean_t(width_greater_than(3)) |> 
   print_table()
 ```
 
@@ -131,7 +131,7 @@ print_table(all)
 ## Robust statistics using select helpers
 ```{r, message=FALSE, fig.height = 5, fig.width = 10, fig.align = "center" }
 robust <- 
-data_ge2 %>%
+data_ge2 |>
   desc_stat(contains("N"),
             stats = "robust")
 print_table(robust)
@@ -140,7 +140,7 @@ print_table(robust)
 ## Quantile functions choosing variable names
 ```{r, message=FALSE, fig.height = 5, fig.width = 10, fig.align = "center" }
 quantile <- 
-data_ge2 %>%
+data_ge2 |>
   desc_stat(PH, EH, CD, ED,
             stats = "quantile")
 print_table(quantile)
@@ -149,7 +149,7 @@ print_table(quantile)
 ## Create a histogram for each variable
 ```{r, message=FALSE, fig.height = 5, fig.width = 10, fig.align = "center" }
 stat_vars <- 
-data_ge2 %>%
+data_ge2 |>
   desc_stat(EP, EL, CL, CD, CW, NR,
             hist = TRUE)
 print_table(stat_vars)
@@ -176,7 +176,7 @@ print_table(stats_c)
 We may convert the results above into a *wider* format by using the function `desc_wider()`
 
 ```{r, message=FALSE, fig.height = 5, fig.width = 5.5, fig.align = "center" }
-desc_wider(stats_c, mean) %>% 
+desc_wider(stats_c, mean) |> 
   print_table()
 ```
 
@@ -184,8 +184,8 @@ To compute the descriptive statistics by more than one grouping variable, we nee
 
 ```{r warning=FALSE}
 stats_grp <- 
-data_ge2 %>% 
-  group_by(ENV, GEN) %>% 
+data_ge2 |> 
+  group_by(ENV, GEN) |> 
   desc_stat(EP, EL,
             stats = c("mean, se, n"))
 print_table(stats_grp)
@@ -213,6 +213,7 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 }
 
 ```
+
 
 
 

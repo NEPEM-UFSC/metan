@@ -29,7 +29,7 @@ one grouping variable use that function.}
 
 \item{scale}{Should the data be scaled before computing the distances? Set to
 FALSE. If TRUE, then, each observation will be divided by the standard
-deviation of the variable \mjseqn{Z_{ij} = X_{ij} / sd_j}}
+deviation of the variable \eqn{Z_{ij} = X_{ij} / sd_j}}
 
 \item{selvar}{Logical argument, set to \code{FALSE}. If \code{TRUE}, then an
 algorithm for selecting variables is implemented. See the section
@@ -74,7 +74,6 @@ test. Else, will be a \code{NULL} object.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
-\loadmathjax
 Performs clustering analysis with selection of variables.
 }
 \details{
@@ -113,8 +112,8 @@ d1 <- clustering(data_ge2)
 
 # Based on the mean for each genotype
 mean_gen <-
- data_ge2 \%>\%
- mean_by(GEN) \%>\%
+ data_ge2 |>
+ mean_by(GEN) |>
  column_to_rownames("GEN")
 
 d2 <- clustering(mean_gen)

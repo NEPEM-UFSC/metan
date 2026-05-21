@@ -67,7 +67,7 @@ performance of the genotypic values), \code{"HMRPGV"} (Harmonic mean of the
 relative performance of the genotypic values), by calling \code{\link[=blup_indexes]{blup_indexes()}}
 internally
 \item \verb{"Pi_a", "Pi_f", "Pi_u"} (Superiority indexes for all, favorable and
-unfavorable environments, respectively, calling \code{\link[=superiority]{superiority()}} internally)
+unfavorable environments, respectively, calling \code{\link[=lin_binns]{lin_binns()}} internally)
 \item \code{"Gai"} (Geometric adaptability index, calling \code{\link[=gai]{gai()}} internally)
 \item \code{"S1"} (mean of the absolute rank differences of a genotype over the n
 environments), \code{"S2"} (variance among the ranks over the k environments),
@@ -174,7 +174,7 @@ Z. Pflanzenzuchtg 52:127-138.
 \seealso{
 \code{\link[=acv]{acv()}}, \code{\link[=ammi_indexes]{ammi_indexes()}}, \code{\link[=ecovalence]{ecovalence()}}, \code{\link[=Fox]{Fox()}}, \code{\link[=gai]{gai()}},
 \code{\link[=ge_reg]{ge_reg()}}, \code{\link[=hmgv]{hmgv()}}, \code{\link[=hmrpgv]{hmrpgv()}}, \code{\link[=rpgv]{rpgv()}}, \code{\link[=Huehn]{Huehn()}}, \code{\link[=ge_polar]{ge_polar()}},
-\code{\link[=Shukla]{Shukla()}}, \code{\link[=superiority]{superiority()}}, \code{\link[=Thennarasu]{Thennarasu()}}, \code{\link[=waas]{waas()}}, \code{\link[=waasb]{waasb()}}
+\code{\link[=Shukla]{Shukla()}}, \code{\link[=lin_binns]{lin_binns()}}, \code{\link[=Thennarasu]{Thennarasu()}}, \code{\link[=waas]{waas()}}, \code{\link[=waasb]{waasb()}}
 }
 \author{
 Tiago Olivoto \email{tiagoolivoto@gmail.com}

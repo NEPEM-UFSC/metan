@@ -43,7 +43,7 @@
 #' @param size.text The size of the text
 #' @param fontfam The family of the font text.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @return An object of class `gg, ggplot`.
 #' @md
@@ -93,9 +93,9 @@ plot_lines <- function(.data,
                        plot_theme = theme_metan()) {
   cl <- match.call()
   if (col == TRUE) {
-    stop(paste0("The argument col = ", cl$col, " is invalid. Please, informe one valid color or FALSE to a black and white plot"))
+    cli::cli_abort("The argument col = {cl$col} is invalid. Please, informe one valid color or FALSE to a black and white plot")
   }
-  data2 <- .data %>% select(x = !!enquo(x), y = !!enquo(y))
+  data2 <- .data |> select(x = !!enquo(x), y = !!enquo(y))
   if (fit == 1) {
     formula <- as.formula("y ~ x")
   }
@@ -183,13 +183,13 @@ plot_factlines <- function(.data,
                            fontfam = "sans",
                            plot_theme = theme_metan()) {
   if (length(fit) == 1 & grid == TRUE) {
-    stop("When grid is TRUE the argument fit must have the same length of the grouping variable.")
+    cli::cli_abort("When grid is TRUE the argument fit must have the same length of the grouping variable.")
   }
   if (max(fit) >= 5) {
-    stop("The maximum polynomial degree is 4.")
+    cli::cli_abort("The maximum polynomial degree is 4.")
   }
   cl <- match.call()
-  data2 <- .data %>% select(factors = !!enquo(group), x = !!enquo(x),
+  data2 <- .data |> select(factors = !!enquo(group), x = !!enquo(x),
                             y = !!enquo(y))
   group <- as.factor(data2$factors)
   p_smooth <- list()
@@ -311,4 +311,3 @@ plot_factlines <- function(.data,
   }
   return(p)
 }
-

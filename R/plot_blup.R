@@ -21,7 +21,7 @@
 #' @param file.name The name of the file for exportation, default is
 #'   `NULL`, i.e. the files are automatically named.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param width The width "inch" of the plot. Default is `6`.
 #' @param height The height "inch" of the plot. Default is `6`.
@@ -82,7 +82,7 @@ plot_blup <- function(x,
                       export = FALSE,
                       file.type = "pdf",
                       file.name = NULL,
-                      plot_theme = theme_metan(),
+                      plot_theme = theme_metan_minimal(),
                       width = 6,
                       height = 6,
                       err.bar = TRUE,
@@ -101,11 +101,11 @@ plot_blup <- function(x,
                       resolution = 300, ...) {
     x.lab <- ifelse(missing(x.lab), names(x[var]), x.lab)
     if(!which %in% c("gen", "ge")){
-        stop("Argument 'which' must be one of 'gen' or 'ge'.", call. = FALSE)
+        cli::cli_abort("Argument 'which' must be one of 'gen' or 'ge'.")
     }
     x <- x[[var]]
     if(!class(x)  %in% c("waasb", "gamem")){
-        stop("The object 'x' must be of class 'waasb' or 'gamem'.")
+        cli::cli_abort("The object 'x' must be of class 'waasb' or 'gamem'.")
     }
     if(inherits(x, "gamem")){
         PROB <- ((1 - (1 - prob))/2) + (1 - prob)
@@ -113,10 +113,10 @@ plot_blup <- function(x,
         GV <- as.numeric(x$ESTIMATES[1, 2])
         AccuGen <- as.numeric(x$ESTIMATES[8, 2])
         Limits <- t * sqrt(((1 - AccuGen) * GV))
-        blup <- x$BLUPgen %>%
+        blup <- x$BLUPgen |>
             mutate(LL = Predicted - Limits,
                    UL = Predicted + Limits,
-                   Mean = ifelse(Predicted < mean(Predicted), "below", "above")) %>%
+                   Mean = ifelse(Predicted < mean(Predicted), "below", "above")) |>
             arrange(Predicted)
     }
     if(inherits(x, "waasb")){
@@ -127,15 +127,15 @@ plot_blup <- function(x,
         Limits <- t * sqrt(((1 - AccuGen) * GV))
         if(which == "gen"){
         blup <-
-            x$BLUPgen %>%
+            x$BLUPgen |>
             mutate(LL = Predicted - Limits,
                    UL = Predicted + Limits,
-                   Mean = ifelse(Predicted < mean(Predicted), "below", "above")) %>%
+                   Mean = ifelse(Predicted < mean(Predicted), "below", "above")) |>
             arrange(Predicted)
         } else{
             blup <-
-                x$BLUPint %>%
-                mean_by(ENV, GEN) %>%
+                x$BLUPint |>
+                mean_by(ENV, GEN) |>
                 mutate(LL = Predicted - Limits,
                        UL = Predicted + Limits,
                        Mean = ifelse(Predicted < mean(Predicted), "below", "above"))

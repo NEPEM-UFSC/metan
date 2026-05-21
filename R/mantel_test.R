@@ -1,12 +1,11 @@
 #' Mantel test
-#' \loadmathjax
 #' @description
 #' `r badge('stable')`
 #'
 #' Performs a Mantel test between two correlation/distance matrices. The
 #' function calculates the correlation between two matrices, the Z-score that is
 #' is the sum of the products of the corresponding elements of the matrices and
-#' a two-tailed p-value (null hypothesis: \mjsdeqn{r = 0}).
+#' a two-tailed p-value (null hypothesis: \deqn{r = 0}).
 #'
 #' @param mat1,mat2 A correlation matrix or an object of class `dist`.
 #' @param nboot The number of permutations to be used. Defaults to `1000`.
@@ -27,8 +26,8 @@
 #' library(metan)
 #' # Test if the correlation of traits (data_ge2 dataset)
 #' # changes between A1 and A2 levels of factor ENV
-#' A1 <- corr_coef(data_ge2 %>% subset(ENV == "A1"))[["cor"]]
-#' A2 <- corr_coef(data_ge2 %>% subset(ENV == "A2"))[["cor"]]
+#' A1 <- corr_coef(data_ge2 |> subset(ENV == "A1"))[["cor"]]
+#' A2 <- corr_coef(data_ge2 |> subset(ENV == "A2"))[["cor"]]
 #' mantel_test(A1, A2, plot = TRUE)
 #'
 #'}
@@ -36,7 +35,7 @@ mantel_test <- function(mat1, mat2, nboot = 1000, plot = FALSE){
   mat1 <- as.matrix(mat1)
   mat2 <- as.matrix(mat2)
   if(!identical(dim(mat1), dim(mat2))){
-    stop("Matrices with different dimension are not allowed.", call. = FALSE)
+    cli::cli_abort("Matrices with different dimension are not allowed.")
   }
   diag(mat1) <- diag(mat2) <- 0
   permute_mat <- function(mat1, n){

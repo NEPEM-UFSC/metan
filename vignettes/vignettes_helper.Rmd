@@ -48,8 +48,8 @@ Here, we will select the variables from `data_ge2` that start with "C" and ends 
 ```{r message=FALSE, warning=FALSE}
 library(metan)
 data_sel <- head(data_ge2, 3)
-data_sel %>% 
-  select_cols(intersect_var("C", "D")) %>% 
+data_sel |> 
+  select_cols(intersect_var("C", "D")) |> 
   print_table()
 ```
 
@@ -59,8 +59,8 @@ data_sel %>%
 The following code select variables that start with "C" or ends with "D".
 
 ```{r}
-data_sel %>% 
-  select_cols(union_var("C", "D")) %>% 
+data_sel |> 
+  select_cols(union_var("C", "D")) |> 
   print_table()
 ```
 
@@ -70,8 +70,8 @@ data_sel %>%
 The following code select variables that start with "C" and not ends with "D".
 
 ```{r}
-data_sel %>% 
-  select_cols(difference_var("C", "D")) %>% 
+data_sel |> 
+  select_cols(difference_var("C", "D")) |> 
   print_table()
 ```
 
@@ -80,24 +80,24 @@ data_sel %>%
 * Select variables with an specific name length (four letters)
   
 ```{r}
-data_sel %>% 
-  select_cols(width_of(4)) %>% 
+data_sel |> 
+  select_cols(width_of(4)) |> 
   print_table()
 ```
 
 * Select variables with width less than *n*.
   
 ```{r}
-data_sel %>% 
-  select_cols(width_less_than(3)) %>% 
+data_sel |> 
+  select_cols(width_less_than(3)) |> 
   print_table()
 ```
 
 * Select variables with width greater than *n*.
   
 ```{r}
-data_sel %>% 
-  select_cols(width_greater_than(2)) %>% 
+data_sel |> 
+  select_cols(width_greater_than(2)) |> 
   print_table()
 ```
 
@@ -109,9 +109,9 @@ Let's create data frame with 'messy' columnn names.
 ```{r}
 df <- head(data_ge, 3)
 colnames(df) <- c("Env", "gen", "Rep", "GY", "hm")
-select_cols(df, lower_case_only()) %>% print_table()
-select_cols(df, upper_case_only()) %>% print_table()
-select_cols(df, title_case_only()) %>% print_table()
+select_cols(df, lower_case_only()) |> print_table()
+select_cols(df, upper_case_only()) |> print_table()
+select_cols(df, title_case_only()) |> print_table()
 ```
 
 
@@ -123,8 +123,8 @@ The functions `remove_rows_na()` and `remove_rows_na()` are used to remove rows 
 data_with_na <- data_g
 data_with_na[c(1, 5, 10), c(3:5, 10:15)] <- NA
 print_table(data_with_na)
-remove_cols_na(data_with_na) %>% print_table()
-remove_rows_na(data_with_na) %>% print_table()
+remove_cols_na(data_with_na) |> print_table()
+remove_rows_na(data_with_na) |> print_table()
 ```
 
 
@@ -162,7 +162,7 @@ print_table(matrix, rownames = TRUE)
 
 # Make upper and lower triangular matrices
 ```{r, message=FALSE }
-cor_mat <- corr_coef(data_ge2, EP, EL, ED, EL, CD, CL)$cor %>% as.data.frame()
+cor_mat <- corr_coef(data_ge2, EP, EL, ED, EL, CD, CL)$cor |> as.data.frame()
 
 # Upper triangular
 upp_mat <- make_upper_tri(cor_mat)
@@ -189,8 +189,8 @@ Reorder the correlation matrix according to the correlation coefficient by using
 
 ```{r}
 print_table(cor_mat)
-reorder_cormat(as.matrix(cor_mat)) %>%
-  as.data.frame() %>% 
+reorder_cormat(as.matrix(cor_mat)) |>
+  as.data.frame() |> 
   print_table(rownames = TRUE)
 ```
 
@@ -201,7 +201,7 @@ num <- c(1:20, 30, 50)
 hmean(num)
 gmean(num)
 
-hmean(data_ge2) %>% round(2)
+hmean(data_ge2) |> round(2)
 gmean(data_ge2, EP, EL, CL)
 ```
 
@@ -229,8 +229,8 @@ print_table(c2)
 ```{r, message=FALSE }
 df1 <- data.frame(v1 = c(1, 2), v2 = c(2, 3))
 df2 <- data.frame(v3 = c(4, 5))
-rbind_fill_id(df1, df2) %>% print_table()
-rbind_fill_id(df1, df2, .fill = ".") %>% print_table()
+rbind_fill_id(df1, df2) |> print_table()
+rbind_fill_id(df1, df2, .fill = ".") |> print_table()
 ```
 
 # Rescale a continuous vector to have specified minimum and maximum values
@@ -242,9 +242,9 @@ resca(values = c(1:5))
 
 ## Rescale using a data frame and select rescaled variables only
 ```{r, message=FALSE }
-data_ge %>%
-resca(GY, HM, new_min = 0, new_max = 1,  keep = FALSE) %>%
-  head()%>%
+data_ge |>
+resca(GY, HM, new_min = 0, new_max = 1,  keep = FALSE) |>
+  head()|>
   print_table()
 
 ```
@@ -252,13 +252,13 @@ resca(GY, HM, new_min = 0, new_max = 1,  keep = FALSE) %>%
 ## Rescale within factors
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
-  data_ge2 %>% 
-    select(ENV, GEN, starts_with("N"), ends_with("L")) %>%
-    group_by(ENV, GEN) %>%
-    summarise_all(mean) %>%
-    group_by(ENV) %>%
-    resca(ends_with("L")) %>%
-    head(n = 13) %>%
+  data_ge2 |> 
+    select(ENV, GEN, starts_with("N"), ends_with("L")) |>
+    group_by(ENV, GEN) |>
+    summarise_all(mean) |>
+    group_by(ENV) |>
+    resca(ends_with("L")) |>
+    head(n = 13) |>
     print_table()
 
 ```
@@ -286,3 +286,4 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 }
 
 ```
+

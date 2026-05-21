@@ -8,7 +8,7 @@ plot_eigen(
   x,
   var = 1,
   export = FALSE,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   file.type = "pdf",
   file.name = NULL,
   width = 6,
@@ -32,7 +32,7 @@ variable of \code{x}.}
 \item{export}{Export (or not) the plot. Default is \code{TRUE}.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{file.type}{If \code{export = TRUE}, define the type of file to be

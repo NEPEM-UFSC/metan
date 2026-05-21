@@ -22,8 +22,10 @@ ge_plot(
   ylab = NULL,
   width_bar = 1.5,
   heigth_bar = 15,
-  plot_theme = theme_metan(),
-  colour = TRUE
+  plot_theme = theme_metan_minimal(),
+  colour = TRUE,
+  highlight = NULL,
+  plot_env_mean = TRUE
 )
 }
 \arguments{
@@ -61,11 +63,19 @@ the default ordering of rows and columns.}
 respectively.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details,see
+\code{plot_theme = theme_metan_minimal()}. For more details,see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{colour}{Logical argument. If \code{FALSE} then the plot will not be
 colored.}
+
+\item{highlight}{Dynamic highlighting tool. Pass an \strong{integer} to highlight the top
+\code{n} genotypes by overall mean, a \strong{character vector} of explicit
+genotype names, or a \strong{logical string helper expression} (e.g. \code{"all(Y > env_mean)"})
+to highlight matching elements. Non-highlighted genotypes turn gray with alpha = 0.4.}
+
+\item{plot_env_mean}{Logical argument. If \code{TRUE} (default), a dashed line and a solid square mark
+are added to the plot (for \code{type = 2}) to represent the environmental mean.}
 }
 \value{
 An object of class \verb{gg, ggplot}.

@@ -26,8 +26,8 @@ all genotypes are in all environments.
 }
 \examples{
 \donttest{
-unb <- data_ge \%>\%
-        remove_rows(1:3) \%>\%
+unb <- data_ge |>
+        remove_rows(1:3) |>
         droplevels()
 is_balanced_trial(data_ge, ENV, GEN, GY)
 is_balanced_trial(unb, ENV, GEN, GY)

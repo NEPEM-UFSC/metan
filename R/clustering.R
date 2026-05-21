@@ -1,7 +1,6 @@
 #' Clustering analysis
 #' @description
 #' `r badge('stable')`
-#' \loadmathjax
 #' Performs clustering analysis with selection of variables.
 #' @details
 #' When `selvar = TRUE` a variable selection algorithm is executed. The
@@ -37,7 +36,7 @@
 #'  one grouping variable use that function.
 #' @param scale Should the data be scaled before computing the distances? Set to
 #'   FALSE. If TRUE, then, each observation will be divided by the standard
-#'   deviation of the variable \mjseqn{Z_{ij} = X_{ij} / sd_j}
+#'   deviation of the variable \eqn{Z_{ij} = X_{ij} / sd_j}
 #' @param selvar Logical argument, set to `FALSE`. If `TRUE`, then an
 #'   algorithm for selecting variables is implemented. See the section
 #'   **Details** for additional information.
@@ -95,8 +94,8 @@
 #'
 #' # Based on the mean for each genotype
 #' mean_gen <-
-#'  data_ge2 %>%
-#'  mean_by(GEN) %>%
+#'  data_ge2 |>
+#'  mean_by(GEN) |>
 #'  column_to_rownames("GEN")
 #'
 #' d2 <- clustering(mean_gen)
@@ -124,12 +123,12 @@ clustering <- function(.data,
                        nclust = NA) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(clustering,
           ...,
           scale = scale,
@@ -141,16 +140,16 @@ clustering <- function(.data,
     return(add_class(results, "group_clustering"))
   }
   if (scale == TRUE && selvar == TRUE) {
-    stop("It is not possible to execute the algorithm for variable selection when 'scale = TRUE'. Please, verify.")
+    cli::cli_abort("It is not possible to execute the algorithm for variable selection when 'scale = TRUE'. Please, verify.")
   }
   if (!distmethod %in% c("euclidean", "maximum", "manhattan",
                          "canberra", "binary", "minkowski", "pearson", "spearman",
                          "kendall")) {
-    stop("The argument 'distmethod' is incorrect. It should be one of the 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary', 'minkowski', 'pearson', 'spearman', or 'kendall'.")
+    cli::cli_abort("The argument 'distmethod' is incorrect. It should be one of the 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary', 'minkowski', 'pearson', 'spearman', or 'kendall'.")
   }
   if (!clustmethod %in% c("complete", "ward.D", "ward.D2",
                           "single", "average", "mcquitty", "median", "centroid")) {
-    stop("The argument 'distmethod' is incorrect. It should be one of the 'ward.D', 'ward.D2', 'single', 'average', 'mcquitty', 'median' or 'centroid'.")
+    cli::cli_abort("The argument 'distmethod' is incorrect. It should be one of the 'ward.D', 'ward.D2', 'single', 'average', 'mcquitty', 'median' or 'centroid'.")
   }
   if (missing(...)){
     data <- select_numeric_cols(.data)
@@ -159,7 +158,7 @@ clustering <- function(.data,
       has_text_in_num(data)
     }
   } else{
-    data <- select(.data, ...) %>%
+    data <- select(.data, ...) |>
       select_numeric_cols()
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -184,7 +183,14 @@ clustering <- function(.data,
       dein <- dist(data, method = distmethod, diag = T,
                    upper = T)
     }
-    pb <- progress(max = n)
+    i <- 0
+    namesv <- ""
+    if (verbose == TRUE) {
+      pb <- cli::cli_progress_bar(
+        total = n,
+        format = "{cli::pb_spin} {namesv} excluded in this step | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+      )
+    }
     for (i in 1:n) {
       if (distmethod %in% c("pearson", "spearman", "kendall")) {
         de <- as.dist(cor(t(data), method = distmethod))
@@ -220,27 +226,20 @@ clustering <- function(.data,
       names(statistics) <- c("Model", "excluded", "cophenetic",
                              "remaining", "cormantel", "pvmantel")
       if (verbose == TRUE) {
-        run_progress(pb, actual = i,
-                     sleep = 0.1,
-                     text = paste0(namesv, " excluded in this step"))
+        Sys.sleep(0.1)
+        cli::cli_progress_update(id = pb, set = i, force = TRUE)
       }
       modelcode <- modelcode + 1
     }
-    cat("--------------------------------------------------------------------------\n")
-    cat("\nSummary of the adjusted models", "\n")
-    cat("--------------------------------------------------------------------------\n")
+    cli::cli_h2("Summary of the adjusted models")
     print(statistics, row.names = F)
-    cat("--------------------------------------------------------------------------\n")
     model <- statistics$Model[which.max(statistics$cophenetic)]
     predvar <- ModelEstimates[[model]]$namevars
     data <- data.frame(original[(match(c(predvar), names(original)))])
     if (verbose == TRUE) {
-      cat("Suggested variables to be used in the analysis\n")
-      cat("--------------------------------------------------------------------------\n")
-      cat("The clustering was calculated with the ",
-          model, "\nThe variables included in this model were...\n",
-          predvar, "\n")
-      cat("--------------------------------------------------------------------------\n\n")
+      cli::cli_h2("Suggested variables to be used in the analysis")
+      cli::cli_inform("The clustering was calculated with the {model}")
+      cli::cli_inform("The variables included in this model were: {predvar}")
     }
   } else {
     data <- data
@@ -301,7 +300,7 @@ clustering <- function(.data,
               Sqt = Sqt,
               tab = as.data.frame(Tab),
               clusters = as.data.frame(TabResgroups),
-              statistics = statistics) %>%
+              statistics = statistics) |>
            set_class("clustering"))
 }
 
@@ -326,8 +325,8 @@ clustering <- function(.data,
 #' @examples
 #' \donttest{
 #' mean_gen <-
-#'  data_ge2 %>%
-#'  mean_by(GEN) %>%
+#'  data_ge2 |>
+#'  mean_by(GEN) |>
 #'  column_to_rownames("GEN")
 #'
 #' d <- clustering(mean_gen)
@@ -347,7 +346,7 @@ plot.clustering <- function(x, horiz = TRUE, type = "dendrogram", ...){
     ggplot2::ggplot(x$statistics, ggplot2::aes(x = remaining, y = cophenetic))+
       ggplot2::geom_point(size = 3)+
       ggplot2::theme_bw()+
-      ggplot2::geom_line(size = 1)+
+      ggplot2::geom_line(linewidth = 1)+
       ggplot2::theme(axis.ticks.length = unit(.2, "cm"),
                      axis.text = ggplot2::element_text(size = 12, colour = "black"),
                      axis.title = ggplot2::element_text(size = 12, colour = "black"),
@@ -356,7 +355,7 @@ plot.clustering <- function(x, horiz = TRUE, type = "dendrogram", ...){
                      axis.title.y = ggplot2::element_text(margin = margin(r=16)),
                      legend.title = ggplot2::element_blank(),
                      legend.text = ggplot2::element_text(size=12),
-                     panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1),
+                     panel.border = ggplot2::element_rect(colour = "black", fill=NA, linewidth=1),
                      panel.grid.major.x = ggplot2::element_blank(),
                      panel.grid.major.y = ggplot2::element_blank(),
                      panel.grid.minor.x = ggplot2::element_blank(),
@@ -364,3 +363,5 @@ plot.clustering <- function(x, horiz = TRUE, type = "dendrogram", ...){
       ggplot2::labs(x = "Number of variables", y = "Cophenetic correlation")
   }
 }
+
+

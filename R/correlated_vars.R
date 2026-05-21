@@ -42,16 +42,16 @@ correlated_vars <- function(y,
               sapply(rho, function(rho){
                 rho * sd(y_res) * y + y_res * sd(y) * sqrt(1 - rho ^ 2)
               })
-  ) %>%
+  ) |>
     as.data.frame()
   names(df) <- paste(c("y", paste("r", rho, sep = "")))
   if(!is.null(constant)){
     if(length(constant) > 1 & length(constant) != ncol(df)){
-      stop("Leng of 'constant' not valid")
+      cli::cli_abort("Leng of 'constant' not valid")
     }
     df <- sweep(df, 1, STATS = constant, FUN = operation)
   }
-  return(list(df = df) %>% set_class("correlated_vars"))
+  return(list(df = df) |> set_class("correlated_vars"))
 }
 
 #' Plot an object of class correlated_vars
@@ -70,8 +70,8 @@ correlated_vars <- function(y,
 #' }
 
 plot.correlated_vars <- function(x, ...){
-  x[[1]] %>%
-    pivot_longer(-y) %>%
+  x[[1]] |>
+    pivot_longer(-y) |>
     ggplot(aes(y, value, group=name)) +
     geom_smooth(method="lm",
                 formula = 'y ~ x',

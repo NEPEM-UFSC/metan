@@ -39,12 +39,12 @@ Utilities for handling with classes
 \donttest{
 library(metan)
 df <-
-data_ge2 \%>\%
+data_ge2 |>
 add_class("my_class")
 class(df)
 has_class(df, "my_class")
-remove_class(df, "my_class") \%>\% class()
-set_class(df, "data_frame") \%>\% class()
+remove_class(df, "my_class") |> class()
+set_class(df, "data_frame") |> class()
 }
 
 }

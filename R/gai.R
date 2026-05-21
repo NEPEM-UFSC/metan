@@ -4,9 +4,8 @@
 #'
 #' Performs a stability analysis based on the geometric mean (GAI), according to
 #' the following model (Mohammadi and Amri, 2008):
-#' \loadmathjax
-#'  \mjsdeqn{GAI = \sqrt[E]{{\mathop {\bar Y}\nolimits_1  + \mathop {\bar Y}\nolimits_2  + ... + \mathop {\bar Y}\nolimits_i }}}
-#'  where \mjseqn{\bar Y_1}, \mjseqn{\bar Y_2}, and \mjseqn{\bar Y_i} are
+#'  \deqn{GAI = \sqrt[E]{{\mathop {\bar Y}\nolimits_1  + \mathop {\bar Y}\nolimits_2  + ... + \mathop {\bar Y}\nolimits_i }}}
+#'  where \eqn{\bar Y_1}, \eqn{\bar Y_2}, and \eqn{\bar Y_i} are
 #'  the mean yields of the first, second and *i*-th genotypes across
 #'  environments, and E is the number of environments
 #'
@@ -46,38 +45,40 @@
 #'
 gai <- function(.data, env, gen, resp, verbose = TRUE) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
     temp <-
-      make_mat(data, ENV, GEN, Y) %>%
-      gmean(na.rm = TRUE) %>%
-      t() %>%
-      as.data.frame() %>%
-      rownames_to_column("GEN") %>%
-      mutate(rank = rank(-V1)) %>%
+      make_mat(data, ENV, GEN, Y) |>
+      gmean(na.rm = TRUE) |>
+      t() |>
+      as.data.frame() |>
+      rownames_to_column("GEN") |>
+      mutate(rank = rank(-V1)) |>
       set_names("GEN", "GAI", "GAI_R")
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }

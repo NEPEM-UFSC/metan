@@ -2,8 +2,7 @@
 % Please edit documentation in R/mantel_test.R
 \name{mantel_test}
 \alias{mantel_test}
-\title{Mantel test
-\loadmathjax}
+\title{Mantel test}
 \usage{
 mantel_test(mat1, mat2, nboot = 1000, plot = FALSE)
 }
@@ -30,15 +29,15 @@ distribution.
 Performs a Mantel test between two correlation/distance matrices. The
 function calculates the correlation between two matrices, the Z-score that is
 is the sum of the products of the corresponding elements of the matrices and
-a two-tailed p-value (null hypothesis: \mjsdeqn{r = 0}).
+a two-tailed p-value (null hypothesis: \deqn{r = 0}).
 }
 \examples{
 \donttest{
 library(metan)
 # Test if the correlation of traits (data_ge2 dataset)
 # changes between A1 and A2 levels of factor ENV
-A1 <- corr_coef(data_ge2 \%>\% subset(ENV == "A1"))[["cor"]]
-A2 <- corr_coef(data_ge2 \%>\% subset(ENV == "A2"))[["cor"]]
+A1 <- corr_coef(data_ge2 |> subset(ENV == "A1"))[["cor"]]
+A2 <- corr_coef(data_ge2 |> subset(ENV == "A2"))[["cor"]]
 mantel_test(A1, A2, plot = TRUE)
 
 }

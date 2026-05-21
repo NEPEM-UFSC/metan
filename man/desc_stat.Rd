@@ -90,7 +90,7 @@ Defaults to 0.95.}
 silently.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{which}{A statistic to fill the table.}
@@ -159,8 +159,8 @@ desc_wider(stats, max)
 # grouped data to the function desc_stat()                      #
 #===============================================================#
 
-data_ge2 \%>\%
-  group_by(ENV, GEN) \%>\%
+data_ge2 |>
+  group_by(ENV, GEN) |>
   desc_stat()
 
 }

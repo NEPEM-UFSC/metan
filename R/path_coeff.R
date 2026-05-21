@@ -120,7 +120,7 @@
 #' pcoeff <- path_coeff(data_ge2, resp = KW)
 #'
 #' # The same as above, but using the correlation matrix
-#' cor_mat <- cor(data_ge2 %>% select_numeric_cols())
+#' cor_mat <- cor(data_ge2 |> select_numeric_cols())
 #' pcoeff2 <- path_coeff_mat(cor_mat, resp = KW)
 #'
 #' # Declaring the predictors
@@ -157,17 +157,17 @@ path_coeff <- function(.data,
                        verbose = TRUE,
                        ...) {
   if (missing(resp) == TRUE) {
-    stop("A response variable (dependent) must be declared.")
+    cli::cli_abort("A response variable (dependent) must be declared.")
   }
   kincrement <- 1/knumber
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(path_coeff,
           resp = {{resp}},
           pred = {{pred}},
@@ -183,12 +183,12 @@ path_coeff <- function(.data,
   data <- select_numeric_cols(.data)
   if (brutstep == FALSE) {
     if (exclude == TRUE) {
-      pr <- data %>% select(-{{pred}}, -{{resp}})
+      pr <- data |> select(-{{pred}}, -{{resp}})
     } else {
-      pr <- data %>% select({{pred}}, -{{resp}})
+      pr <- data |> select({{pred}}, -{{resp}})
     }
     names <- colnames(pr)
-    y <- data %>% select({{resp}})
+    y <- data |> select({{resp}})
     if(plot_res == TRUE){
       dfs <- cbind(y, pr)
       form <- as.formula(paste(names(y), "~ ."))
@@ -238,7 +238,7 @@ path_coeff <- function(.data,
       betas <- data.frame(K = x, VAR = y, direct = z)
       p1 <-
         ggplot(betas, aes(K, direct, col = VAR)) +
-        geom_line(size = 1) +
+        geom_line(linewidth = 1) +
         theme_bw() +
         theme(axis.ticks.length = unit(0.2, "cm"),
               axis.text = element_text(size = 12, colour = "black"),
@@ -246,7 +246,7 @@ path_coeff <- function(.data,
               axis.ticks = element_line(colour = "black"),
               legend.position = "bottom", plot.margin = margin(0.1,  0.1, 0.1, 0.1, "cm"),
               legend.title = element_blank(),
-              panel.border = element_rect(colour = "black", fill = NA, size = 1),
+              panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
               panel.grid.major.x = element_blank(),
               panel.grid.major.y = element_blank(),
               panel.grid.minor.x = element_blank(),
@@ -258,7 +258,7 @@ path_coeff <- function(.data,
       p1 <- "No graphic generated due to correction value"
     }
     if(det(cor.x) < 1e-15){
-      warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.", call. = FALSE)
+      warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.")
     }
     eigen <- eigen(cor.x)
     Det <- det(cor.x)
@@ -282,20 +282,7 @@ path_coeff <- function(.data,
     names(VIF) <- "VIF"
     if (verbose == TRUE) {
       if (NC > 1000 | NC < 0) {
-        cat(paste0("Severe multicollinearity. \n",
-                   "Condition Number: ", round(NC, 3), "\n",
-                   "Consider using a correction factor with 'correction' argument.\n",
-                   "Consider identifying collinear traits with `non_collinear_vars()`\n"))
-      }
-      if (NC >= 0 & NC <= 100) {
-        cat(paste0("Weak multicollinearity. \n", "Condition Number: ",
-                   round(NC, 3), "\n", "You will probably have path coefficients close to being unbiased. \n"))
-      }
-      if (NC > 100 & NC < 1000) {
-        cat(paste0("Moderate multicollinearity! \n",
-                   "Condition Number: ", round(NC, 3), "\n",
-                   "Please, cautiosely evaluate the VIF and matrix determinant.",
-                   "\n"))
+        cli::cli_alert_warning("Severe multicollinearity. Condition Number: {round(NC, 3)}. Consider using a correction factor with 'correction' argument or `non_collinear_vars()`")
       }
     }
     last <- data.frame(weight = t(AvAvet[c(nrow(AvAvet)),
@@ -307,9 +294,9 @@ path_coeff <- function(.data,
     weightvarname <- paste(rownames(last), collapse = " > ")
     temp <- structure(list(Corr.x = as_tibble(cor.x, rownames = NA),
                            Corr.y = as_tibble(cor.y, rownames = NA),
-                           Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) %>% set_names("linear")),
+                           Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) |> set_names("linear")),
                            Eigen = as_tibble(AvAvet),
-                           VIF =  rownames_to_column(VIF, "VAR") %>% as_tibble(),
+                           VIF =  rownames_to_column(VIF, "VAR") |> as_tibble(),
                            plot = p1,
                            Predictors = names(pr),
                            CN = NC,
@@ -322,24 +309,24 @@ path_coeff <- function(.data,
     return(temp)
   }
   if (brutstep == TRUE) {
-    yyy <- data %>% dplyr::select({{resp}}) %>% as.data.frame()
+    yyy <- data |> dplyr::select({{resp}}) |> as.data.frame()
     nam_resp <- names(yyy)
-    xxx <- data %>% dplyr::select(-{{resp}}) %>% as.data.frame()
+    xxx <- data |> dplyr::select(-{{resp}}) |> as.data.frame()
     cor.xx <- cor(xxx, use = missingval)
-    VIF <- data.frame(VIF = diag(solve_svd(cor.xx))) %>%
-      rownames_to_column("VAR") %>%
+    VIF <- data.frame(VIF = diag(solve_svd(cor.xx))) |>
+      rownames_to_column("VAR") |>
       arrange(VIF)
     repeat {
       VIF2 <- slice(VIF, -n())
       xxx2 <- data[VIF2$VAR]
-      VIF3 <- data.frame(VIF = diag(solve_svd(cor(xxx2, use = missingval))))%>%
-        rownames_to_column("VAR") %>%
+      VIF3 <- data.frame(VIF = diag(solve_svd(cor(xxx2, use = missingval))))|>
+        rownames_to_column("VAR") |>
         arrange(VIF)
       if (max(VIF3$VIF) <= maxvif)
         break
       VIF <- VIF3
     }
-    xxx <- data[VIF3$VAR] %>% as.data.frame()
+    xxx <- data[VIF3$VAR] |> as.data.frame()
     selectedpred <- VIF3$VAR
     npred <- ncol(xxx) - 1
     statistics <- data.frame(matrix(nrow = npred - 1,
@@ -348,13 +335,9 @@ path_coeff <- function(.data,
     modelcode <- 1
     nproced <- npred - 1
     if (verbose == TRUE) {
-      cat("--------------------------------------------------------------------------\n")
-      cat(paste("The algorithm has selected a set of ",
-                nrow(VIF3), " predictors with largest VIF = ",
-                round(max(VIF3$VIF), 3), ".", sep = ""), "\n")
-      cat("Selected predictors:", paste0(selectedpred),"\n")
-      cat(paste("A forward stepwise-based selection procedure will fit", nproced, "models.\n"))
-      cat("--------------------------------------------------------------------------\n")
+      cli::cli_inform("The algorithm has selected a set of {nrow(VIF3)} predictors with largest VIF = {round(max(VIF3$VIF), 3)}.")
+      cli::cli_h2("Selected predictors:", paste0(selectedpred),"")
+      cli::cli_inform("A forward stepwise-based selection procedure will fit {nproced} models.")
     }
     for (i in 1:nproced) {
       data_sel <- cbind(yyy, xxx)
@@ -364,7 +347,7 @@ path_coeff <- function(.data,
       predstw <- model_sel$predictors
       x <- data[, c(predstw)]
       names <- colnames(x)
-      y <- data %>% dplyr::select({{resp}})
+      y <- data |> dplyr::select({{resp}})
       nam_resp <- names(y)
       cor.y <- cor(x, y, use = missingval)
       cor.x <- cor(x, use = missingval)
@@ -407,7 +390,7 @@ path_coeff <- function(.data,
         betas <- data.frame(K = x, VAR = y, direct = z)
         p1 <-
           ggplot(betas, aes(K, direct, col = VAR)) +
-          geom_line(size = 1) +
+          geom_line(linewidth = 1) +
           theme_bw() +
           theme(axis.ticks.length = unit(0.2, "cm"),
                 axis.text = element_text(size = 12, colour = "black"),
@@ -415,7 +398,7 @@ path_coeff <- function(.data,
                 axis.ticks = element_line(colour = "black"),
                 legend.position = "bottom", plot.margin = margin(0.1,  0.1, 0.1, 0.1, "cm"),
                 legend.title = element_blank(),
-                panel.border = element_rect(colour = "black", fill = NA, size = 1),
+                panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
                 panel.grid.major.x = element_blank(),
                 panel.grid.major.y = element_blank(),
                 panel.grid.minor.x = element_blank(),
@@ -427,7 +410,7 @@ path_coeff <- function(.data,
         p1 <- "No graphic generated due to correction value"
       }
       if(det(cor.x) < 1e-15){
-        warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.", call. = FALSE)
+        warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.")
       }
       eigen <- eigen(cor.x)
       Det <- det(cor.x)
@@ -459,7 +442,7 @@ path_coeff <- function(.data,
       cor.y <- data.frame(cor.y)
       Results <- list(Corr.x = data.frame(cor.x),
                       Corr.y = data.frame(cor.y),
-                      Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) %>% set_names("linear")),
+                      Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) |> set_names("linear")),
                       Eigen = AvAvet,
                       VIF = VIF,
                       plot = p1,
@@ -480,27 +463,22 @@ path_coeff <- function(.data,
       statistics[i, 7] <- Residual
       statistics[i, 8] <- max(VIF)
       if (verbose == TRUE) {
-        cat(paste("Adjusting the model ", modelcode,
-                  " with ", npred, " predictors (", round(modelcode/nproced *
-                                                            100, 2), "% concluded)", "\n", sep = ""))
+        cli::cli_inform("Adjusting the model {modelcode} with {npred} predictors ({round(modelcode/nproced * 100, 2)}% concluded)")
       }
       npred <- npred - 1
       modelcode <- modelcode + 1
     }
-    statistics %<>% remove_rows(1) %>%
-      set_names("Model", "AIC", "Numpred", "CN", "Determinant", "R2", "Residual", "maxVIF") %>%
-      arrange(Model) %>%
+    statistics <- statistics |> remove_rows(1) |>
+      set_names("Model", "AIC", "Numpred", "CN", "Determinant", "R2", "Residual", "maxVIF") |>
+      arrange(Model) |>
       tidy_strings()
-    # arrange(statistics, Model) %>% tidy_strings()
+    # arrange(statistics, Model) |> tidy_strings()
     # # statistics <- statistics[-c(1), ]
     # # names(statistics) <- c("Model", "AIC", "Numpred", "CN", "Determinant", "R2", "Residual", "maxVIF")
     if (verbose == TRUE) {
-      cat("Done!\n")
-      cat("--------------------------------------------------------------------------\n")
-      cat("Summary of the adjusted models", "\n")
-      cat("--------------------------------------------------------------------------\n")
+      cli::cli_alert_success("Done!")
+      cli::cli_h2("Summary of the adjusted models", "")
       print(statistics, digits = 3, row.names = FALSE)
-      cat("--------------------------------------------------------------------------\n\n")
     }
     temp <- list(Models = set_class(ModelEstimates, "path_coeff"),
                  Summary = statistics,
@@ -520,19 +498,19 @@ path_coeff_mat <- function(cor_mat,
                            verbose = TRUE){
   cor_mat <- as.matrix(cor_mat)
   if(!isSymmetric(cor_mat)){
-    stop("Object '", test["cor_mat"], "' must be a symmetric.", call. = FALSE)
+    cli::cli_abort("Object '", test["cor_mat"], "' must be a symmetric.")
   }
   cor.y <-
-    cor_mat %>%
-    as.data.frame() %>%
-    select({{resp}}) %>%
-    subset(rownames(.) != colnames(.)) %>%
+    cor_mat |>
+    as.data.frame() |>
+    select({{resp}}) |>
+    (\(x) subset(x, rownames(x) != colnames(x)))() |>
     as.matrix()
   cor.x <-
-    cor_mat %>%
-    as.data.frame() %>%
-    remove_cols({{resp}}) %>%
-    subset(rownames(.) != colnames(cor.y)) %>%
+    cor_mat |>
+    as.data.frame() |>
+    remove_cols({{resp}}) |>
+    (\(x) subset(x, rownames(x) != colnames(cor.y)))() |>
     as.matrix()
   kincrement <- 1/knumber
   if (is.null(correction) == FALSE) {
@@ -574,7 +552,7 @@ path_coeff_mat <- function(cor_mat,
     betas <- data.frame(K = x, VAR = y, direct = z)
     p1 <-
       ggplot(betas, aes(K, direct, col = VAR)) +
-      geom_line(size = 1) +
+      geom_line(linewidth = 1) +
       theme_bw() +
       theme(axis.ticks.length = unit(0.2, "cm"),
             axis.text = element_text(size = 12, colour = "black"),
@@ -582,7 +560,7 @@ path_coeff_mat <- function(cor_mat,
             axis.ticks = element_line(colour = "black"),
             legend.position = "bottom", plot.margin = margin(0.1,  0.1, 0.1, 0.1, "cm"),
             legend.title = element_blank(),
-            panel.border = element_rect(colour = "black", fill = NA, size = 1),
+            panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
             panel.grid.major.x = element_blank(),
             panel.grid.major.y = element_blank(),
             panel.grid.minor.x = element_blank(),
@@ -593,7 +571,7 @@ path_coeff_mat <- function(cor_mat,
     p1 <- "No graphic generated due to correction value"
   }
   if(det(cor.x) < 1e-15){
-    warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.", call. = FALSE)
+    warning("System is computationally singular. Check the collinearity of predictors with `metan::colindiag()`.")
   }
   eigen <- eigen(cor.x)
   Det <- det(cor.x)
@@ -617,20 +595,14 @@ path_coeff_mat <- function(cor_mat,
   names(VIF) <- "VIF"
   if (verbose == TRUE) {
     if (NC > 1000 | NC <= 0) {
-      cat(paste0("Severe multicollinearity. \n",
-                 "Condition Number = ", round(NC, 3), "\n",
-                 "Please, consider using a correction factor, or use 'brutstep = TRUE'. \n"))
-    }
-    if (NC >= 0 & NC <= 100) {
-      cat(paste0("Weak multicollinearity. \n", "Condition Number = ",
-                 round(NC, 3), "\n", "You will probably have path coefficients close to being unbiased. \n"))
-    }
-    if (NC > 100 & NC < 1000) {
-      cat(paste0("Moderate multicollinearity! \n",
-                 "Condition Number = ", round(NC, 3), "\n",
-                 "Please, cautiosely evaluate the VIF and matrix determinant.",
-                 "\n"))
-    }
+        cli::cli_alert_warning("Severe multicollinearity. Condition Number = {round(NC, 3)}. Consider using a correction factor, or use 'brutstep = TRUE'.")
+      }
+      if (NC >= 0 & NC <= 100) {
+        cli::cli_alert_success("Weak multicollinearity. Condition Number = {round(NC, 3)}. Path coefficients are likely close to being unbiased.")
+      }
+      if (NC > 100 & NC < 1000) {
+        cli::cli_alert_warning("Moderate multicollinearity! Condition Number = {round(NC, 3)}. Please carefully evaluate the VIF and matrix determinant.")
+      }
   }
   last <- data.frame(weight = t(AvAvet[c(nrow(AvAvet)),
   ])[-c(1), ])
@@ -641,9 +613,9 @@ path_coeff_mat <- function(cor_mat,
   weightvarname <- paste(rownames(last), collapse = " > ")
   temp <- structure(list(Corr.x = as_tibble(cor.x, rownames = NA),
                          Corr.y = as_tibble(cor.y, rownames = NA),
-                         Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) %>% set_names("linear")),
+                         Coefficients = cbind(data.frame(Coeff), data.frame(cor.y) |> set_names("linear")),
                          Eigen = as_tibble(AvAvet),
-                         VIF =  rownames_to_column(VIF, "VAR") %>% as_tibble(),
+                         VIF =  rownames_to_column(VIF, "VAR") |> as_tibble(),
                          plot = p1,
                          Response = colnames(cor.y),
                          Predictors = colnames(cor.x),
@@ -668,12 +640,12 @@ path_coeff_seq <- function(.data,
                            ...){
   if (!missing(by)) {
     if (length(as.list(substitute(by))[-1L]) != 0) {
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if (is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(path_coeff_seq,
           resp = {{resp}},
           chain_1 = {{chain_1}},
@@ -692,10 +664,9 @@ path_coeff_seq <- function(.data,
   }
   cor_coef <- corr_coef(.data, {{resp}}, {{chain_1}}, {{chain_2}})$cor
   # main and first chain
+  # main and first chain
   if(isTRUE(verbose)){
-    cat("========================================================\n")
-    cat("Collinearity diagnosis of first chain predictors\n")
-    cat("========================================================\n")
+    cli::cli_h2("Collinearity diagnosis of first chain predictors")
   }
   resp_fc <- path_coeff(.data,
                         resp = {{resp}},
@@ -704,9 +675,7 @@ path_coeff_seq <- function(.data,
                         ...)
   # main and second chain
   if(isTRUE(verbose)){
-    cat("========================================================\n")
-    cat("Collinearity diagnosis of second chain predictors\n")
-    cat("========================================================\n")
+    cli::cli_h2("Collinearity diagnosis of second chain predictors")
   }
   resp_sc <- path_coeff(.data,
                         resp = {{resp}},
@@ -752,15 +721,15 @@ path_coeff_seq <- function(.data,
   res <- res[c("trait", "effects", setdiff(colnames(res), c("effects", "trait")))]
 
   # coefficients of second chain
-  coef_chain_2 <- resp_sc$Coefficients %>% remove_cols(linear) %>% as.matrix()
+  coef_chain_2 <- resp_sc$Coefficients |> remove_cols(linear) |> as.matrix()
   # direct effects first chain and main trait
   fcmv <- resp_fc$Coefficients
   dir_fcmv <- diag(as.matrix(fcmv[, 1:(ncol(fcmv) - 1)]))
   # direct effects first chain and second chain
   fcsc <- res[1:(nrow(res) - 2), ]
   dir_fcsc <-
-    fcsc[which(fcsc$effects == "direct"), -2] %>%
-    remove_rownames() %>%
+    fcsc[which(fcsc$effects == "direct"), -2] |>
+    remove_rownames() |>
     column_to_rownames("trait")
 
   effects <- list()
@@ -797,12 +766,12 @@ path_coeff_seq <- function(.data,
     colnames(tmp) <- vars_c1
     tmp_coef <- coef_chain_2[i, ][c(i, setdiff(1:length(coef_chain_2[i, ]), i))]
     tmp <-
-      as.data.frame(tmp) %>%
+      as.data.frame(tmp) |>
       mutate(total =  as.vector(tmp_coef),
-             residual = rowSums(tmp) - total) %>%
+             residual = rowSums(tmp) - total) |>
       reorder_cols(residual, .before = total)
     tmp <-
-      rbind(tmp, colSums(tmp)) %>%
+      rbind(tmp, colSums(tmp)) |>
       mutate(trait = sec_trait,
              effect = rnam,
              .before = 1)
@@ -813,7 +782,7 @@ path_coeff_seq <- function(.data,
               resp_sc2 =  rbind_fill_id(effects),
               fc_sc_list = fc_sc,
               fc_sc_coef = res,
-              cor_mat = cor_coef) %>%
+              cor_mat = cor_coef) |>
            set_class("path_coeff_seq"))
 }
 
@@ -857,7 +826,7 @@ print.path_coeff <- function(x, export = FALSE, file.name = NULL, digits = 4, ..
     sink(paste0(file.name, ".txt"))
   }
   if (!has_class(x, c("path_coeff", "brute_path"))) {
-    stop("The object 'x' must be of class 'path_coeff' or 'group_path'.")
+    cli::cli_abort("The object 'x' must be of class 'path_coeff' or 'group_path'.")
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
@@ -867,40 +836,25 @@ print.path_coeff <- function(x, export = FALSE, file.name = NULL, digits = 4, ..
     message("Go to '", args[["x"]], " > s' to select a specific model", sep = "")
 
   } else{
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Correlation matrix between the predictor traits\n")
-    cat("----------------------------------------------------------------------------------------------\n")
+    cli::cli_h2("Correlation matrix between the predictor traits")
     print.data.frame(x$Corr.x, digits = digits)
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Vector of correlations between dependent and each predictor\n")
-    cat("----------------------------------------------------------------------------------------------\n")
+    cli::cli_h2("Vector of correlations between dependent and each predictor")
     print(t(x$Corr.y))
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Multicollinearity diagnosis and goodness-of-fit\n")
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Condition number: ", round(x$CN, 4), "\n")
-    cat("Determinant:      ", round(x$Det, 8), "\n")
-    cat("R-square:         ", round(x$R2, 4), "\n")
-    cat("Residual:         ", round(x$Residual, 4), "\n")
-    cat("Response:         ", paste(x$Response), "\n")
-    cat("Predictors:       ", paste(x$Predictors), "\n")
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Variance inflation factors\n")
-    cat("----------------------------------------------------------------------------------------------\n")
+    cli::cli_h2("Multicollinearity diagnosis and goodness-of-fit")
+    cli::cli_inform("Condition number: {round(x$CN, 4)}")
+    cli::cli_inform("Determinant: {round(x$Det, 8)}")
+    cli::cli_inform("R-square: {round(x$R2, 4)}")
+    cli::cli_inform("Residual: {round(x$Residual, 4)}")
+    cli::cli_inform("Response: {paste(x$Response)}")
+    cli::cli_h2("Predictors:       ", paste(x$Predictors), "")
+    cli::cli_h2("Variance inflation factors")
     print(x$VIF)
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Eigenvalues and eigenvectors\n")
-    cat("----------------------------------------------------------------------------------------------\n")
+    cli::cli_h2("Eigenvalues and eigenvectors")
     print(x$Eigen)
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Variables with the largest weight in the eigenvalue of smallest magnitude\n")
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat(x$weightvar, "\n")
-    cat("----------------------------------------------------------------------------------------------\n")
-    cat("Direct (diagonal) and indirect (off-diagonal) effects\n")
-    cat("----------------------------------------------------------------------------------------------\n")
+    cli::cli_h2("Variables with the largest weight in the eigenvalue of smallest magnitude")
+    cli::cli_inform("{x$weightvar}")
+    cli::cli_h2("Direct (diagonal) and indirect (off-diagonal) effects")
     print(x$Coefficients)
-    cat("----------------------------------------------------------------------------------------------\n")
   }
   if (export == TRUE) {
     sink()
@@ -953,7 +907,7 @@ plot.path_coeff <- function(x,
                             digits = 3,
                             ...){
   if(!which %in% c("coef", "vif", "betas")){
-    warning("'which' must be one of 'coef', 'vif', or 'betas'. Plotting the coefficients.", call. = FALSE)
+    warning("'which' must be one of 'coef', 'vif', or 'betas'. Plotting the coefficients.")
     which <- "coef"
   }
   if(which == "coef"){
@@ -965,10 +919,10 @@ plot.path_coeff <- function(x,
       mat <- make_long(mat)
       fcts <- as.character(unique(factor(mat$GEN)))
       mat <-
-        mat %>%
-        mutate(lwid = ifelse((ENV == GEN), 1.5, 0.5)) %>%
-        mutate(ENV =  factor(as.factor(ENV), levels = c(fcts, "linear"))) %>%
-        mutate(GEN = factor(as.factor(GEN), levels = rev(fcts))) %>%
+        mat |>
+        mutate(lwid = ifelse((ENV == GEN), 1.5, 0.5)) |>
+        mutate(ENV =  factor(as.factor(ENV), levels = c(fcts, "linear"))) |>
+        mutate(GEN = factor(as.factor(GEN), levels = rev(fcts))) |>
         arrange(lwid)
       p <-
         ggplot(mat, aes(x = ENV, y = GEN, fill = Y)) +
@@ -1020,7 +974,7 @@ plot.path_coeff <- function(x,
             axis.text = element_text(size = 12, colour = "black"),
             axis.title = element_text(size = 12, colour = "black"),
             axis.ticks = element_line(colour = "black"),
-            panel.border = element_rect(colour = "black", fill = NA, size = 1),
+            panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
             panel.grid.major.x = element_blank(),
             panel.grid.major.y = element_blank(),
             panel.grid.minor.x = element_blank(),
@@ -1032,3 +986,6 @@ plot.path_coeff <- function(x,
     x$plot
   }
 }
+
+
+

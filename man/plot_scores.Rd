@@ -15,7 +15,8 @@ plot_scores(
   max_overlaps = 20,
   polygon = FALSE,
   title = TRUE,
-  plot_theme = theme_metan(),
+  arrow = TRUE,
+  plot_theme = theme_metan_minimal(),
   axis.expand = 1.1,
   x.lim = NULL,
   y.lim = NULL,
@@ -48,7 +49,7 @@ plot_scores(
   size.tex.highlight = 5.5,
   size.shape.highlight = 3.2,
   leg.lab = c("Env", "Gen"),
-  line.type = "solid",
+  line.type = "dashed",
   line.alpha = 0.9,
   resolution = deprecated(),
   file.type = "png",
@@ -98,8 +99,11 @@ to \code{1}.}
 \item{title}{Logical values (Defaults to \code{TRUE}) to include
 automatically generated titles}
 
+\item{arrow}{Logical values (Defaults to \code{TRUE}) to include an arrow in the
+segment lines.}
+
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{axis.expand}{Multiplication factor to expand the axis limits by to

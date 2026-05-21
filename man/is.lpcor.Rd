@@ -21,7 +21,7 @@ Functions to check if an object is of class \code{lpcor}
 \donttest{
 library(metan)
 library(dplyr)
-mt_num <- mtcars \%>\% select_if(., is.numeric)
+mt_num <- mtcars |> select(where(is.numeric))
 lpdata <- as.lpcor(cor(mt_num[1:5]),
                    cor(mt_num[1:5]),
                    cor(mt_num[2:6]),

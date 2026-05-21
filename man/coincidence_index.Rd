@@ -30,8 +30,7 @@ the insersection of the selected genotypes of all models
 
 Computes the coincidence index (Hamblin and Zimmermann, 1986) as follows:
 
-\loadmathjax
-\mjsdeqn{CI = \frac{A-C}{M-C}\times 100}
+\deqn{CI = \frac{A-C}{M-C}\times 100}
 where \emph{A} is the number of selected genotypes common to different
 methods; \emph{C} is the number of expected genotypes selected by chance; and
 \emph{M} is the number of genotypes selected according to the selection

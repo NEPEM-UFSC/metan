@@ -98,30 +98,30 @@ mtmps <- function(model,
                   verbose = TRUE) {
   if(has_class(model, "mps_group")){
     bind <-
-      model %>%
-      mutate(data = map(data, ~.x %>%
+      model |>
+      mutate(data = map(data, ~.x |>
                           mtmps(SI = SI,
                                 mineval = mineval,
                                 verbose = verbose)))
     return(set_class(bind, c("tbl_df",  "mtmps_group",  "tbl",  "data.frame")))
   } else{
-    data <- model[["mps_ind"]] %>% column_to_rownames("GEN")
+    data <- model[["mps_ind"]] |> column_to_rownames("GEN")
     if(has_na(data)){
-      stop("Missing values for traits ")
+      cli::cli_abort("Missing values for traits ")
     }
     rescaled <- model$sense_mper
     names(rescaled) <- names(data)
     ideotype.D <- rep(100, ncol(data))
     names(ideotype.D) <- names(data)
     df_ideotype <-
-      data.frame(rescaled) %>%
-      rownames_to_column("VAR") %>%
+      data.frame(rescaled) |>
+      rownames_to_column("VAR") |>
       set_names("VAR", "sense")
     rescaled_stab <- model$sense_stab
     names(rescaled_stab) <- names(data)
     df_ideotype_stab <-
-      data.frame(rescaled_stab) %>%
-      rownames_to_column("VAR") %>%
+      data.frame(rescaled_stab) |>
+      rownames_to_column("VAR") |>
       set_names("VAR", "sense")
     if (is.null(SI)) {
       ngs <- NULL
@@ -129,7 +129,7 @@ mtmps <- function(model,
       ngs <- round(nrow(data) * (SI/100), 0)
     }
     observed <- model$observed
-    means <- model$mps_ind %>% column_to_rownames("GEN")
+    means <- model$mps_ind |> column_to_rownames("GEN")
     cor.means <- cor(means)
     eigen.decomposition <- eigen(cor.means)
     eigen.values <- eigen.decomposition$values
@@ -170,7 +170,7 @@ mtmps <- function(model,
                   `Cum. variance (%)` = cumsum(`Variance (%)`))
     Communality <- diag(A %*% t(A))
     Uniquenesses <- 1 - Communality
-    fa <- cbind(A, Communality, Uniquenesses) %>% as_tibble(rownames = NA) %>%  rownames_to_column("VAR")
+    fa <- cbind(A, Communality, Uniquenesses) |> as_tibble(rownames = NA) |>  rownames_to_column("VAR")
     z <- scale(means, center = FALSE, scale = apply(means, 2, sd))
     canonical_loadings <- t(t(A) %*% solve_svd(cor.means))
     scores <- z %*% canonical_loadings
@@ -186,8 +186,8 @@ mtmps <- function(model,
     ideotypes.scores <- ideotypes.matrix %*% canonical_loadings
     gen_ide <- sweep(scores, 2, ideotypes.scores, "-")
     MTSI <- sort(apply(gen_ide, 1, function(x) sqrt(sum(x^2))), decreasing = FALSE)
-    contr.factor <- data.frame((sqrt(gen_ide^2)/apply(gen_ide, 1, function(x) sum(sqrt(x^2)))) * 100) %>%
-      rownames_to_column("GEN") %>%
+    contr.factor <- data.frame((sqrt(gen_ide^2)/apply(gen_ide, 1, function(x) sum(sqrt(x^2)))) * 100) |>
+      rownames_to_column("GEN") |>
       as_tibble()
     means.factor <- means[, names.pos.var.factor]
     observed <- observed[, names.pos.var.factor]
@@ -208,8 +208,8 @@ mtmps <- function(model,
                Xo = colMeans(observed),
                Xs = colMeans(observed[names(MTSI)[1:ngs], ]),
                SD = Xs - colMeans(observed),
-               SDperc = (Xs - colMeans(observed)) / abs(colMeans(observed)) * 100) %>%
-        left_join(df_ideotype, by = "VAR") %>%
+               SDperc = (Xs - colMeans(observed)) / abs(colMeans(observed)) * 100) |>
+        left_join(df_ideotype, by = "VAR") |>
         mutate(sense = case_when(sense == "l" ~ "decrease",
                                  sense == "a" ~ "average",
                                  sense == "h" ~ "increase"),
@@ -218,27 +218,27 @@ mtmps <- function(model,
                  sense == "increase" & SDperc > 0 ~ 100,
                  sense == "average" & SDperc == 0 ~ 100,
                  TRUE ~ 0
-               )) %>%
-        left_join(model$h2, by = "VAR") %>%
+               )) |>
+        left_join(model$h2, by = "VAR") |>
         add_cols(SG = SD * h2,
                  SGperc = SG / Xo * 100,
-                 .after = "SDperc") %>%
+                 .after = "SDperc") |>
         reorder_cols(h2, .after  = "SDperc")
       stat_gain <-
         desc_stat(sel_dif_mean,
                   by = sense,
                   any_of(c("SDperc", "SGperc")),
                   stats = c("min, mean, ci.t, sd.amo, max, sum"))
-      waasb_index <- model$stability %>% rownames_to_column("GEN")
-      waasb_selected <- colMeans(subset(waasb_index, GEN %in% selected) %>% select_numeric_cols())
+      waasb_index <- model$stability |> rownames_to_column("GEN")
+      waasb_selected <- colMeans(subset(waasb_index, GEN %in% selected) |> select_numeric_cols())
       sel_dif_stab <-
         tibble(
           VAR = names(waasb_selected),
-          Xo = colMeans(waasb_index %>% select_numeric_cols()),
+          Xo = colMeans(waasb_index |> select_numeric_cols()),
           Xs = waasb_selected,
           SD = Xs - Xo,
-          SDperc = (Xs - Xo) / abs(Xo) * 100) %>%
-        left_join(df_ideotype_stab, by = "VAR") %>%
+          SDperc = (Xs - Xo) / abs(Xo) * 100) |>
+        left_join(df_ideotype_stab, by = "VAR") |>
         mutate(sense = case_when(sense == "l" ~ "decrease",
                                  sense == "a" ~ "average",
                                  sense == "h" ~ "increase"),
@@ -252,11 +252,11 @@ mtmps <- function(model,
         desc_stat(sel_dif_stab, SDperc,
                   stats = c("min, mean, ci.t, sd.amo, max, sum"))
       contri_fac_rank_sel <-
-        contri_long %>%
-        subset(GEN %in% selected) %>%
-        ge_winners(name, GEN, value, type = "ranks", better = "l") %>%
-        split_factors(ENV) %>%
-        map_dfc(~.x %>% pull())
+        contri_long |>
+        subset(GEN %in% selected) |>
+        ge_winners(name, GEN, value, type = "ranks", better = "l") |>
+        split_factors(ENV) |>
+        map_dfc(~.x |> pull())
     }
     if (is.null(ngs)) {
       stat_dif_stab <- NULL
@@ -268,37 +268,25 @@ mtmps <- function(model,
       contri_fac_rank_sel <- NULL
     }
     if (verbose) {
-      cat("\n-------------------------------------------------------------------------------\n")
-      cat("Principal Component Analysis\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_h2("Principal Component Analysis")
       print(pca)
-      cat("-------------------------------------------------------------------------------\n")
-      cat("Factor Analysis - factorial loadings after rotation-\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_h2("Factor Analysis - factorial loadings after rotation-")
       print(fa)
-      cat("-------------------------------------------------------------------------------\n")
-      cat("Comunalit Mean:", mean(Communality), "\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_inform("Comunalit Mean: {mean(Communality)}")
       if (!is.null(ngs)) {
-        cat("Selection differential for the mean performance and stability index\n")
-        cat("-------------------------------------------------------------------------------\n")
+        cli::cli_h2("Selection differential for the mean performance and stability index")
         print(sel_dif)
-        cat("-------------------------------------------------------------------------------\n")
-        cat("Selection differential for the mean of the variables\n")
-        cat("-------------------------------------------------------------------------------\n")
+        cli::cli_h2("Selection differential for the mean of the variables")
         print(sel_dif_mean)
-        cat("------------------------------------------------------------------------------\n")
-        cat("Selected genotypes\n")
-        cat("-------------------------------------------------------------------------------\n")
-        cat(selected)
-        cat("\n-------------------------------------------------------------------------------\n")
+        cli::cli_h2("Selected genotypes")
+        cli::cli_inform("{selected}")
       }
     }
     contri_fac_rank <-
-      contri_long %>%
-      ge_winners(name, GEN, value, type = "ranks", better = "l") %>%
-      split_factors(ENV) %>%
-      map_dfc(~.x %>% pull())
+      contri_long |>
+      ge_winners(name, GEN, value, type = "ranks", better = "l") |>
+      split_factors(ENV) |>
+      map_dfc(~.x |> pull())
     list(data = data,
          cormat = as.matrix(cor.means),
          PCA = pca,
@@ -307,12 +295,12 @@ mtmps <- function(model,
          MSA = MSA,
          communalities = Communality,
          communalities_mean = mean(Communality),
-         initial_loadings = data.frame(initial_loadings) %>% rownames_to_column("VAR") %>% as_tibble(),
-         finish_loadings = data.frame(A) %>% rownames_to_column("VAR") %>% as_tibble(),
-         canonical_loadings = data.frame(canonical_loadings) %>% rownames_to_column("VAR") %>% as_tibble(),
-         scores_gen = data.frame(scores) %>% rownames_to_column("GEN") %>% as_tibble(),
-         scores_ide = data.frame(ideotypes.scores) %>% rownames_to_column("GEN") %>% as_tibble(),
-         MTSI = as_tibble(MTSI, rownames = NA) %>% rownames_to_column("Genotype") %>% rename(MTSI = value),
+         initial_loadings = data.frame(initial_loadings) |> rownames_to_column("VAR") |> as_tibble(),
+         finish_loadings = data.frame(A) |> rownames_to_column("VAR") |> as_tibble(),
+         canonical_loadings = data.frame(canonical_loadings) |> rownames_to_column("VAR") |> as_tibble(),
+         scores_gen = data.frame(scores) |> rownames_to_column("GEN") |> as_tibble(),
+         scores_ide = data.frame(ideotypes.scores) |> rownames_to_column("GEN") |> as_tibble(),
+         MTSI = as_tibble(MTSI, rownames = NA) |> rownames_to_column("Genotype") |> rename(MTSI = value),
          contri_fac = contr.factor,
          contri_fac_rank = contri_fac_rank,
          contri_fac_rank_sel = contri_fac_rank_sel,
@@ -322,9 +310,8 @@ mtmps <- function(model,
          stat_dif_stab = stat_dif_stab,
          sel_dif_mps = sel_dif,
          stat_dif_mps = stat_dif_mps,
-         sel_gen = selected) %>%
-      set_class("mtmps") %>%
-      return()
+         sel_gen = selected) |>
+      set_class("mtmps")
   }
 }
 
@@ -415,20 +402,20 @@ plot.mtmps <- function(x,
                        legend.position = "bottom",
                        ...) {
   if(!type %in% c("index", "contribution")){
-    stop("The argument index must be one of the 'index' or 'contribution'", call. = FALSE)
+    cli::cli_abort("The argument index must be one of the 'index' or 'contribution'")
   }
   if(!genotypes %in% c("selected", "all")){
-    stop("The argument 'genotypes' must be one of the 'selected' or 'all'", call. = FALSE)
+    cli::cli_abort("The argument 'genotypes' must be one of the 'selected' or 'all'")
   }
   if(type == "index"){
-    data <- x$MTSI %>%
+    data <- x$MTSI |>
       add_cols(sel = "Selected")
     data[["sel"]][(round(nrow(data) * (SI/100), 0) + 1):nrow(data)] <- "Nonselected"
     cutpoint <- max(subset(data, sel == "Selected")$MTSI)
     p <-
       ggplot(data = data, aes(x = reorder(Genotype, -MTSI), y = MTSI)) +
-      geom_hline(yintercept = cutpoint, col = col.sel, size = size.line) +
-      geom_path(colour = "black", group = 1, size = size.line) +
+      geom_hline(yintercept = cutpoint, col = col.sel, linewidth = size.line) +
+      geom_path(colour = "black", group = 1, linewidth = size.line) +
       geom_point(size = size.point,
                  stroke = size.point / 10,
                  aes(fill = sel),
@@ -442,7 +429,7 @@ plot.mtmps <- function(x,
             legend.title = element_blank(),
             axis.title.x = element_blank(),
             panel.border = element_blank(),
-            panel.grid = element_line(size = size.line / 2),
+            panel.grid = element_line(linewidth = size.line / 2),
             axis.text = element_text(colour = "black"),
             text = element_text(size = size.text),
             ...) +
@@ -468,13 +455,13 @@ plot.mtmps <- function(x,
     y.lab <- ifelse(!missing(y.lab), y.lab, "Proportion")
     if(genotypes == "selected"){
       data <-
-        x$contri_fac %>%
-        subset(GEN %in% x$sel_gen) %>%
+        x$contri_fac |>
+        subset(GEN %in% x$sel_gen) |>
         droplevels()
     } else{
       data <- x$contri_fac
     }
-    data %<>% pivot_longer(-GEN)
+    data <- data |> pivot_longer(-GEN)
     if(radar == TRUE){
       p <-
         ggplot(data, aes(x = GEN, y = value)) +
@@ -492,7 +479,7 @@ plot.mtmps <- function(x,
         theme(strip.text.x = element_text(size = size.text),
               axis.text.x = element_text(color = "black", size = size.text),
               axis.ticks.y = element_blank(),
-              panel.grid = element_line(size = size.line / 2),
+              panel.grid = element_line(linewidth = size.line / 2),
               axis.text.y = element_text(size = size.text, color = "black"),
               legend.position = legend.position,
               legend.title = element_blank(),
@@ -523,9 +510,9 @@ plot.mtmps <- function(x,
         scale_y_continuous(expand = expansion(0))+
         theme_metan()  +
         theme(legend.position = legend.position,
-              axis.ticks = element_line(size = size.line),
+              axis.ticks = element_line(linewidth = size.line),
               plot.margin = margin(0.5, 0.5, 0, 0, "cm"),
-              panel.border = element_rect(size = size.line),
+              panel.border = element_rect(linewidth = size.line),
               ...)+
         scale_x_discrete(guide = guide_axis(n.dodge = n.dodge, check.overlap = check.overlap),
                          expand = expansion(0))+
@@ -580,31 +567,26 @@ print.mtmps <- function(x,
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
-  cat("-------------------- Correlation matrix used used in factor analysis -----------------\n")
+  cli::cli_h2("Correlation matrix used in factor analysis")
   print(x$cormat)
-  cat("\n")
-  cat("---------------------------- Principal component analysis -----------------------------\n")
+  cli::cli_h2("Principal component analysis")
   print(x$PCA)
-  cat("\n")
-  cat("--------------------------------- Initial loadings -----------------------------------\n")
+  cli::cli_h2("Initial loadings")
   print(x$initial_loadings)
-  cat("\n")
-  cat("-------------------------- Loadings after varimax rotation ---------------------------\n")
+  cli::cli_h2("Loadings after varimax rotation")
   print(x$finish_loadings)
-  cat("\n")
-  cat("--------------------------- Scores for genotypes-ideotype -----------------------------\n")
+  cli::cli_h2("Scores for genotypes-ideotype")
   print(rbind(x$scores_gen, x$scores_ide))
-  cat("\n")
-  cat("---------------------------- Multitrait stability index ------------------------------\n")
+  cli::cli_h2("Multi-trait stability index")
   print(x$MTSI)
-  cat("\n")
-  cat("------------------------- Selection differential (variables) --------------------------\n")
+  cli::cli_h2("Selection differential")
   print(x$sel_dif_trait)
-  cat("\n")
-  cat("-------------------------------- Selected genotypes -----------------------------------\n")
-  cat(x$sel_gen)
-  cat("\n")
+  cli::cli_h2("Selected genotypes")
+  cli::cli_inform("{x$sel_gen}")
   if (export == TRUE) {
     sink()
   }
 }
+
+
+

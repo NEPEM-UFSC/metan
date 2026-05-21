@@ -20,7 +20,7 @@
 
 solve_svd <- function(x, tolerance = 2.220446e-16) {
   if (dim(x)[1] - dim(x)[2] != 0) {
-    stop("The object 'x' must be a square matrix")
+    cli::cli_abort("The object 'x' must be a square matrix")
   }
   s <- svd(as.matrix(x))
   posi <- s$d > max(tolerance * s$d[1], 0)

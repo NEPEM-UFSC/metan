@@ -68,7 +68,7 @@
 #'@param verbose Logical argument. If `verbose = FALSE` the code is run
 #'  silently.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #'@param which A statistic to fill the table.
 #'@return
@@ -128,8 +128,8 @@
 #' # grouped data to the function desc_stat()                      #
 #' #===============================================================#
 #'
-#' data_ge2 %>%
-#'   group_by(ENV, GEN) %>%
+#' data_ge2 |>
+#'   group_by(ENV, GEN) |>
 #'   desc_stat()
 #'
 #'}
@@ -145,12 +145,12 @@ desc_stat <- function(.data = NULL,
                       plot_theme = theme_metan()) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(desc_stat, ...,
           stats = stats,
           hist = hist,
@@ -172,7 +172,7 @@ desc_stat <- function(.data = NULL,
     ), "\\s*(\\s|,)\\s*")[[1]]
 
   if (!any(stats %in% c("all", "main", "robust", "quantile", all))) {
-    stop("Invalid value for the argument 'stat'. Allowed values are:\nav.dev, ci.t, ci.z, cv, iqr, kurt, mad, max, mean, median, min, n, n.valid, n.missing, n.unique, q2.5, q25, q75, q97.5, range, sd.amo, sd.pop, se, skew, sum, sum.dev, ave.dev, sum.sq.dev, n.valid, var.amo, and var.pop.\nAlternatively, you can set the following groups of statistics:\n'main', 'all', 'robust', or 'quantile'.", call. = FALSE)
+    cli::cli_abort("Invalid value for the argument 'stat'. Allowed values are:\nav.dev, ci.t, ci.z, cv, iqr, kurt, mad, max, mean, median, min, n, n.valid, n.missing, n.unique, q2.5, q25, q75, q97.5, range, sd.amo, sd.pop, se, skew, sum, sum.dev, ave.dev, sum.sq.dev, n.valid, var.amo, and var.pop.\nAlternatively, you can set the following groups of statistics:\n'main', 'all', 'robust', or 'quantile'.")
   }
   if(has_class(.data, "numeric")){
     .data <- data.frame(val = .data)
@@ -183,15 +183,15 @@ desc_stat <- function(.data = NULL,
   if (!missing(.data) & missing(...)){
     data <- select_numeric_cols(.data)
   } else{
-    data <- select(.data, ...) %>%
+    data <- select(.data, ...) |>
       select_numeric_cols()
   }
   if(na.rm == FALSE & has_na(data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    cli::cli_warn("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     na.rm <- TRUE
   }
   if(hist == TRUE){
-    stats_facet <- data %>% select_numeric_cols() %>%  pivot_longer(everything())
+    stats_facet <- data |> select_numeric_cols() |>  pivot_longer(everything())
     nbins <- round(1 + 3.322 * log(nrow(data)), 0)
     plt <-
       ggplot(stats_facet, aes(value)) +
@@ -204,9 +204,9 @@ desc_stat <- function(.data = NULL,
     print(plt)
   }
   results <-
-    data %>%
-    pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
-    group_by(variable) %>%
+    data |>
+    pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+    group_by(variable) |>
     summarise(across(value,
                      list(n = ~n(),
                           n.valid = ~n_valid(., na.rm = na.rm),
@@ -242,16 +242,16 @@ desc_stat <- function(.data = NULL,
                           sum.dev = ~sum_dev(., na.rm = na.rm),
                           sum.sq.dev = ~sum_sq_dev(., na.rm = na.rm)),
                      .names = "{fn}"),
-              .groups = "drop") %>%
-    select(group_cols(), variable, {{stats}}) %>%
+              .groups = "drop") |>
+    select(group_cols(), variable, {{stats}}) |>
     round_cols(digits = digits)
   return(results)
 }
 #'@name desc_stat
 #'@export
 desc_wider <- function(.data, which) {
-  factors <- .data %>% select_non_numeric_cols()
-  numeric <- .data %>% select({{which}})
-  cbind(factors, numeric) %>%
+  factors <- .data |> select_non_numeric_cols()
+  numeric <- .data |> select({{which}})
+  cbind(factors, numeric) |>
     pivot_wider(values_from = {{which}}, names_from = variable)
 }

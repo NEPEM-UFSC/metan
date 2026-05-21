@@ -2,8 +2,7 @@
 % Please edit documentation in R/ge_polar.R
 \name{ge_polar}
 \alias{ge_polar}
-\title{Power Law Residuals as yield stability index
-\loadmathjax}
+\title{Power Law Residuals as yield stability index}
 \usage{
 ge_polar(.data, env, gen, resp, base = 10, verbose = TRUE)
 }
@@ -40,7 +39,7 @@ variable, a tibble with the following columns is returned.
 
 Performs a stability analysis based on the Power Law Residuals (POLAR)
 statistics (Doring et al., 2015). POLAR is the residuals from the linear
-regression of \mjseqn{log(\sigma^2}) against \mjseqn{log(\mu}) and can be
+regression of \eqn{log(\sigma^2}) against \eqn{log(\mu}) and can be
 used as a measure of crop stability with lower stability (relative to all
 samples with that mean yield) indicated by more positive POLAR values, and
 higher stability (relative to all samples with that mean yield) indicated by

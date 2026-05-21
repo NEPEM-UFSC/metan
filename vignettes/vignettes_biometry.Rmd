@@ -25,7 +25,7 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 datatable(table, rownames = rownames, extensions = 'Buttons',
           options = list(scrollX = TRUE, 
                          dom = '<<t>Bp>',
-                         buttons = c('copy', 'excel', 'pdf', 'print')), ...) %>%
+                         buttons = c('copy', 'excel', 'pdf', 'print')), ...) |>
     formatSignif(columns = c(as.numeric(which(sapply(table, class) == "numeric"))), digits = digits)}
 
 ```
@@ -52,8 +52,8 @@ find_outliers(data_ge2, PH, by = ENV)
 To group by more than one variable, use the function `group_by()` is used. 
 
 ```{r, message=FALSE, fig.height = 5, fig.width = 5.5, fig.align = "center" }
-data_ge2 %>%
-  group_by(ENV) %>%
+data_ge2 |>
+  group_by(ENV) |>
   find_outliers(PH)
 ```
 
@@ -79,8 +79,8 @@ Where $t_{calc}$ is the calculated Student * t * statistic; $ r_{xy.m} $ is the 
 
 ```{r, message=FALSE }
 lpc1 <- 
-  data_ge2 %>% 
-  select(starts_with("N")) %>% 
+  data_ge2 |> 
+  select(starts_with("N")) |> 
   lpcor()
 print_table(lpc1$results)
 
@@ -94,7 +94,7 @@ print(lpc2)
 Using the `pairs_mantel()` function, it is possible to compute a Mantel's test [@Mantel1967] for all pairwise correlation matrices of the above example. 
 
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center" }
-lpc2 %>% pairs_mantel(names = paste("H", 1:4, sep = ""))
+lpc2 |> pairs_mantel(names = paste("H", 1:4, sep = ""))
 
 
 ```
@@ -106,7 +106,7 @@ as.lpcor(cor(data_ge2[1:30, 5:ncol(data_ge2)]),
          cor(data_ge2[31:60, 5:ncol(data_ge2)]),
          cor(data_ge2[61:90, 5:ncol(data_ge2)]),
          cor(data_ge2[91:120, 5:ncol(data_ge2)]),
-         cor(data_ge2[121:150, 5:ncol(data_ge2)])) %>%
+         cor(data_ge2[121:150, 5:ncol(data_ge2)])) |>
   pairs_mantel(diag = TRUE,
                pan.spacing = 0,
                shape.point = 21,
@@ -229,7 +229,7 @@ The function `covcor_design()` returns a list with the matrices of (co)variances
 data <- subset(data_ge2, ENV == "A1")
 gcor <- covcor_design(data, gen = GEN, rep = REP,
                       resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW),
-                      type = "gcor") %>% 
+                      type = "gcor") |> 
   as.data.frame()
 print_table(gcor, rownames = TRUE)
 
@@ -240,7 +240,7 @@ print_table(gcor, rownames = TRUE)
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center" }
 pcor <- covcor_design(data, gen = GEN, rep = REP,
                       resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW),
-                      type = "pcor") %>% 
+                      type = "pcor") |> 
   as.data.frame()
 print_table(pcor, rownames = TRUE)
 ```
@@ -251,7 +251,7 @@ rcor <- covcor_design(data,
                       gen = GEN,
                       rep = REP,
                       resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW),
-                      type = "rcor") %>% 
+                      type = "rcor") |> 
   as.data.frame()
 print_table(rcor, rownames = TRUE)
 ```
@@ -277,7 +277,7 @@ means <- covcor_design(data, GEN, REP,
                        resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW),
                        type = "means")
 
-D2 <- mahala(.means = means, covar = res, inverted = FALSE) %>% 
+D2 <- mahala(.means = means, covar = res, inverted = FALSE) |> 
   as.data.frame()
 print_table(D2, rownames = TRUE)
 ```
@@ -291,7 +291,7 @@ Recently, a Gaussian-independent estimator for the confidence interval of Pearso
 ```{r fig.width=7, fig.height = 5, fig.align="center"}
 
 # Use a data frame
-corr_ci(data_ge2, contains("E"), verbose = FALSE) %>%
+corr_ci(data_ge2, contains("E"), verbose = FALSE) |>
 plot_ci()
 
 
@@ -436,8 +436,8 @@ d1 <- clustering(data_ge2)
 
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center"}
 mean_gen <-
- data_ge2 %>%
- mean_by(GEN) %>%
+ data_ge2 |>
+ mean_by(GEN) |>
  column_to_rownames("GEN")
 
 d2 <- clustering(mean_gen)
@@ -476,10 +476,10 @@ The package [dendextend](https://cran.r-project.org/web/packages/dendextend/vign
 
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center", message=FALSE, warning=FALSE}
 library(dendextend)
-d4$hc %>%
-  color_labels(k = 2, col = c("red", "blue")) %>%
-  branches_color(k = 2, col = c("red", "blue")) %>%
-  highlight_branches_lwd() %>%
+d4$hc |>
+  color_labels(k = 2, col = c("red", "blue")) |>
+  branches_color(k = 2, col = c("red", "blue")) |>
+  highlight_branches_lwd() |>
 plot(horiz = TRUE, xlab = "Euclidean distance")
 ```
 
@@ -511,7 +511,7 @@ data_E1 <- subset(data_ge2, ENV == "A1")
 D2_des <- mahala_design(data_E1,
                         gen = GEN,
                         rep = REP,
-                        resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW)) %>% 
+                        resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW)) |> 
   as.data.frame()
 print_table(D2_des, rownames = TRUE)
 ```
@@ -520,7 +520,7 @@ print_table(D2_des, rownames = TRUE)
 ### Compute one distance for each environment
 To compute the Mahalanobis distance for each environment (or any grouping variable) we can use the argument `by`. Note that `pairs_mantel()` is used to compare compute the Mantel's test for each combination of distance matrices. Let's do it.
 ```{r, fig.height = 5, fig.width = 5.5, fig.align = "center"  }
-data_ge2 %>%
+data_ge2 |>
 mahala_design(gen = GEN,
               rep = REP,
               resp = c(PH, EH, NKE, TKW, CL, CD, CW, KW),
@@ -533,9 +533,9 @@ Lets suppose we want compute the Mahalanobis' distance for each pairwise genotyp
 
 ```{r warning=FALSE, message=FALSE}
 means <- 
-  data_ge2 %>%
-  mean_by(GEN) %>% 
-  column_to_rownames("GEN") %>%
+  data_ge2 |>
+  mean_by(GEN) |> 
+  column_to_rownames("GEN") |>
   select(contains("C"))
 
 ```
@@ -565,7 +565,7 @@ After computing the means and covariance matrices we are able to compute the Mah
 D2 <- mahala(means, covar = cov_mat)
 
 # Dendrogram
-D2 %>% as.dist() %>% hclust() %>% as.dendrogram() %>% plot()
+D2 |> as.dist() |> hclust() |> as.dendrogram() |> plot()
 
 
 ```
@@ -583,7 +583,7 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 datatable(table, rownames = rownames, extensions = 'Buttons',
           options = list(scrollX = TRUE, 
                          dom = '<<t>Bp>',
-                         buttons = c('copy', 'excel', 'pdf', 'print')), ...) %>%
+                         buttons = c('copy', 'excel', 'pdf', 'print')), ...) |>
     formatSignif(columns = c(as.numeric(which(sapply(table, class) == "numeric"))), digits = digits)}
 
 ```
@@ -591,4 +591,5 @@ datatable(table, rownames = rownames, extensions = 'Buttons',
 
 
 #References
+
 

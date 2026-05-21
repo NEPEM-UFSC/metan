@@ -160,7 +160,7 @@ library(metan)
 pcoeff <- path_coeff(data_ge2, resp = KW)
 
 # The same as above, but using the correlation matrix
-cor_mat <- cor(data_ge2 \%>\% select_numeric_cols())
+cor_mat <- cor(data_ge2 |> select_numeric_cols())
 pcoeff2 <- path_coeff_mat(cor_mat, resp = KW)
 
 # Declaring the predictors

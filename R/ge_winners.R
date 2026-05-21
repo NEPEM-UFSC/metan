@@ -45,30 +45,30 @@
 #'
 ge_winners <- function(.data, env, gen, resp, type = "winners", better = NULL) {
   if(!type  %in% c("ranks", "winners")){
-    stop("The argument 'type' must be one of the 'ranks' or 'winners'")
+    cli::cli_abort("The argument 'type' must be one of the 'ranks' or 'winners'")
   }
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   if(!missing(better)){
-    better <- unlist(strsplit(better, split = ", ")) %>% all_lower_case()
+    better <- unlist(strsplit(better, split = ", ")) |> all_lower_case()
   } else {
     better <- rep("h", nvar)
   }
   if (length(better) != ncol(vars)){
-    stop("The vector 'better' should have length " , nvar, " (the number of variables in 'resp')", call. = FALSE)
+    cli::cli_abort("The vector 'better' should have length " , nvar, " (the number of variables in 'resp')")
   }
   if (any(!better %in% c("h", "l"))){
-    stop("Invalid values in argument 'better'. It must have 'h' or 'l' only.", call. = FALSE)
+    cli::cli_abort("Invalid values in argument 'better'. It must have 'h' or 'l' only.")
   }
   for (var in 1:nvar) {
-    temp <- factors %>%
+    temp <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(temp)){
       temp <- remove_rows_na(temp)
@@ -77,31 +77,31 @@ ge_winners <- function(.data, env, gen, resp, type = "winners", better = NULL) {
     if (length(better) == 1) {
       if (better == "h") {
         temp <-
-          temp %>%
-          mean_by(ENV, GEN) %>%
-          group_by(ENV) %>%
+          temp |>
+          mean_by(ENV, GEN) |>
+          group_by(ENV) |>
           arrange(desc(Y), .by_group = TRUE)
       }
       if (better == "l") {
         temp <-
-          temp %>%
-          mean_by(ENV, GEN) %>%
-          group_by(ENV) %>%
+          temp |>
+          mean_by(ENV, GEN) |>
+          group_by(ENV) |>
           arrange(Y, .by_group = TRUE)
       }
     } else {
       if (better[[var]] == "h") {
         temp <-
-          temp %>%
-          mean_by(ENV, GEN) %>%
-          group_by(ENV) %>%
+          temp |>
+          mean_by(ENV, GEN) |>
+          group_by(ENV) |>
           arrange(desc(Y), .by_group = TRUE)
       }
       if (better[[var]] == "l") {
         temp <-
-          temp %>%
-          mean_by(ENV, GEN) %>%
-          group_by(ENV) %>%
+          temp |>
+          mean_by(ENV, GEN) |>
+          group_by(ENV) |>
           arrange(Y, .by_group = TRUE)
       }
     }
@@ -112,23 +112,24 @@ ge_winners <- function(.data, env, gen, resp, type = "winners", better = NULL) {
       cbind,
       lapply(listres, function(x) {
         as.character(x[["GEN"]])
-      })) %>%
-      as_tibble() %>%
-      mutate(ENV = listres[[1]][["ENV"]]) %>%
-      select(ENV, everything()) %>%
+      })) |>
+      as_tibble() |>
+      mutate(ENV = listres[[1]][["ENV"]]) |>
+      select(ENV, everything()) |>
       ungroup()
   } else{
     bind <- do.call(
       cbind,
       lapply(listres, function(x) {
         as.character(x[["GEN"]])
-      })) %>%
-      as_tibble() %>%
-      mutate(ENV = listres[[1]][["ENV"]]) %>%
-      select(ENV, everything()) %>%
-      group_by(ENV) %>%
-      select_rows(1) %>%
+      })) |>
+      as_tibble() |>
+      mutate(ENV = listres[[1]][["ENV"]]) |>
+      select(ENV, everything()) |>
+      group_by(ENV) |>
+      select_rows(1) |>
       ungroup()
   }
   return(bind)
 }
+

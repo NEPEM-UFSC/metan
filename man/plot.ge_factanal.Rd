@@ -7,7 +7,7 @@
 \method{plot}{ge_factanal}(
   x,
   var = 1,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   x.lim = NULL,
   x.breaks = waiver(),
   x.lab = NULL,
@@ -36,7 +36,7 @@
 variable of \code{x}.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{x.lim}{The range of x-axis. Default is \code{NULL} (maximum and minimum

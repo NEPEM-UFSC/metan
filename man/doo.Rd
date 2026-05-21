@@ -34,14 +34,14 @@ the results for group combinations.
 \donttest{
 library(metan)
 # Head the first two lines of each environment
-data_ge2 \%>\%
- group_by(ENV) \%>\%
+data_ge2 |>
+ group_by(ENV) |>
  doo(~head(., 2))
 
 # Genotype analysis for each environment using 'gafem()'
 # variable PH
-data_ge2 \%>\%
-  group_by(ENV) \%>\%
+data_ge2 |>
+  group_by(ENV) |>
   doo(~gafem(., GEN, REP, PH, verbose = FALSE))
 }
 }

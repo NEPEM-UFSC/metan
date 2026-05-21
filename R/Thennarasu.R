@@ -31,27 +31,31 @@
 #'
 Thennarasu <- function(.data, env, gen, resp, verbose = TRUE) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    data %<>% make_mat(GEN, ENV, Y)
+    data <- data |> make_mat(GEN, ENV, Y)
     nr <- nrow(data)
     nc <- ncol(data)
     data_m <- as.matrix(data)
@@ -85,9 +89,7 @@ Thennarasu <- function(.data, env, gen, resp, verbose = TRUE) {
                    N4 = N4,
                    N4_R = rank(N4))
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
@@ -128,13 +130,8 @@ print.Thennarasu <- function(x, export = FALSE, file.name = NULL, digits = 3, ..
   on.exit(options(opar))
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Thennarasu's stability indexes\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     print(var)
-    cat("---------------------------------------------------------------------------\n")
-    cat("\n\n")
   }
   if (export == TRUE) {
     sink()

@@ -54,13 +54,12 @@ variables (i and j ) is through the simple correlation matrix that involves
 these two variables and m other variables from which we want to remove the
 effects. The estimate of the partial correlation coefficient between i and j
 excluding the effect of m other variables is given by:
-\loadmathjax
-\mjsdeqn{r_{ij.m} = \frac{{- {a_{ij}}}}{{\sqrt {{a_{ii}}{a_{jj}}}}}}
+\deqn{r_{ij.m} = \frac{{- {a_{ij}}}}{{\sqrt {{a_{ii}}{a_{jj}}}}}}
 
-Where \mjseqn{r_{ij.m}} is the partial correlation coefficient between
+Where \eqn{r_{ij.m}} is the partial correlation coefficient between
 variables i and j, without the effect of the other m variables;
-\mjseqn{a_{ij}} is the ij-order element of the inverse of the linear
-correlation matrix; \mjseqn{a_{ii}}, and \mjseqn{a_{jj}} are the elements of
+\eqn{a_{ij}} is the ij-order element of the inverse of the linear
+correlation matrix; \eqn{a_{ii}}, and \eqn{a_{jj}} are the elements of
 orders ii and jj, respectively, of the inverse of the simple correlation
 matrix.
 }

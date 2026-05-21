@@ -73,22 +73,22 @@ covcor_design <- function(.data,
                           by = NULL,
                           type = NULL){
   if (!design %in% c("RCBD", "CRD")) {
-    stop("The experimental design must be RCBD or CRD.")
+    cli::cli_abort("The experimental design must be RCBD or CRD.")
   }
   if (!is.null(type)) {
     if (!type %in% c(c("pcor", "gcor", "rcor", "pcov", "gcov",
                        "rcov", "means"))) {
-      stop("The type must be one of the 'pcor', 'gcor', 'rcor', 'pcov', 'gcov', 'rcov', or 'means'. ")
+      cli::cli_abort("The type must be one of the 'pcor', 'gcor', 'rcor', 'pcov', 'gcov', 'rcov', or 'means'. ")
     }
   }
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(covcor_design,
           gen = {{gen}},
           rep = {{rep}},
@@ -99,13 +99,13 @@ covcor_design <- function(.data,
   }
   factors <- select(.data,
                     GEN = {{gen}},
-                    REP = {{rep}}) %>%
+                    REP = {{rep}}) |>
     as_factor(1:2)
   GEN <- factors$GEN
   REP <- factors$REP
   NREP <- nlevels(REP)
-  vars <- .data %>%
-    select({{resp}}, -{{gen}}, -{{rep}}) %>%
+  vars <- .data |>
+    select({{resp}}, -{{gen}}, -{{rep}}) |>
     select_numeric_cols()
   listres <- list()
   nvar <- ncol(vars)
@@ -129,14 +129,14 @@ covcor_design <- function(.data,
     colnames(covdata)[[vin]] <- paste(names(vars[var]))
   }
   ms <-
-    data.frame(mst = mst, msr = msr) %>%
+    data.frame(mst = mst, msr = msr) |>
     dplyr::mutate(tr = mst - msr)
   vres <- diag(ms[, 2])
   vfen <- diag(ms[, 1]/3)
   vgen <- (diag(ms[, 1]) - diag(ms[, 2]))/3
   means <-
-    as_tibble(cbind(GEN, covdata)) %>%
-    mean_by(GEN) %>%
+    as_tibble(cbind(GEN, covdata)) |>
+    mean_by(GEN) |>
     column_to_rownames("GEN")
   covdata2 <- comb_vars(data.frame(covdata), order = "first")
   index <- data.frame(t(combn(nvar, 2)))
@@ -193,7 +193,7 @@ covcor_design <- function(.data,
                           geno_cor = as.matrix(make_sym(corrgen, diag = 1)),
                           phen_cor = as.matrix(make_sym(corrfen, diag = 1)),
                           resi_cor = as.matrix(make_sym(corres, diag = 1)),
-                          means = means) %>%
+                          means = means) |>
              add_class("covcor_design"))
   }
   if (type == "pcor") {

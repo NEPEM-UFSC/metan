@@ -122,21 +122,21 @@ cv_blup <- function(.data,
                     random = "gen",
                     verbose = TRUE) {
     if(missing(block)){
-        data <- .data %>%
+        data <- .data |>
             dplyr::select(ENV = {{env}},
                           GEN = {{gen}},
                           REP = {{rep}},
-                          Y = {{resp}}) %>%
+                          Y = {{resp}}) |>
             mutate(across(1:3, as.factor))
         data <- add_row_id(data)
         Nbloc <- nlevels(data$REP)
         nrepval <- Nbloc - 1
         if (Nbloc <= 2) {
-            stop("At least three replicates are required to perform the cross-validation.", call. = FALSE)
+            cli::cli_abort("At least three replicates are required to perform the cross-validation.")
         }
         test <-
-            data %>%
-            n_by(ENV, GEN) %>%
+            data |>
+            n_by(ENV, GEN) |>
         mutate(test =
             case_when(Y == 0  ~ FALSE,
                       Y > 0 & Y != Nbloc ~ TRUE,
@@ -145,16 +145,20 @@ cv_blup <- function(.data,
         if(any(test$test == TRUE)){
             df_test <-
                 data.frame(
-                    test[which(test$test == TRUE),] %>%
-                        remove_cols(row_id,REP, test) %>%
+                    test[which(test$test == TRUE),] |>
+                        remove_cols(row_id,REP, test) |>
                         rename(n = Y)
                 )
-            message(paste0(capture.output(df_test), collapse = "\n"))
-            stop("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")", call. = FALSE)
+            cli::cli_inform(paste0(capture.output(df_test), collapse = "\n"))
+            cli::cli_abort("Combinations of genotype and environment with different number of replication than observed in the trial ({Nbloc})")
         }
         data <- remove_rows_na(data, verbose = FALSE)
+        b <- 0
         if (verbose == TRUE) {
-            pb <- progress(max = nboot, style = 4)
+            pb <- cli::cli_progress_bar(
+                total = nboot,
+                format = "{cli::pb_spin} Validating: {b} of {nboot} sets | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+            )
         }
         RMSPDres <- base::data.frame(RMSPD = matrix(NA, nboot, 1))
         model_formula <- dplyr::case_when(
@@ -172,38 +176,36 @@ cv_blup <- function(.data,
             tmp <- split_factors(data, ENV, keep_factors = TRUE, verbose = FALSE)
             modeling <- do.call(rbind, lapply(tmp, function(x) {
                 X2 <- sample(unique(data$REP), nrepval, replace = FALSE)
-                x %>%
-                    group_by(GEN) %>%
+                x |>
+                    group_by(GEN) |>
                     dplyr::filter(REP %in% X2)
-            })) %>%
+            })) |>
                 base::as.data.frame()
             rownames(modeling) <- modeling$row_id
-            testing <- suppressWarnings(anti_join(data, modeling, by = c("ENV", "GEN", "REP", "Y", "row_id"))) %>%
-                arrange(ENV, GEN, REP) %>%
+            testing <- suppressWarnings(anti_join(data, modeling, by = c("ENV", "GEN", "REP", "Y", "row_id"))) |>
+                arrange(ENV, GEN, REP) |>
                 base::as.data.frame()
             MEDIAS <-
-                modeling %>%
-                mean_by(ENV, GEN) %>%
+                modeling |>
+                mean_by(ENV, GEN) |>
                 as.data.frame()
 
             model <- suppressWarnings(suppressMessages(lme4::lmer(model_formula, data = modeling)))
 
             validation <-
-                modeling %>%
-                mutate(pred = predict(model)) %>%
-                mean_by(ENV, GEN) %>%
+                modeling |>
+                mutate(pred = predict(model)) |>
+                mean_by(ENV, GEN) |>
                 mutate(error = pred - testing$Y)
             RMSPD <- sqrt(sum(validation$error^2)/length(validation$error))
             RMSPDres[, 1][b] <- RMSPD
             if (verbose == TRUE) {
-                run_progress(pb,
-                             text = paste("Validating", b, "of", nboot, "sets"),
-                             actual = b)
+                cli::cli_progress_update(id = pb, set = b, force = TRUE)
             }
         }
     }
     if(!missing(block)){
-        data <- .data %>% select(ENV = {{env}},
+        data <- .data |> select(ENV = {{env}},
                                  GEN = {{gen}},
                                  REP = {{rep}},
                                  BLOCK = {{block}},
@@ -212,11 +214,11 @@ cv_blup <- function(.data,
         Nbloc <- nlevels(data$REP)
         nrepval <- Nbloc - 1
         if (Nbloc <= 2) {
-            stop("At least three replicates are required to perform the cross-validation.", call. = FALSE)
+            cli::cli_abort("At least three replicates are required to perform the cross-validation.")
         }
         test <-
-            data %>%
-            n_by(ENV, GEN) %>%
+            data |>
+            n_by(ENV, GEN) |>
             mutate(test =
                        case_when(Y == 0  ~ FALSE,
                                  Y > 0 & Y != Nbloc ~ TRUE,
@@ -225,16 +227,20 @@ cv_blup <- function(.data,
         if(any(test$test == TRUE)){
             df_test <-
                 data.frame(
-                    test[which(test$test == TRUE),] %>%
-                        remove_cols(row_id,REP, test) %>%
+                    test[which(test$test == TRUE),] |>
+                        remove_cols(row_id,REP, test) |>
                         rename(n = Y)
                 )
-            message(paste0(capture.output(df_test), collapse = "\n"))
-            stop("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")", call. = FALSE)
+            cli::cli_inform(paste0(capture.output(df_test), collapse = "\n"))
+            cli::cli_abort("Combinations of genotype and environment with different number of replication than observed in the trial ({Nbloc})")
         }
         data <- remove_rows_na(data, verbose = FALSE)
+        b <- 0
         if (verbose == TRUE) {
-            pb <- progress(max = nboot, style = 4)
+            pb <- cli::cli_progress_bar(
+                total = nboot,
+                format = "{cli::pb_spin} Validating: {b} of {nboot} sets | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+            )
         }
         RMSPDres <- data.frame(RMSPD = matrix(NA, nboot, 1))
         model_formula <- case_when(
@@ -252,40 +258,38 @@ cv_blup <- function(.data,
             tmp <- split_factors(data, ENV, keep_factors = TRUE, verbose = FALSE)
             modeling <- do.call(rbind, lapply(tmp, function(x) {
                 X2 <- sample(unique(data$REP), nrepval, replace = FALSE)
-                x %>%
-                    group_by(GEN) %>%
+                x |>
+                    group_by(GEN) |>
                     dplyr::filter(REP %in% X2)
-            })) %>%
+            })) |>
                 as.data.frame()
             rownames(modeling) <- modeling$row_id
-            testing <- suppressWarnings(anti_join(data, modeling, by = c("ENV", "GEN", "REP", "BLOCK", "Y", "row_id"))) %>%
-                arrange(ENV, GEN, REP, BLOCK) %>%
+            testing <- suppressWarnings(anti_join(data, modeling, by = c("ENV", "GEN", "REP", "BLOCK", "Y", "row_id"))) |>
+                arrange(ENV, GEN, REP, BLOCK) |>
                 as.data.frame()
 
 
             model <- suppressWarnings(suppressMessages(lme4::lmer(model_formula, data = modeling)))
 
             validation <-
-                modeling %>%
-                mutate(pred = predict(model)) %>%
-                mean_by(ENV, GEN) %>%
+                modeling |>
+                mutate(pred = predict(model)) |>
+                mean_by(ENV, GEN) |>
                 mutate(error = pred - testing$Y,
                        code = testing$GEN)
             RMSPD <- sqrt(sum(validation$error^2)/length(validation$error))
             RMSPDres[, 1][b] <- RMSPD
             if (verbose == TRUE) {
-                run_progress(pb,
-                             text = paste("Validating", b, "of", nboot, "sets"),
-                             actual = b)
+                cli::cli_progress_update(id = pb, set = b, force = TRUE)
             }
         }
     }
 
-    RMSPDres <- RMSPDres %>%
-        mutate(MODEL = MOD) %>%
+    RMSPDres <- RMSPDres |>
+        mutate(MODEL = MOD) |>
         select(MODEL, everything())
-    RMSPDmean <- RMSPDres %>%
-        group_by(MODEL) %>%
+    RMSPDmean <- RMSPDres |>
+        group_by(MODEL) |>
         summarise(mean = mean(RMSPD),
                   sd = sd(RMSPD),
                   se = sd(RMSPD)/sqrt(n()),

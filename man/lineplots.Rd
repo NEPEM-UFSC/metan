@@ -90,7 +90,7 @@ prioritizing the first, last, and middle labels.}
 \item{fontfam}{The family of the font text.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{group}{The grouping variable. Valid for \code{plot_factlines()} only.}

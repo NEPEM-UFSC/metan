@@ -53,16 +53,16 @@
 ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
                         verbose = TRUE) {
     factors  <-
-        .data %>%
-        select({{env}}, {{gen}}, {{rep}}) %>%
+        .data |>
+        select({{env}}, {{gen}}, {{rep}}) |>
         mutate(across(everything(), as.factor))
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
-    factors %<>% set_names("ENV", "GEN", "REP")
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <- vars |> select_numeric_cols()
+    factors <- factors |> set_names("ENV", "GEN", "REP")
     listres <- list()
     nvar <- ncol(vars)
     for (var in 1:nvar) {
-        data <- factors %>%
+        data <- factors |>
             mutate(Y = vars[[var]])
         if(has_na(data)){
             data <- remove_rows_na(data)
@@ -138,7 +138,7 @@ ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
         colnames(initial.loadings) <- paste("FA", 1:ncol(initial.loadings), sep = "")
         if(ncol(scores) < 2){
             warning("The number of retained factors is ",ncol(scores),
-                    ".\nA plot with the scores cannot be obtained.\nUse 'mineval' to increase the number of factors retained", call. = FALSE)
+                    ".\nA plot with the scores cannot be obtained.\nUse 'mineval' to increase the number of factors retained")
         }
         temp <- (structure(list(data = as_tibble(data),
                                 cormat = as.matrix(cor.means),
@@ -173,7 +173,7 @@ ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
 #' @param var The variable to plot. Defaults to `var = 1` the first
 #'   variable of `x`.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param x.lim The range of x-axis. Default is `NULL` (maximum and minimum
 #'   values of the data set). New arguments can be inserted as `x.lim =
@@ -246,7 +246,7 @@ ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
 #'      col.shape = "orange",
 #'      col.line = "red")
 #'}
-plot.ge_factanal <- function(x, var = 1, plot_theme = theme_metan(), x.lim = NULL, x.breaks = waiver(),
+plot.ge_factanal <- function(x, var = 1, plot_theme = theme_metan_minimal(), x.lim = NULL, x.breaks = waiver(),
                              x.lab = NULL, y.lim = NULL, y.breaks = waiver(), y.lab = NULL,
                              shape = 21, col.shape = "gray30", col.alpha = 1, size.shape = 2.2,
                              size.bor.tick = 0.3, size.tex.lab = 12, size.tex.pa = 3.5,
@@ -255,7 +255,7 @@ plot.ge_factanal <- function(x, var = 1, plot_theme = theme_metan(), x.lim = NUL
     x <- x[[var]]
     data <- data.frame(x$scores.gen)
     if(ncol(data) == 2){
-        stop("A plot cannot be generated with only one factor. \nUse 'mineval' argument in 'ge_factanal()' to increase the number of factors retained.", call. = FALSE)
+        cli::cli_abort("A plot cannot be generated with only one factor. \nUse 'mineval' argument in 'ge_factanal()' to increase the number of factors retained.")
     }
     if (is.null(y.lab) == FALSE) {
         y.lab <- y.lab
@@ -325,33 +325,22 @@ print.ge_factanal <- function(x, export = FALSE, file.name = NULL, digits = 4, .
     }
     for (i in 1:length(x)) {
         var <- x[[i]]
-        cat("Variable", names(x)[i], "\n")
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Correlation matrix among environments\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h1("Variable {names(x)[i]}")
+        cli::cli_h2("Correlation matrix among environments")
         print(as_tibble(var$cormat, rownames = "ENV"))
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Eigenvalues and explained variance\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h2("Eigenvalues and explained variance")
         print(var$PCA)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Initial loadings\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h2("Initial loadings")
         print(var$initial.loadings)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Loadings after varimax rotation and commonalities\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h2("Loadings after varimax rotation and commonalities")
         print(var$FA)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Environmental stratification based on factor analysis\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h2("Environmental stratification based on factor analysis")
         print(var$env_strat)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Mean = mean; Min = minimum; Max = maximum; CV = coefficient of variation (%)\n")
-        cat("------------------------------------------------------------------------------------\n")
-        cat("\n\n\n")
+        cli::cli_h2("Mean = mean; Min = minimum; Max = maximum; CV = coefficient of variation (%)")
+        cli::cli_text("")
     }
     if (export == TRUE) {
         sink()
     }
 }
+

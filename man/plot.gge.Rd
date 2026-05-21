@@ -32,11 +32,11 @@
   size.text.gen = 3.5,
   size.text.env = 3.5,
   size.text.lab = 12,
-  size.text.win = 4.5,
+  size.text.win = 5,
   size.line = 0.5,
   axis_expand = 1.2,
   title = TRUE,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   ...
 )
 }
@@ -124,7 +124,7 @@ automatically generated information in the plot such as singular value
 partitioning, scaling and centering.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{...}{Currently not used.}

@@ -35,7 +35,7 @@
 #' inspect(data_ge)
 #'
 #' # Create a toy example with messy data
-#' df <- data_ge2[-c(2, 30, 45, 134), c(1:5)] %>% as.data.frame()
+#' df <- data_ge2[-c(2, 30, 45, 134), c(1:5)] |> as.data.frame()
 #' df[c(1, 20, 50), 5] <- NA
 #' df[40, 4] <- "2..814"
 #'
@@ -62,8 +62,8 @@ inspect <- function (.data,
       Max = sapply(.data, function(x){ifelse(is.numeric(x), round(max(x, na.rm = TRUE),2), NA)}),
       Outlier = sapply(.data, function(x){ifelse(is.numeric(x), find_outliers(x, verbose = F), NA)}),
       Text = sapply(.data, function(x){ifelse(!is.numeric(x) & !is.factor(x), find_text_in_num(x), NA)})
-    ) %>%
-    rownames_to_column("Variable") %>%
+    ) |>
+    rownames_to_column("Variable") |>
     as_tibble()
   lvls <- as.numeric(as.character(df[which(df[4] != "-"),][4]$Levels))
   esp_nrows <- prod(lvls[lvls!=0])
@@ -73,31 +73,31 @@ inspect <- function (.data,
     if(esp_nrows != nrow(.data)){
       warning("Considering the levels of factors, .data should have ",
               esp_nrows, " rows, but it has ", nrow(.data),
-              ". Use 'as_factor()' for coercing a variable to a factor.", call. = F)
+              ". Use 'as_factor()' for coercing a variable to a factor.")
     }
     if(any(sapply(.data, grepl, pattern = ":"))){
-      warning("Using ':' in labels can result an error in some functions. Use '_' instead.", call. = FALSE)
+      warning("Using ':' in labels can result an error in some functions. Use '_' instead.")
     }
     if (nfactors < 3){
-      warning("Expected three or more factor variables. The data has only ", nfactors, ".", call. = F)
+      warning("Expected three or more factor variables. The data has only ", nfactors, ".")
     }
     if(any(df$Missing == "Yes")){
       warning("Missing values in variable(s) ",
-              paste(df$Variable[c(which(df$Missing == "Yes"))], collapse = ", "), ".", call. = F)
+              paste(df$Variable[c(which(df$Missing == "Yes"))], collapse = ", "), ".")
     }
     if(any(!is.na(df$Text))){
       warning("Possible text fragments in variable(s) ",
-              paste(df$Variable[c(which(!is.na(df$Text)))], collapse = ", "), ".", call. = F)
+              paste(df$Variable[c(which(!is.na(df$Text)))], collapse = ", "), ".")
     }
     if(any(df$Outlier[!is.na(df$Outlier)] != 0)){
       warning("Possible outliers in variable(s) ",
               paste(df$Variable[c(which(df$Outlier != 0))], collapse = ", "),
-              ". Use 'find_outliers()' for more details.", call. = F)
+              ". Use 'find_outliers()' for more details.")
     }
     if(has_zero(.data)){
       warning("Zero values observed in variable(s) ",
               paste(names(select_cols_zero(.data, verbose = FALSE)),
-                    collapse = ", "), ".", call. = FALSE)
+                    collapse = ", "), ".")
     }
     if(nfactors >= 3 && esp_nrows == nrow(.data) && all(df$Missing == "No") && all(df$Outlier[!is.na(df$Outlier)] == 0) == TRUE && !has_zero(.data)){
       message("No issues detected while inspecting data.")
@@ -109,11 +109,10 @@ inspect <- function (.data,
       if (!is.numeric(data_col)) {
         level_length <- length(levels(data_col))
         if (level_length > threshold) {
-          stop(
+          cli::cli_abort(
             "Column '", col, "' has more levels (", level_length, ")",
             " than the threshold (", threshold, ") allowed.\n",
-            "Please remove the column or increase the 'threshold' argument. Increasing the threshold may produce long processing times",
-            call. = FALSE)
+            "Please remove the column or increase the 'threshold' argument. Increasing the threshold may produce long processing times")
         }
       }
     }
@@ -126,7 +125,7 @@ inspect <- function (.data,
                     color = "red")
     }
     ggpair <-
-      .data %>%
+      .data |>
       ggpairs(lower = NULL,
               cardinality_threshold = threshold,
               diag = list(continuous = wrap("densityDiag",
@@ -154,3 +153,4 @@ inspect <- function (.data,
   }
   invisible(df)
 }
+

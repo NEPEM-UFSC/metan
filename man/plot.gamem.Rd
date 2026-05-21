@@ -15,7 +15,7 @@
   n.dodge = 1,
   check.overlap = FALSE,
   labels = FALSE,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   alpha = 0.2,
   fill.hist = "gray",
   col.hist = "black",
@@ -70,7 +70,7 @@ prioritizing the first, last, and middle labels.}
 confidence interval limits.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details, see
+\code{plot_theme = theme_metan_minimal()}. For more details, see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{alpha}{The transparency of confidence band in the Q-Q plot. Must be a

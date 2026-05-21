@@ -86,13 +86,13 @@
 cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot = 200, design = "RCBD", verbose = TRUE) {
   if(missing(block)){
     if (!design %in% c("RCBD", "CRD")) {
-      stop("Incorrect experimental design informed! Plesease inform RCBD for randomized complete block or CRD for completely randomized design.")
+      cli::cli_abort("Incorrect experimental design informed! Plesease inform RCBD for randomized complete block or CRD for completely randomized design.")
     }
-    data <- .data %>%
+    data <- .data |>
       dplyr::select(ENV = {{env}},
                     GEN = {{gen}},
                     REP = {{rep}},
-                    Y = {{resp}})%>%
+                    Y = {{resp}})|>
       mutate(across(1:3, as.factor))
     RMSPDres <- data.frame(RMSPD = matrix(0, nboot, 1))
     data <- add_row_id(data)
@@ -100,20 +100,24 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
     Ngen <- length(unique(data$GEN))
     Nbloc <- length(unique(data$REP))
     if (Nbloc <= 2) {
-      stop("At least three replicates are required to perform the cross-validation.")
+      cli::cli_abort("At least three replicates are required to perform the cross-validation.")
     }
     nrepval <- Nbloc - 1
     minimo <- min(Nenv, Ngen) - 1
     if (naxis > minimo) {
-      stop("The number of axis to be used must be lesser than or equal to ",
+      cli::cli_abort("The number of axis to be used must be lesser than or equal to ",
            minimo, " [min(GEN-1;ENV-1)]")
     }
+    b <- 0
     if (verbose == TRUE) {
-      pb <- progress(max = nboot, style = 4)
+      pb <- cli::cli_progress_bar(
+        total = nboot,
+        format = "{cli::pb_spin} Validating: {b} of {nboot} sets | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+      )
     }
     test <-
-      data %>%
-      n_by(ENV, GEN) %>%
+      data |>
+      n_by(ENV, GEN) |>
       mutate(test =
                case_when(Y > 0 & Y != Nbloc ~ TRUE,
                          TRUE ~ FALSE)
@@ -121,24 +125,24 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
     if(any(test$test == TRUE)){
       df_test <-
         data.frame(
-          test[which(test$test == TRUE),] %>%
-            remove_cols(row_id,REP, test) %>%
+          test[which(test$test == TRUE),] |>
+            remove_cols(row_id,REP, test) |>
             rename(n = Y)
         )
       message(paste0(capture.output(df_test), collapse = "\n"))
-      stop("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")", call. = FALSE)
+      cli::cli_abort("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")")
     }
     if(!is_balanced_trial(data, ENV, GEN, Y)){
-      stop("AMMI analysis cannot be computed with unbalanced data.", call. = FALSE)
+      cli::cli_abort("AMMI analysis cannot be computed with unbalanced data.")
     }
     for (b in 1:nboot) {
       if (design == "CRD") {
         X <- sample(1:10000, 1)
         set.seed(X)
-        modeling <- data %>%
-          dplyr::group_by(ENV, GEN) %>%
-          dplyr::sample_n(nrepval, replace = FALSE) %>%
-          arrange(row_id) %>%
+        modeling <- data |>
+          dplyr::group_by(ENV, GEN) |>
+          dplyr::sample_n(nrepval, replace = FALSE) |>
+          arrange(row_id) |>
           as.data.frame()
         rownames(modeling) <- modeling$row_id
       }
@@ -146,27 +150,27 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
         tmp <- split_factors(data, ENV, keep_factors = TRUE, verbose = FALSE)
         modeling <- do.call(rbind, lapply(tmp, function(x) {
           X2 <- sample(unique(data$REP), nrepval, replace = FALSE)
-          x %>% dplyr::group_by(GEN) %>% dplyr::filter(REP %in% X2)
-        })) %>% as.data.frame()
+          x |> dplyr::group_by(GEN) |> dplyr::filter(REP %in% X2)
+        })) |> as.data.frame()
         rownames(modeling) <- modeling$row_id
       }
-      testing <- anti_join(data, modeling, by = c("ENV", "GEN", "REP", "Y", "row_id")) %>%
-        arrange(ENV, GEN) %>%
+      testing <- anti_join(data, modeling, by = c("ENV", "GEN", "REP", "Y", "row_id")) |>
+        arrange(ENV, GEN) |>
         as.data.frame()
       MEDIAS <-
-        modeling %>%
-        mean_by(ENV, GEN) %>%
+        modeling |>
+        mean_by(ENV, GEN) |>
         as.data.frame()
       residual <-
-        modeling %>%
-        mean_by(ENV, GEN) %>%
-        ungroup() %>%
-        mutate(residuals = residuals(lm(Y ~ ENV + GEN, data = .))) %>%
+        modeling |>
+        mean_by(ENV, GEN) |>
+        ungroup() |>
+        mutate(residuals = residuals(lm(Y ~ ENV + GEN, data = dplyr::pick(everything())))) |>
         pull(residuals)
       s <- svd(t(matrix(residual, Nenv, byrow = T)))
       MGEN <- model.matrix(~factor(testing$GEN) - 1)
       MENV <- model.matrix(~factor(testing$ENV) - 1)
-      MEDIAS %<>% mutate(Ypred = Y - residual,
+      MEDIAS <- MEDIAS |> mutate(Ypred = Y - residual,
                          ResAMMI = ((MGEN %*% s$u[, 1:naxis]) * (MENV %*% s$v[, 1:naxis])) %*% s$d[1:naxis],
                          YpredAMMI = Ypred + ResAMMI,
                          testing = testing$Y,
@@ -175,9 +179,7 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
       RMSPDres[, 1][b] <- ifelse(naxis == 0, sqrt(sum(MEDIAS$errrorAMMI0^2)/length(MEDIAS$errrorAMMI0)),
                                  sqrt(sum(MEDIAS$error^2)/length(MEDIAS$error)))
       if (verbose == TRUE) {
-       run_progress(pb,
-                    text = paste("Validating", b, "of", nboot, "sets"),
-                    actual = b)
+        cli::cli_progress_update(id = pb, set = b, force = TRUE)
       }
     }
     RMSPDmean <- summarise(RMSPDres,
@@ -187,13 +189,13 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
                            se = sd(RMSPD)/sqrt(n()),
                            Q2.5 = quantile(RMSPD, 0.025),
                            Q97.5 = quantile(RMSPD, 0.975))
-    RMSPDres <- RMSPDres %>%
-      mutate(MODEL = paste("AMMI", naxis, sep = "")) %>%
+    RMSPDres <- RMSPDres |>
+      mutate(MODEL = paste("AMMI", naxis, sep = "")) |>
       dplyr::select(MODEL, everything())
   }
 
   if(!missing(block)){
-    data <- .data %>%
+    data <- .data |>
       dplyr::select(ENV = {{env}},
                     GEN = {{gen}},
                     REP = {{rep}},
@@ -205,17 +207,17 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
     Ngen <- nlevels(data$GEN)
     Nbloc <- nlevels(data$REP)
     if (Nbloc <= 2) {
-      stop("At least three replicates are required to perform the cross-validation.")
+      cli::cli_abort("At least three replicates are required to perform the cross-validation.")
     }
     nrepval <- Nbloc - 1
     minimo <- min(Nenv, Ngen) - 1
     if (naxis > minimo) {
-      stop("The number of axis to be used must be lesser than or equal to ",
+      cli::cli_abort("The number of axis to be used must be lesser than or equal to ",
            minimo, " [min(GEN-1;ENV-1)]")
     }
     test <-
-      data %>%
-      n_by(ENV, GEN) %>%
+      data |>
+      n_by(ENV, GEN) |>
       mutate(test =
                case_when(Y > 0 & Y != Nbloc ~ TRUE,
                          TRUE ~ FALSE)
@@ -223,43 +225,47 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
     if(any(test$test == TRUE)){
       df_test <-
         data.frame(
-          test[which(test$test == TRUE),] %>%
-            remove_cols(row_id,REP, test) %>%
+          test[which(test$test == TRUE),] |>
+            remove_cols(row_id,REP, test) |>
             rename(n = Y)
         )
       message(paste0(capture.output(df_test), collapse = "\n"))
-      stop("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")", call. = FALSE)
+      cli::cli_abort("Combinations of genotype and environment with different number of replication than observed in the trial (", Nbloc, ")")
     }
     if(!is_balanced_trial(data, ENV, GEN, Y)){
-      stop("AMMI analysis cannot be computed with unbalanced data.", call. = FALSE)
+      cli::cli_abort("AMMI analysis cannot be computed with unbalanced data.")
     }
+    b <- 0
     if (verbose == TRUE) {
-      pb <- progress(max = nboot, style = 4)
+      pb <- cli::cli_progress_bar(
+        total = nboot,
+        format = "{cli::pb_spin} Validating: {b} of {nboot} sets | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+      )
     }
     for (b in 1:nboot) {
       tmp <- split_factors(data, ENV, keep_factors = TRUE, verbose = FALSE)
       modeling <- do.call(rbind, lapply(tmp, function(x) {
         X2 <- sample(unique(data$REP), nrepval, replace = FALSE)
-        x %>% dplyr::group_by(GEN) %>% dplyr::filter(REP %in% X2)
-      })) %>% as.data.frame()
+        x |> dplyr::group_by(GEN) |> dplyr::filter(REP %in% X2)
+      })) |> as.data.frame()
       rownames(modeling) <- modeling$row_id
-      testing <- anti_join(data, modeling, by = c("ENV", "GEN", "REP", "BLOCK", "Y", "row_id")) %>%
-        arrange(ENV, GEN) %>%
+      testing <- anti_join(data, modeling, by = c("ENV", "GEN", "REP", "BLOCK", "Y", "row_id")) |>
+        arrange(ENV, GEN) |>
         as.data.frame()
-      MEDIAS <- modeling %>%
-        group_by(ENV, GEN) %>%
-        summarise(Y = mean(Y)) %>%
+      MEDIAS <- modeling |>
+        group_by(ENV, GEN) |>
+        summarise(Y = mean(Y)) |>
         as.data.frame()
-      residual <- modeling %>%
-        mutate(residuals = residuals(lm(Y ~ ENV/REP + REP:BLOCK + ENV +  GEN, data = .))) %>%
-        group_by(ENV, GEN) %>%
-        summarise(residuals = mean(residuals)) %>%
-        ungroup() %>%
+      residual <- modeling |>
+        mutate(residuals = residuals(lm(Y ~ ENV/REP + REP:BLOCK + ENV +  GEN, data = dplyr::pick(everything())))) |>
+        group_by(ENV, GEN) |>
+        summarise(residuals = mean(residuals)) |>
+        ungroup() |>
         pull(residuals)
       s <- svd(t(matrix(residual, Nenv, byrow = T)))
       MGEN <- model.matrix(~factor(testing$GEN) - 1)
       MENV <- model.matrix(~factor(testing$ENV) - 1)
-      MEDIAS %<>% mutate(Ypred = Y - residual,
+      MEDIAS <- MEDIAS |> mutate(Ypred = Y - residual,
                          ResAMMI = ((MGEN %*% s$u[, 1:naxis]) * (MENV %*% s$v[, 1:naxis])) %*% s$d[1:naxis],
                          YpredAMMI = Ypred + ResAMMI,
                          testing = testing$Y,
@@ -268,9 +274,7 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
       RMSPDres[, 1][b] <- ifelse(naxis == 0, sqrt(sum(MEDIAS$errrorAMMI0^2)/length(MEDIAS$errrorAMMI0)),
                                  sqrt(sum(MEDIAS$error^2)/length(MEDIAS$error)))
       if (verbose == TRUE) {
-        run_progress(pb,
-                     text = paste("Validating", b, "of", nboot, "sets"),
-                     actual = b)
+        cli::cli_progress_update(id = pb, set = b, force = TRUE)
       }
     }
     RMSPDmean <- summarise(RMSPDres,
@@ -280,8 +284,8 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
                            se = sd(RMSPD)/sqrt(n()),
                            Q2.5 = quantile(RMSPD, 0.025),
                            Q97.5 = quantile(RMSPD, 0.975))
-    RMSPDres <- RMSPDres %>%
-      mutate(MODEL = paste("a_AMMI", naxis, sep = "")) %>%
+    RMSPDres <- RMSPDres |>
+      mutate(MODEL = paste("a_AMMI", naxis, sep = "")) |>
       dplyr::select(MODEL, everything())
   }
 
@@ -327,7 +331,7 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
 #' @param file.name The name of the file for exportation, default is
 #'   `NULL`, i.e. the files are automatically named.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details,see
+#'   `plot_theme = theme_metan_minimal()`. For more details,see
 #'   [ggplot2::theme()].
 #' @param width The width 'inch' of the plot. Default is `6`.
 #' @param height The height 'inch' of the plot. Default is `6`.
@@ -365,7 +369,7 @@ cv_ammi <- function(.data, env, gen, rep, resp, block = NULL, naxis = 2, nboot =
 #'
 plot.cvalidation <- function(x, violin = FALSE, export = FALSE, order_box =  FALSE,
                              x.lab = NULL, y.lab = NULL, size.tex.lab = 12, file.type = "pdf",
-                             file.name = NULL, plot_theme = theme_metan(), width = 6, height = 6,
+                             file.name = NULL, plot_theme = theme_metan_minimal(), width = 6, height = 6,
                              resolution = 300, col.violin = "gray90", col.boxplot = "gray70",
                              col.boxplot.win = "cyan", width.boxplot = 0.6, x.lim = NULL,
                              x.breaks = waiver(), ...) {
@@ -373,9 +377,9 @@ plot.cvalidation <- function(x, violin = FALSE, export = FALSE, order_box =  FAL
                   expression(paste("Root mean square prediction difference (Mg ha"^-1, ")")),
                   y.lab)
   x.lab <- ifelse(missing(x.lab), "Model", x.lab)
-  a <- suppressMessages(x$RMSPD %>%
-                          group_by(MODEL) %>%
-                          summarise(RMSPD = mean(RMSPD)) %>%
+  a <- suppressMessages(x$RMSPD |>
+                          group_by(MODEL) |>
+                          summarise(RMSPD = mean(RMSPD)) |>
                           top_n(-1))
   mod <- paste(a$MODEL[1])
   if (violin == TRUE) {
@@ -467,3 +471,4 @@ plot.cvalidation <- function(x, violin = FALSE, export = FALSE, order_box =  FAL
     dev.off()
   }
 }
+

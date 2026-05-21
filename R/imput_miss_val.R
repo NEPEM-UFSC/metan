@@ -102,10 +102,10 @@ impute_missing_val <- function(.data,
                                simplified = FALSE,
                                verbose = TRUE){
   if(!has_na(.data)){
-    stop("No missing values found in data.")
+    cli::cli_abort("No missing values found in data.")
   }
   if(!algorithm %in% c("EM-AMMI", "EM-SVD", "colmeans")){
-    stop("The algorithm must be of of 'EM-AMMI', 'EM-SVD', and 'colmeans")
+    cli::cli_abort("The algorithm must be of of 'EM-AMMI', 'EM-SVD', and 'colmeans")
   }
   if(algorithm == "EM-AMMI"){
     .data <- as.matrix(.data)
@@ -195,17 +195,14 @@ impute_missing_val <- function(.data,
       SVD <- list(d = 0)
     }
     if(verbose == TRUE){
-      cat("----------------------------------------------\n")
-      cat("Convergence information\n")
-      cat("----------------------------------------------\n")
-      cat("Number of iterations:", iter)
-      cat("\nFinal RMSE:", change)
-      cat("\nNumber of axis:", axis_used)
-      cat("\nConvergence:", converged)
-      cat("\n----------------------------------------------\n")
+      cli::cli_h2("Convergence information")
+      cli::cli_inform("Number of iterations: {iter}")
+      cli::cli_inform("Final RMSE: {change}")
+      cli::cli_inform("Number of axis: {axis_used}")
+      cli::cli_inform("Convergence: {converged}")
     }
     if(!converged){
-      warning("Maximum number of iterations achieved without convergence.\nTo increase the number of iterations use 'max_iter'.", call. = FALSE)
+      cli::cli_warn("Maximum number of iterations achieved without convergence.\nTo increase the number of iterations use 'max_iter'.")
     }
   }
   return(list(
@@ -214,5 +211,5 @@ impute_missing_val <- function(.data,
     iter = iter,
     Final_RMSE = change,
     final_naxis = axis_used,
-    convergence = converged) %>% set_class("imv"))
+    convergence = converged) |> set_class("imv"))
 }

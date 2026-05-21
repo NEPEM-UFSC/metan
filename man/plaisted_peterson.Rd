@@ -31,9 +31,41 @@ variable used in the argument \code{resp}.
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
 
-The function computes the stability as the arithmetic mean of the variance
-component of the genotype-environment interaction between environment pairs
-that includes a given genotype
+The function computes phenotypic stability based on the method proposed by
+Plaisted and Peterson (1959). It characterizes stability as the arithmetic mean
+of the variance components of the genotype-environment interaction isolated
+pairwise between a given genotype and all other remaining genotypes in the trial.
+}
+\details{
+The Plaisted and Peterson method operates under a static (biological) concept of
+stability. A genotype is classified as stable if its presence within the population
+minimizes the total variance of the GxE interaction matrix.
+
+For each pairwise combination of genotype \eqn{i} and genotype \eqn{i'}, the interaction
+variance component \eqn{\sigma^2_{ga_{ii'}}} is partitioned. The overall stability index
+(\eqn{\theta_i}) for a single cultivar is calculated as:
+
+\deqn{\theta_i = \frac{1}{I - 1} \sum_{i' \neq i} \sigma^2_{ga_{ii'}}}
+
+Where \eqn{I} is the total number of genotypes. The individual pairwise variance
+components are computed by subtracting the pooled experimental error (\eqn{QMR})
+from the pairwise interaction Mean Square:
+
+\deqn{\sigma^2_{ga_{ii'}} = \frac{\left[ \frac{SS(g_{ii'} \times A)}{J - 1} \right] - QMR}{K}}
+
+Where \eqn{J} is the total number of environments, \eqn{QMR} is the residual mean square
+from the joint global ANOVA table, and \eqn{K} is the replication factor. The pairwise
+interaction sum of squares is given by:
+
+\deqn{SS(g_{ii'} \times A) = \frac{K}{2} \left[ d^2_{ii'} - \frac{1}{J}(Y_{i.} - Y_{i'.})^2 \right]}
+
+Where \eqn{d^2_{ii'}} is the squared Euclidean distance between the performance profiles
+of the two genotypes across environments:
+
+\deqn{d^2_{ii'} = \sum_{j} (Y_{ij} - Y_{i'j})^2}
+
+Cultivars displaying the lowest values of \eqn{\theta_i} contribute less to the population's
+GxE noise and are interpreted as the most stable genotypes.
 }
 \examples{
 \donttest{

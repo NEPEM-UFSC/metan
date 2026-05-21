@@ -96,10 +96,10 @@ plot(mod2, var = "ED")
 # If we have a two-way table with the mean values for
 # genotypes and environments
 
-table <- make_mat(data_ge, GEN, ENV, GY) \%>\% round(2)
+table <- make_mat(data_ge, GEN, ENV, GY) |> round(2)
 table
-make_long(table) \%>\%
-gge(ENV, GEN, Y) \%>\%
+make_long(table) |>
+gge(ENV, GEN, Y) |>
 plot()
 }
 }

@@ -38,7 +38,7 @@
 #' library(metan)
 #' df_ge <- ge_simula(ngen = 2,
 #'                    nenv = 3,
-#'                    nrep = 2) %>%
+#'                    nrep = 2) |>
 #'          add_cols(ENV = c(rep("CACIQUE", 4),
 #'                           rep("FREDERICO", 4),
 #'                           rep("SANTA_MARIA", 4)))
@@ -54,7 +54,7 @@
 #'               new_factor = ENV_CODE)
 #'
 #' # Format the data to be used in the Selegen software (model 54)
-#' df <- df_to_selegen_54(df_ge, ENV, GEN, REP) %>%
+#' df <- df_to_selegen_54(df_ge, ENV, GEN, REP) |>
 #' recode_factor(ENV, prefix = "E", new_factor = ENV)
 #' }
 #'
@@ -65,22 +65,22 @@ add_seq_block <- function(data,
                           prefix = "",
                           verbose = TRUE){
   call <- match.call()
-  df <- data %>% arrange({{env}}, {{rep}})
+  df <- data |> arrange({{env}}, {{rep}})
   temp <-
-    df %>%
-    arrange({{env}}, {{rep}}) %>%
-    group_by({{env}}) %>%
-    count({{rep}}) %>%
+    df |>
+    arrange({{env}}, {{rep}}) |>
+    group_by({{env}}) |>
+    count({{rep}}) |>
     ungroup()
   temp <-
-    mutate(temp, temp = 1:nrow(temp)) %>%
-    select(n, temp) %>%
+    mutate(temp, temp = 1:nrow(temp)) |>
+    select(n, temp) |>
     as.matrix()
   block_vector <- c()
   for(i in 1:nrow(temp)){
     block_vector <- append(block_vector, replicate(temp[i, 1], temp[i, 2]))
   }
-  df %<>%
+  df <- df |>
     mutate({{new_factor}} := paste(prefix, block_vector, sep = ""),
            .after = {{rep}})
   if(verbose == TRUE){
@@ -98,15 +98,15 @@ recode_factor <- function(data,
                           prefix = "",
                           verbose = TRUE){
   call <- match.call()
-  a <- distinct(data, {{factor}}) %>% pull() %>% as.character()
+  a <- distinct(data, {{factor}}) |> pull() |> as.character()
   temp <-
-    data %>%
-    group_by({{factor}}) %>%
-    count({{factor}}) %>%
-    ungroup() %>%
+    data |>
+    group_by({{factor}}) |>
+    count({{factor}}) |>
+    ungroup() |>
     as.data.frame()
   temp <-
-    temp %>%
+    temp |>
     mutate(code = 1:nrow(temp))
   row.names(temp) <- temp[,1]
   temp[,1] <- NULL
@@ -114,8 +114,8 @@ recode_factor <- function(data,
   for(i in 1:nrow(temp)){
     block_vector <- append(block_vector, replicate(temp[i, 1], temp[i, 2]))
   }
-  data %<>%
-    arrange({{factor}}) %>%
+  data <- data |>
+    arrange({{factor}}) |>
     mutate({{new_factor}} := paste(prefix, block_vector, sep = ""),
            .after = {{factor}})
   if(verbose == TRUE){
@@ -141,11 +141,11 @@ df_to_selegen_54 <- function(data,
                 env = {{env}},
                 rep = {{rep}},
                 new_factor = REP,
-                verbose = FALSE) %>%
-    add_cols(Parcela = 1:nrow(data),
-             repeticao = concatenate(., {{env}}, {{gen}}, pull = TRUE),
-             obs = 1) %>%
-    select({{env}}, Parcela, {{gen}}, REP, repeticao, obs, everything()) %>%
+                verbose = FALSE) |>
+    (\(x) add_cols(x,
+                   Parcela = 1:nrow(x),
+                   repeticao = concatenate(x, {{env}}, {{gen}}, pull = TRUE),
+                   obs = 1))() |>
+    select({{env}}, Parcela, {{gen}}, REP, repeticao, obs, everything()) |>
     colnames_to_upper()
 }
-

@@ -1,12 +1,10 @@
 #' @import ggplot2
 #' @import stats
-#' @import mathjaxr
 #' @importFrom dplyr  select  everything  mutate  group_by group_keys
-#'   group_split  left_join  sample_n  anti_join pull select_if arrange slice
+#'   group_split  left_join  inner_join group_modify sample_n  anti_join pull select_if arrange slice
 #'   contains top_n summarise ungroup rename is_grouped_df desc n funs
 #' @importFrom tibble tibble as_tibble
 #' @importFrom ggrepel  geom_text_repel geom_label_repel
-#' @importFrom magrittr  %>% %<>%
 #' @importFrom GGally  ggally_text  eval_data_col  ggpairs
 #' @importFrom lme4  ranef  VarCorr  fortify.merMod
 #' @importFrom lmerTest  ranova  lmer
@@ -152,14 +150,17 @@ NULL
 NULL
 
 .onAttach <- function(libname, pkgname) {
-  vers <-  "v1.19.0"
-  packageStartupMessage("|=========================================================|")
-  packageStartupMessage("| Multi-Environment Trial Analysis (metan) ", vers, "        |")
-  packageStartupMessage("| Author: Tiago Olivoto                                   |")
-  packageStartupMessage("| Type 'citation('metan')' to know how to cite metan      |")
-  packageStartupMessage("| Type 'vignette('metan_start')' for a short tutorial     |")
-  packageStartupMessage("| Visit 'https://bit.ly/metanpkg' for a complete tutorial |")
-  packageStartupMessage("|=========================================================|")
+  version <- utils::packageVersion("metan")
+  msg <- c(
+    cli::rule(right = paste0(cli::col_green("metan ", version)),
+              left = "Multi-Environment Trial Analysis"),
+    paste(cli::col_blue(cli::symbol$info), "Author:", cli::col_blue("Tiago Olivoto")),
+    paste(cli::col_blue(cli::symbol$info), "Type", cli::style_bold("citation('metan')"), "to know how to cite metan"),
+    paste(cli::col_blue(cli::symbol$info), "Type", cli::style_bold("vignette('metan_start')"), "for a short tutorial"),
+    paste(cli::col_blue(cli::symbol$info), "Visit", cli::style_italic("https://bit.ly/metanpkg"), "for a complete tutorial"),
+    cli::rule()
+  )
+  packageStartupMessage(paste(msg, collapse = "\n"))
 }
 
 if (getRversion() >= "2.15.1") {
@@ -172,7 +173,7 @@ if (getRversion() >= "2.15.1") {
       "WAAS", "WAASBY", "WAASY", "X1", "X2", "Y", "Ypred", "YpredAMMI", "envPC1",
       "factors", "gen", "genPC1", "ggee", "id", "label", "nominal", "pred", "resOLS",
       "sel", "stdres", "type", "y", "z", "Corr", "combn", "cov2cor", "partial",
-      "pt", ".", "linear", "my_custom_cor", "my_custom_smooth", "K", "direct", "VAR",
+      "pt", "linear", "my_custom_cor", "my_custom_smooth", "K", "direct", "VAR",
       "eq", "IndAmb", "REP", "gge", "ind", "cophenetic", "remaining", "index", "ge",
       "FA1", "FA2", "Gen", "wRes", "wWAASB", "OrResp", "OrPC1", "OrWAASB", "wWAAS",
       "OrWAAS", ".stdresid", "WAASB", "grp", "Names", "ID", "MTSI", "Pair", "LL", "UL",
@@ -191,5 +192,14 @@ if (getRversion() >= "2.15.1") {
       "group", "hjust", "theta", "vjust", "x_raw", "y_raw", "row_id", "b0", "b1", "s2di",
       "TRAIT", "Parcela", "distinct", "obs", "repeticao", "mper", "mstab", "mps_ind",
       "h2", "PROJECTION", "R", "VIF", "lwid", "residual", "total", "abs_freq", "Color",
-      "alpha.col", "alpha.col.line", "ci.t", "size.shape", "size.text", "type2", "pct"))
+      "alpha.col", "alpha.col.line", "ci.t", "size.shape", "size.text", "type2", "pct", "caller_name",
+      "% of Total GxE", "Pr(>|t|)", "Std. Error", "Term", "Type", "block", "env", "estimate",
+      "genotype", "std.error", "t value", "trait", "total_gxe_ss", "%>%", ".",
+      "CH_NC", "CH_Utah", "CH_Utah_accum", "DATE", "DOY", "DY", "FRUE", "Freq", "GDD",
+      "LAT", "LON", "MO", "RTA", "T2M", "T2M_MAX", "T2M_MIN", "YEAR", "ch_w", "chunk_data",
+      "fn_fetch", "fr", "n_params", "p_list", "s_scale", "xcut",
+      ".env_fct", ".var_fct", "alpha_val", "env_index", "h", "is_top",
+      "observed", "size_val", "var_e", "weighted", "yhat",
+      "GEN_chr", "UP", "covariate_name", "env_mean", "matched",
+      "matched_rule", "p.value", "percent_gxe", "significance"))
   }

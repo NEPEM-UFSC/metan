@@ -74,19 +74,19 @@ corr_stab_ind <- function(x, stats = "all", plot = TRUE, ...){
     }
   }
   if(any(!stats %in% c("all", "par", "nonpar", "ammi", all_s)) == TRUE){
-    stop("Argument 'stats' with invalid values. See ?corr_stab_ind for more details.", call. = FALSE)
+    cli::cli_abort("Argument 'stats' with invalid values. See ?corr_stab_ind for more details.")
   }
   bind <- do.call(
     cbind,
     lapply(x, function(x) {
-      x %>% select(contains("_R"))
-    })) %>%
-    as_tibble() %>%
-    mutate(gen = x[[1]][["GEN"]]) %>%
-    pivot_longer(cols = contains(".")) %>%
-    separate(name, into = c("var", "stat"), sep = "(\\.)") %>%
-    separate(stat, into = "stat", sep = "_(?=[^_]*$)", extra = "drop") %>%
-    pivot_wider(values_from = value, names_from = stat) %>%
+      x |> select(contains("_R"))
+    })) |>
+    as_tibble() |>
+    mutate(gen = x[[1]][["GEN"]]) |>
+    pivot_longer(cols = contains(".")) |>
+    separate(name, into = c("var", "stat"), sep = "(\\.)") |>
+    separate(stat, into = "stat", sep = "_(?=[^_]*$)", extra = "drop") |>
+    pivot_wider(values_from = value, names_from = stat) |>
     select(-c(var, gen))
   bind <- select(bind, stats)
   corr <- corr_coef(bind)

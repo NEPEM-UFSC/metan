@@ -5,10 +5,9 @@
 #' Find the required (sufficient) sample size for computing a Pearson
 #' correlation coefficient with a desired confidence interval (Olivoto et al.,
 #' 2018) as follows
-#'\loadmathjax
-#'\mjsdeqn{n = {\left[ {\frac{{C{I_w}}}{{{{0.45304}^r} \times 2.25152}}} \right]^{{\rm{ - 0}}{\rm{.50089}}}}}
+#'\deqn{n = {\left[ {\frac{{C{I_w}}}{{{{0.45304}^r} \times 2.25152}}} \right]^{{\rm{ - 0}}{\rm{.50089}}}}}
 #'
-#' where \mjseqn{CI_w} is desired confidence interval and \mjseqn{r} is the
+#' where \eqn{CI_w} is desired confidence interval and \eqn{r} is the
 #' correlation coefficient.
 #'
 #' @param r The magnitude of the correlation coefficient.
@@ -34,12 +33,14 @@
 corr_ss <- function(r, CI, verbose = TRUE) {
     n <- round((CI/(0.45304^abs(r) * 2.25152))^(1/-0.50089), 0)
     if(verbose == TRUE){
-    cat("-------------------------------------------------", "\n")
-    cat("Sample size planning for correlation coefficient", "\n")
-    cat("-------------------------------------------------", "\n")
-    cat(paste0("Level of significance: 5%", "\nCorrelation coefficient: ", r, "\n95% half-width CI: ",
-        CI, "\nRequired sample size: ", n, "\n"))
-    cat("-------------------------------------------------", "\n")
+    cli::cli_h2("-------------------------------------------------")
+    cli::cli_h2("Sample size planning for correlation coefficient")
+    cli::cli_h2("-------------------------------------------------")
+    cli::cli_inform("Level of significance: 5%")
+    cli::cli_inform("Correlation coefficient: {r}")
+    cli::cli_inform("95% half-width CI: {CI}")
+    cli::cli_inform("Required sample size: {n}")
+    cli::cli_h2("-------------------------------------------------")
     }
     invisible(tibble(`Description` = c("Significance level (%)", "Correlation", "95% half-width CI", "Sample size"),
                   `Value` = c(95, r, CI, n))

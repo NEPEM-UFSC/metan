@@ -15,7 +15,7 @@
 #'   single procedure use, for example, `resp = c(var1, var2, var3)`.
 #' @param verbose Logical argument. If `verbose = FALSE` the code will run
 #'   silently.
-#' @return An object of class `superiority` where each element is the
+#' @return An object of class `lin_binns` where each element is the
 #'   result of one variable and contains the following items:
 #'
 #' * **environments** The mean for each environment, the environment index
@@ -35,39 +35,43 @@
 #' @examples
 #' \donttest{
 #' library(metan)
-#' out <- superiority(data_ge2, ENV, GEN, PH)
+#' out <- lin_binns(data_ge2, ENV, GEN, PH)
 #' print(out)
 #'}
 #'
-superiority <- function(.data, env, gen, resp, verbose = TRUE) {
+lin_binns <- function(.data, env, gen, resp, verbose = TRUE) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
     environments <-
-      data %>%
-      mean_by(ENV, na.rm = TRUE) %>%
+      data |>
+      mean_by(ENV, na.rm = TRUE) |>
       add_cols(index = Y - mean(Y),
-               class = ifelse(index < 0, "unfavorable", "favorable")) %>%
+               class = ifelse(index < 0, "unfavorable", "favorable")) |>
       as_tibble()
-    data <- left_join(data, environments %>% select(ENV, class), by = "ENV")
+    data <- left_join(data, environments |> select(ENV, class), by = "ENV")
     lin_fun <- function(mat) {
       P <- apply(mat, 1, function(x) {
         sum((x - apply(mat, 2, max, na.rm = TRUE))^2, na.rm = TRUE)/(2 * length(na.omit(x)))
@@ -92,28 +96,44 @@ superiority <- function(.data, env, gen, resp, verbose = TRUE) {
                                 R_u = rank(lin_fun(mat_u))))
     rownames(temp) <- NULL
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
-  return(structure(listres, class = "superiority"))
+  return(structure(listres, class = "lin_binns"))
 }
 
 
-
-
-
-
-#' Print an object ofclass `superiority`
+#' Lin e Binns' superiority index (Legacy Alias)
 #'
-#' Print the `superiority` object in two ways. By default, the results are
+#' @description
+#' `r lifecycle::badge('deprecated')`
+#' `superiority()` was deprecated to match cleaner naming conventions.
+#' Please transition script targets over to using `lin_binns()`.
+#'
+#' @inheritParams lin_binns
+#' @export
+#' @keywords internal
+superiority <- function(.data, env, gen, resp, verbose = TRUE) {
+  deprecated_warning("1.20.0", "superiority()", "lin_binns()")
+  lin_binns(
+    .data = .data,
+    env = {{env}},
+    gen = {{gen}},
+    resp = {{resp}},
+    verbose = verbose
+  )
+}
+
+
+#' Print an object of class `lin_binns`
+#'
+#' Print the `lin_binns` object in two ways. By default, the results are
 #' shown in the R console. The results can also be exported to the directory
 #' into a *.txt file.
 #'
 #'
-#' @param x An object of class `superiority`.
+#' @param x An object of class `lin_binns`.
 #' @param export A logical argument. If `TRUE`, a *.txt file is exported to
 #'   the working directory.
 #' @param file.name The name of the file if `export = TRUE`
@@ -121,30 +141,25 @@ superiority <- function(.data, env, gen, resp, verbose = TRUE) {
 #' @param ... Options used by the tibble package to format the output. See
 #'   [`tibble::print()`][tibble::formatting] for more details.
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
-#' @method print superiority
+#' @method print lin_binns
 #' @export
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- superiority(data_ge2, ENV, GEN, PH)
+#' model <- lin_binns(data_ge2, ENV, GEN, PH)
 #' print(model)
 #' }
-print.superiority <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
+print.lin_binns <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   if (export == TRUE) {
-    file.name <- ifelse(is.null(file.name) == TRUE, "superiority summary", file.name)
+    file.name <- ifelse(is.null(file.name) == TRUE, "lin_binns summary", file.name)
     sink(paste0(file.name, ".txt"))
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Superiority index considering all, favorable and unfavorable environments\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     print(var$index)
-    cat("---------------------------------------------------------------------------\n")
-    cat("\n\n\n")
   }
   if (export == TRUE) {
     sink()

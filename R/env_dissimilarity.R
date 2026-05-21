@@ -64,16 +64,16 @@ env_dissimilarity <- function(.data,
                               rep,
                               resp){
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
+    .data |>
+    select({{env}}, {{gen}}, {{rep}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
+  factors <- factors |> set_names("ENV", "GEN", "REP")
   listres <- list()
   nvar <- ncol(vars)
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -178,85 +178,66 @@ print.env_dissimilarity <- function(x, export = FALSE, file.name = NULL, digits 
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("----------------------------------------------------------------------\n")
-    cat("Pearson's correlation coefficient\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Pearson's correlation coefficient")
     mod <- round(var$correlation, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Minimum correlation = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum correlation = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_inform("Minimum correlation = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum correlation = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
 
-    cat("Mean square GxEjj'\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h2("Mean square GxEjj'")
     mod <- round(var$MSGE, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Total mean square = ",   round(sum(lt_mod, na.rm = TRUE),3), "\n")
-    cat("Minimum = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_inform("Total mean square = {round(sum(lt_mod, na.rm = TRUE),3)}")
+    cli::cli_inform("Minimum = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
 
-    cat("% Of the single part of MS GxEjj' (Robertson, 1959)\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h2("% Of the single part of MS GxEjj' (Robertson, 1959)")
     mod <- round(var$SPART_RO, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Average = ",   round(mean(lt_mod, na.rm = TRUE),3), "\n")
-    cat("Minimum = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_inform("Average = {round(mean(lt_mod, na.rm = TRUE),3)}")
+    cli::cli_inform("Minimum = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
 
-    cat("% Of the complex part of MS GxEjj' (Robertson, 1959)\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h2("% Of the complex part of MS GxEjj' (Robertson, 1959)")
     mod <- round(var$CPART_RO, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Average = ",   round(mean(lt_mod, na.rm = TRUE),3), "\n")
-    cat("Minimum = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_inform("Average = {round(mean(lt_mod, na.rm = TRUE),3)}")
+    cli::cli_inform("Minimum = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
 
-    cat("% Of the single part of MS GxEjj' (Cruz and Castoldi, 1991)\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h2("% Of the single part of MS GxEjj' (Cruz and Castoldi, 1991)")
     mod <- round(var$SPART_CC, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Average = ",   round(mean(lt_mod, na.rm = TRUE),3), "\n")
-    cat("Minimum = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_inform("Average = {round(mean(lt_mod, na.rm = TRUE),3)}")
+    cli::cli_inform("Minimum = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
 
-    cat("% Of the complex part of MS GxEjj' (Cruz and Castoldi, 1991)\n")
-    cat("----------------------------------------------------------------------\n")
+    cli::cli_h2("% Of the complex part of MS GxEjj' (Cruz and Castoldi, 1991)")
     mod <- round(var$CPART_CC, digits = digits)
     print(mod)
-    cat("----------------------------------------------------------------------\n")
     lt_mod <- make_lower_tri(mod)
     index_min <- which(lt_mod == min(lt_mod, na.rm = TRUE), arr.ind = TRUE)
     index_max <- which(lt_mod == max(lt_mod, na.rm = TRUE), arr.ind = TRUE)
-    cat("Average = ",   round(mean(lt_mod, na.rm = TRUE),3), "\n")
-    cat("Minimum = ",   round(min(lt_mod, na.rm = TRUE),3), paste("between environments", index_min[1], 'and', index_min[2]), "\n")
-    cat("Maximum = ",   round(max(lt_mod, na.rm = TRUE),3), paste("between environments", index_max[1], 'and', index_max[2]), "\n")
-    cat("----------------------------------------------------------------------\n")
-    cat("\n\n\n")
+    cli::cli_inform("Average = {round(mean(lt_mod, na.rm = TRUE),3)}")
+    cli::cli_inform("Minimum = {round(min(lt_mod, na.rm = TRUE),3)} between environments {index_min[1]} and {index_min[2]}")
+    cli::cli_inform("Maximum = {round(max(lt_mod, na.rm = TRUE),3)} between environments {index_max[1]} and {index_max[2]}")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()
@@ -288,8 +269,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
   opar <- par(mfrow = c(3, 2),
               mar = c(1, 4, 3, 1))
   on.exit(par(opar))
-  hc <- x$SPART_CC %>%
-    as.dist() %>%
+  hc <- x$SPART_CC |>
+    as.dist() |>
     hclust()
     plot(hc,
          main = "Single part\n (Cruz and Castoldi, 1991)",
@@ -297,8 +278,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
   if(!missing(nclust)){
     rect.hclust(hc, k = nclust, border = "red")
   }
-    hc <- x$CPART_CC %>%
-      as.dist() %>%
+    hc <- x$CPART_CC |>
+      as.dist() |>
       hclust()
     plot(hc,
          main = "Complex part\n (Cruz and Castoldi, 1991)",
@@ -306,8 +287,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
     if(!missing(nclust)){
       rect.hclust(hc, k = nclust, border = "red")
     }
-    hc <- x$SPART_RO %>%
-      as.dist() %>%
+    hc <- x$SPART_RO |>
+      as.dist() |>
       hclust()
     plot(hc,
          main = "Single part\n (Robertson, 1959)",
@@ -315,8 +296,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
     if(!missing(nclust)){
       rect.hclust(hc, k = nclust, border = "red")
     }
-    hc <- x$CPART_RO %>%
-      as.dist() %>%
+    hc <- x$CPART_RO |>
+      as.dist() |>
       hclust()
     plot(hc,
          main = "Complex part\n (Robertson, 1959)",
@@ -324,8 +305,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
     if(!missing(nclust)){
       rect.hclust(hc, k = nclust, border = "red")
     }
-    hc <- x$MSGE %>%
-      as.dist() %>%
+    hc <- x$MSGE |>
+      as.dist() |>
       hclust()
     plot(hc,
          main = "Mean Square of the Interaction\n genotypes x pairs of environments",
@@ -333,8 +314,8 @@ plot.env_dissimilarity <- function(x, var = 1, nclust = NULL, ...){
     if(!missing(nclust)){
       rect.hclust(hc, k = nclust, border = "red")
     }
-    hc <- x$correlation %>%
-      as.dist() %>%
+    hc <- x$correlation |>
+      as.dist() |>
       hclust()
     plot(hc,
          main = "Pearson's correlation\n genotype's performance",

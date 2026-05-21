@@ -56,7 +56,7 @@ sample_systematic <- function(data,
                               by =  NULL){
   aux <- function(data, n, r = NULL){
     k <- floor(nrow(data) / n)
-    message("k = ", k)
+    cli::cli_inform(paste0("k = ", k))
     if(is.null(r)){
       r <- sample(1:k, 1)
     }

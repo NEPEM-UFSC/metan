@@ -184,7 +184,7 @@ Graphical and numerical visualization of a correlation matrix
 \examples{
 \donttest{
 library(metan)
-dataset <- data_ge2 \%>\% select_cols(1:7)
+dataset <- data_ge2 |> dplyr::select(1:7)
 
 # Default plot setting
 corr_plot(dataset)

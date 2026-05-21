@@ -4,13 +4,12 @@
 #'
 #' Compute the Weighted Average of Absolute Scores (Olivoto et al., 2019) based
 #' on means for genotype-environment data as follows:
-#'\loadmathjax
-#'\mjsdeqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times EP_k|/ \sum_{k =
+#'\deqn{WAAS_i = \sum_{k = 1}^{p} |IPCA_{ik} \times EP_k|/ \sum_{k =
 #' 1}^{p}EP_k}
 #'
-#' where \mjseqn{WAAS_i} is the weighted average of absolute scores of the
-#' *i*th genotype; \mjseqn{PCA_{ik}} is the score of the *i*th genotype
-#' in the *k*th IPCA; and \mjseqn{EP_k} is the explained variance of the *k*th
+#' where \eqn{WAAS_i} is the weighted average of absolute scores of the
+#' *i*th genotype; \eqn{PCA_{ik}} is the score of the *i*th genotype
+#' in the *k*th IPCA; and \eqn{EP_k} is the explained variance of the *k*th
 #' IPCA for *k = 1,2,..,p*, where *p* is the number of IPCAs that
 #' explain at least an amount of the genotype-interaction variance declared in
 #' the argument `min_expl_var`.
@@ -102,38 +101,42 @@ waas_means <- function(.data,
                        verbose = TRUE,
                        ...){
   if(is.numeric(mresp)){
-    stop("Using a numeric vector in 'mresp' is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'mresp = c(100, 100, 0)'.\nNew code: 'mresp = c(\"h, h, l\")", call. = FALSE)
+    cli::cli_abort("Using a numeric vector in 'mresp' is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'mresp = c(100, 100, 0)'.\nNew code: 'mresp = c(\"h, h, l\")")
   }
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  factors <- factors |> set_names("ENV", "GEN")
   nvar <- ncol(vars)
+  var <- 0
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   if (is.null(mresp)) {
     mresp <- replicate(nvar, 100)
     minresp <- 100 - mresp
   } else {
-    mresp <- unlist(strsplit(mresp, split="\\s*(\\s|,)\\s*")) %>% all_lower_case()
+    mresp <- unlist(strsplit(mresp, split="\\s*(\\s|,)\\s*")) |> all_lower_case()
     if(!any(mresp %in% c("h", "l", "H", "L"))){
       if(!mresp[[1]] %in% c("h", "l")){
-        stop("Argument 'mresp' must have only h or l.", call. = FALSE)
+        cli::cli_abort("Argument 'mresp' must have only h or l.")
       } else{
         warning("Argument 'mresp' must have only h or l. Setting mresp = ", mresp[[1]],
-                " to all the ", nvar, " variables.", call. = FALSE)
+                " to all the ", nvar, " variables.")
         mresp <- replicate(nvar, mresp[[1]])
       }
     }
     if (length(mresp) != nvar) {
       warning("Invalid length in 'mresp'. Setting mresp = ", mresp[[1]],
-              " to all the ", nvar, " variables.", call. = FALSE)
+              " to all the ", nvar, " variables.")
       mresp <- replicate(nvar, mresp[[1]])
     }
 
@@ -145,10 +148,10 @@ waas_means <- function(.data,
     PesoWAASB <- 100 - PesoResp
   } else {
     if (length(wresp) != nvar) {
-      stop("The length of the numeric vector 'wresp' must be ", nvar, ", the number of variables in argument 'resp'")
+      cli::cli_abort("The length of the numeric vector 'wresp' must be ", nvar, ", the number of variables in argument 'resp'")
     }
     if (min(wresp) < 0 | max(wresp) > 100) {
-      stop("The range of the numeric vector 'wresp' must be equal between 0 and 100.")
+      cli::cli_abort("The range of the numeric vector 'wresp' must be equal between 0 and 100.")
     }
     PesoResp <- wresp
     PesoWAASB <- 100 - PesoResp
@@ -156,7 +159,7 @@ waas_means <- function(.data,
   listres <- list()
   vin <- 0
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     check_labels(data)
     if(has_na(data)){
@@ -164,25 +167,25 @@ waas_means <- function(.data,
       has_text_in_num(data)
     }
     data <-
-      mean_by(data, GEN, ENV) %>%
+      mean_by(data, GEN, ENV) |>
       make_mat(GEN, ENV, Y)
     if(has_na(data)){
       data <- impute_missing_val(data, verbose = verbose, ...)$.data
-      warning("Data imputation used to fill the GxE matrix", call. = FALSE)
+      warning("Data imputation used to fill the GxE matrix")
     }
-    data %<>% make_long()
+    data <- data |> make_long()
 
     vin <- vin + 1
     MGEN <-
-      mean_by(data, GEN) %>%
-      rename(Code = GEN) %>%
-      add_cols(type = "GEN")%>%
-      select_cols(type, Code, Y)
+      mean_by(data, GEN) |>
+      rename(Code = GEN) |>
+      add_cols(type = "GEN")|>
+      dplyr::select(type, Code, Y)
     MENV <-
-      mean_by(data, ENV) %>%
-      rename(Code = ENV) %>%
-      add_cols(type = "ENV") %>%
-      select_cols(type, Code, Y)
+      mean_by(data, ENV) |>
+      rename(Code = ENV) |>
+      add_cols(type = "ENV") |>
+      dplyr::select(type, Code, Y)
     ngen <- nrow(MGEN)
     nenv <- nrow(MENV)
     minimo <- min(ngen - 1, nenv - 1)
@@ -201,26 +204,26 @@ waas_means <- function(.data,
     while (cumsum(weights)[naxis] < min_expl_var)  {
       naxis <- naxis + 1
     }
-    SCOREG <- U %*% LL^0.5 %>%
-      as.data.frame() %>%
+    SCOREG <- U %*% LL^0.5 |>
+      as.data.frame() |>
       set_names(paste("PC", 1:minimo, sep = ""))
-    SCOREE <- V %*% LL^0.5 %>%
-      as.data.frame() %>%
+    SCOREE <- V %*% LL^0.5 |>
+      as.data.frame() |>
       set_names(paste("PC", 1:minimo, sep = ""))
     Escores <-
       rbind(cbind(MGEN, SCOREG),
             cbind(MENV, SCOREE))
     WAAS <-
-      Escores %>%
-      select(contains("PC")) %>%
-      abs() %>%
-      t() %>%
-      as.data.frame() %>%
-      slice(1:naxis) %>%
+      Escores |>
+      select(contains("PC")) |>
+      abs() |>
+      t() |>
+      as.data.frame() |>
+      slice(1:naxis) |>
       mutate(Percent = weights[1:naxis])
     WAASAbs <- mutate(Escores, WAAS = sapply(WAAS[, -ncol(WAAS)], weighted.mean, w = WAAS$Percent))
     if (nvar > 1) {
-      WAASAbs %<>% group_by(type) %>%
+      WAASAbs <- WAASAbs |> group_by(type) |>
         mutate(PctResp = (mresp[vin] - minresp[vin])/(max(Y) - min(Y)) * (Y - max(Y)) +
                  mresp[vin], PctWAAS = (0 - 100)/(max(WAAS) -  min(WAAS)) * (WAAS - max(WAAS)) + 0,
                wRes = PesoResp[vin],
@@ -229,11 +232,11 @@ waas_means <- function(.data,
                OrWAAS = rank(WAAS),
                OrPC1 = rank(abs(PC1)),
                WAASY = ((PctResp * wRes) + (PctWAAS * wWAAS))/(wRes +  wWAAS),
-               OrWAASY = rank(-WAASY)) %>%
+               OrWAASY = rank(-WAASY)) |>
         ungroup()
     }
     else {
-      WAASAbs %<>% group_by(type) %>%
+      WAASAbs <- WAASAbs |> group_by(type) |>
         mutate(PctResp = (mresp - minresp)/(max(Y) - min(Y)) * (Y - max(Y)) +
                  mresp, PctWAAS = (0 - 100)/(max(WAAS) - min(WAAS)) * (WAAS - max(WAAS)) + 0,
                wRes = PesoResp,
@@ -242,7 +245,7 @@ waas_means <- function(.data,
                OrWAAS = rank(WAAS),
                OrPC1 = rank(abs(PC1)),
                WAASY = ((PctResp * wRes) + (PctWAAS * wWAAS))/(wRes + wWAAS),
-               OrWAASY = rank(-WAASY)) %>%
+               OrWAASY = rank(-WAASY)) |>
         ungroup()
     }
     temp <- structure(list(model = WAASAbs,
@@ -253,9 +256,7 @@ waas_means <- function(.data,
                            cum_proportion = cumsum(weights)),
                       class = "waas_means")
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
@@ -298,24 +299,16 @@ print.waas_means <- function(x, export = FALSE, file.name = NULL, digits = 4, ..
   on.exit(options(opar))
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Weighted average of the absolute scores\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Weighted average of the absolute scores")
     print(var$model)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Genotype-environment interaction effects\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Genotype-environment interaction effects")
     print(var$ge_eff, digits = digits)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Proportion of the variance explained\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Proportion of the variance explained")
     print(var$proportion, digits = digits)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Cumulative proportion of the variance explained\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Cumulative proportion of the variance explained")
     print(var$cum_proportion, digits = digits)
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()

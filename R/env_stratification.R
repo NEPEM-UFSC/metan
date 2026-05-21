@@ -60,16 +60,16 @@ env_stratification <- function(.data,
                                mineval = 1,
                                verbose = TRUE) {
     factors  <-
-        .data %>%
-        select({{env}}, {{gen}}) %>%
+        .data |>
+        select({{env}}, {{gen}}) |>
         as_factor(everything())
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
-    factors %<>% set_names("ENV", "GEN")
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <- vars |> select_numeric_cols()
+    factors <- factors |> set_names("ENV", "GEN")
     listres <- list()
     nvar <- ncol(vars)
     for (var in 1:nvar) {
-        data <- factors %>%
+        data <- factors |>
             mutate(Y = vars[[var]])
         if(has_na(data)){
             data <- remove_rows_na(data, verbose = verbose)
@@ -137,15 +137,15 @@ env_stratification <- function(.data,
         colnames(initial.loadings) <- paste("ME", 1:ncol(initial.loadings), sep = "")
         temp <- list(data = means,
                      cormat = as.matrix(cor.means),
-                     PCA = as_tibble(pca) %>% colnames_to_upper(),
-                     FA = as_tibble(fa) %>% colnames_to_upper(),
+                     PCA = as_tibble(pca) |> colnames_to_upper(),
+                     FA = as_tibble(fa) |> colnames_to_upper(),
                      env_strat = as_tibble(genv),
-                     mega_env_code = genv %>% select_cols(1:2) %>%  chop(ENV) %>% as.data.frame(),
-                     mega_env_stat = genv %>% mean_by(MEGA_ENV, verbose = verbose, na.rm = TRUE) %>% remove_cols(verbose),
+                     mega_env_code = genv |> dplyr::select(1:2) |>  chop(ENV) |> as.data.frame(),
+                     mega_env_stat = genv |> mean_by(MEGA_ENV, verbose = verbose, na.rm = TRUE) |> remove_cols(verbose),
                      KMO = KMO,
                      MSA = MSA,
                      communalities_mean = mean(Communality),
-                     initial_loadings = as_tibble(cbind(Env = names(means), initial.loadings))) %>%
+                     initial_loadings = as_tibble(cbind(Env = names(means), initial.loadings))) |>
             add_class("env_stratification")
         listres[[paste(names(vars[var]))]] <- temp
     }
@@ -180,11 +180,11 @@ plot.env_stratification <- function(x,
                                     var = 1,
                                     ...) {
     if (!has_class(x, "env_stratification")) {
-        stop("The object 'x' is not of class 'ge_factanal'")
+        cli::cli_abort("The object 'x' is not of class 'ge_factanal'")
     }
     x <- x[[var]]
 
-    cormat <- x[["data"]] %>% corr_coef()
+    cormat <- x[["data"]] |> corr_coef()
     p <- plot(cormat, ...)
     return(p)
 }
@@ -224,26 +224,19 @@ print.env_stratification <- function(x, export = FALSE, file.name = NULL, digits
     }
     for (i in 1:length(x)) {
         var <- x[[i]]
-        cat("Variable", names(x)[i], "\n")
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Environment stratification based on factor analysis\n")
-        cat("------------------------------------------------------------------------------------\n")
+        cli::cli_h1("Variable {names(x)[i]}")
+        cli::cli_h2("Environment stratification based on factor analysis")
         a <- var$mega_env_code
         print.data.frame(a, row.names = FALSE)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Statistic by environment \n")
-        cat("------------------------------------------------------------------------------------\n")
-        print.data.frame(var$env_strat %>% round_cols(digits = digits), row.names = FALSE)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Statistic by mega-environment (mean values) \n")
-        cat("------------------------------------------------------------------------------------\n")
-        print.data.frame(var$mega_env_stat %>% round_cols(digits = digits), row.names = FALSE)
-        cat("------------------------------------------------------------------------------------\n")
-        cat("Mean = mean; Min = minimum; Max = maximum; CV = coefficient of variation (%)\n")
-        cat("------------------------------------------------------------------------------------\n")
-        cat("\n\n")
+        cli::cli_h2("Statistic by environment ")
+        print.data.frame(var$env_strat |> round_cols(digits = digits), row.names = FALSE)
+        cli::cli_h2("Statistic by mega-environment (mean values) ")
+        print.data.frame(var$mega_env_stat |> round_cols(digits = digits), row.names = FALSE)
+        cli::cli_inform("Mean = mean; Min = minimum; Max = maximum; CV = coefficient of variation (%)")
+        cli::cli_text("")
     }
     if (export == TRUE) {
         sink()
     }
 }
+

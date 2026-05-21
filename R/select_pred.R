@@ -38,15 +38,15 @@ select_pred <- function (.data,
                          npred){
   y <- select(.data, {{resp}})
   if(ncol(y) > 1){
-    stop("Only one response trait is allowed.")
+    cli::cli_abort("Only one response trait is allowed.")
   }
   if(missing(covariates)){
     x <-
-      select(.data %>% select_numeric_cols(), everything(), -names(y)) %>%
+      select(.data |> select_numeric_cols(), everything(), -names(y)) |>
       as.data.frame()
   } else{
     x <-
-      select(.data %>% select_numeric_cols(), {{covariates}}, -names(y)) %>%
+      select(.data |> select_numeric_cols(), {{covariates}}, -names(y)) |>
       as.data.frame()
   }
   y <- pull(y)
@@ -54,7 +54,7 @@ select_pred <- function (.data,
   varin <- integer(npred)
   n <- length(y)
   if (npred >= npreds) {
-    stop("The number of predictors ('npred') must be lesser than the number of covariates.")
+    cli::cli_abort("The number of predictors ('npred') must be lesser than the number of covariates.")
   }
   mod <- lm(y ~ NULL)
   x_nam <- names(x)
@@ -92,17 +92,17 @@ select_pred <- function (.data,
     aic_step[[paste("Model", k)]] <- best_ic
   }
   best_models <-
-    sapply(aic_step, function(x){x}) %>%
-    as.data.frame() %>%
-    rownames_to_column("Model") %>%
-    set_names("Model", "AIC") %>%
-    add_cols(Predictors = pred_step) %>%
+    sapply(aic_step, function(x){x}) |>
+    as.data.frame() |>
+    rownames_to_column("Model") |>
+    set_names("Model", "AIC") |>
+    add_cols(Predictors = pred_step) |>
     arrange(AIC)
   res <- list(sel_mod = mod,
               predictors = names(x[varin]),
               AIC = AIC(mod),
               pred_models = best_models,
-              predicted = predict(mod, type = "response")) %>%
+              predicted = predict(mod, type = "response")) |>
     set_class("sel_pred")
   return(res)
 }

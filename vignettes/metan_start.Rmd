@@ -81,11 +81,11 @@ mge <- ge_means(data_ge,
                 gen = GEN,
                 resp = everything())
 # Genotype-environment means
-get_model_data(mge) %>% round_cols()
+get_model_data(mge) |> round_cols()
 # Environment means
-get_model_data(mge, what = "env_means") %>% round_cols()
+get_model_data(mge, what = "env_means") |> round_cols()
 # Genotype means
-get_model_data(mge, what = "gen_means") %>% round_cols()
+get_model_data(mge, what = "gen_means") |> round_cols()
 ```
 
 
@@ -127,9 +127,9 @@ The S3 method [`predict()`](https://tiagoolivoto.github.io/metan/reference/predi
 
 ```{r }
 predicted <- predict(ammi_model, naxis = c(4, 6))
-predicted %>% 
-   subset(TRAIT == "GY") %>% 
-   make_mat(GEN, ENV, YpredAMMI) %>% 
+predicted |> 
+   subset(TRAIT == "GY") |> 
+   make_mat(GEN, ENV, YpredAMMI) |> 
   round_cols()
 ```
 
@@ -159,7 +159,7 @@ plot(model2, type = "re", nrow = 3)
 We can get easily the model results such as the Likelihood Ration Test for random effects, the variance components, and the BLUPs for genotypes with [`get_model_data()`](https://tiagoolivoto.github.io/metan/reference/get_model_data.html). By default, the function returns the genetic parameters.
 
 ```{r}
-get_model_data(model2) %>% round_cols(digits = 3)
+get_model_data(model2) |> round_cols(digits = 3)
 
 ```
 
@@ -180,7 +180,7 @@ arrange_ggplot(d, e, tag_levels = list(c("d", "e")), ncol = 1)
 ## BLUPS for genotype-vs-environment interaction
 
 ```{r }
-get_model_data(model2, what = "blupge") %>% 
+get_model_data(model2, what = "blupge") |> 
   round_cols()
 ```
 
@@ -190,7 +190,7 @@ The WAASB index [@Olivoto2019] is a quantitative stability measure based on the 
 
 ```{r }
 model3 <- waasb(data_ge, ENV, GEN, REP, everything(), verbose = FALSE)
-get_model_data(model3, what = "WAASB") %>% 
+get_model_data(model3, what = "WAASB") |> 
   round_cols()
 ```
 
@@ -199,7 +199,7 @@ The function [`blup_indexes()`](https://tiagoolivoto.github.io/metan/reference/b
 
 ```{r }
 index <- blup_indexes(model3)
-get_model_data(index) %>% round_cols()
+get_model_data(index) |> round_cols()
 ```
 
 
@@ -238,7 +238,7 @@ To compute all the stability statistics at once, we can use the function [`ge_st
 
 ```{r}
 stat_ge <- ge_stats(data_ge, ENV, GEN, REP, GY)
-get_model_data(stat_ge) %>% 
+get_model_data(stat_ge) |> 
   round_cols()
 ```
 
@@ -252,3 +252,4 @@ The multi-trait stability index (MTSI) was proposed by @Olivoto2019a and is used
 * If you encounter a clear bug, please file a minimal reproducible example on [github](https://github.com/nepem-ufsc/metan/issues)
 
 # References
+

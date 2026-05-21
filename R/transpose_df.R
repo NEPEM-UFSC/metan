@@ -25,7 +25,7 @@
 #'transpose_df(df)
 #' }
 transpose_df <- function(df){
-  df %>%
-    pivot_longer(-1) %>%
+  df |>
+    pivot_longer(-1) |>
     pivot_wider(names_from = 1, values_from = 3)
 }

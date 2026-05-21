@@ -93,7 +93,7 @@
 #'   standard deviation, standard error of mean and confidence interval is
 #'   returned.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @return An object of class `gg, ggplot`.
 #' @md
@@ -163,31 +163,31 @@ plot_bars <- function(.data,
                       verbose = FALSE,
                       plot_theme = theme_metan()) {
   if(!missing(order) && !order %in% c("asce", "desc")){
-    stop("Argument order must be one of 'asce' or 'desc'", call. = FALSE)
+    cli::cli_abort("Argument order must be one of 'asce' or 'desc'")
   }
   width.erbar <- ifelse(missing(width.erbar), width.bar/4, width.erbar)
   cl <- match.call()
   datac <-
-    .data %>%
-    as_factor({{x}}) %>%
-    select({{x}}, {{y}}) %>%
-    group_by({{x}}) %>%
+    .data |>
+    as_factor({{x}}) |>
+    select({{x}}, {{y}}) |>
+    group_by({{x}}) |>
     desc_stat({{y}}, stats = c("n, mean, sd.amo, ci.t, se"), level = level)
   if(errorbar == TRUE){
     if(stat.erbar == "ci"){
-      datac %<>% add_cols(max = mean + ci.t,
+      datac <- datac |> add_cols(max = mean + ci.t,
                           min = mean - ci.t)
     }
     if(stat.erbar == "sd"){
-      datac %<>% add_cols(max = mean + sd.amo,
+      datac <- datac |> add_cols(max = mean + sd.amo,
                           min = mean - sd.amo)
     }
     if(stat.erbar == "se"){
-      datac %<>% add_cols(max = mean + se,
+      datac <- datac |> add_cols(max = mean + se,
                           min = mean - se)
     }
   } else{
-    datac %<>% add_cols(max = mean,
+    datac <- datac |> add_cols(max = mean,
                         min = mean)
   }
   ylab <- ifelse(is.null(ylab), cl$y, ylab)
@@ -230,8 +230,8 @@ plot_bars <- function(.data,
   }
   if (!missing(lab.bar)) {
     if (length(lab.bar) > 1 & length(lab.bar) != nrow(datac)) {
-      stop("The labels must be either length 1 or the same as the levels of ",
-           paste(xlab), " (", nrow(datac), ")", call. = FALSE)
+      cli::cli_abort("The labels must be either length 1 or the same as the levels of ",
+           paste(xlab), " (", nrow(datac), ")")
     }
     p <- p + geom_text(aes(label = lab.bar, y = max),
                        vjust = lab.bar.vjust,
@@ -254,9 +254,9 @@ plot_bars <- function(.data,
           axis.text = element_text(size = size.text, family = fontfam, colour = "black"),
           axis.text.x = element_text(angle = lab.x.angle, vjust = lab.x.vjust, hjust = lab.x.hjust),
           axis.title = element_text(size = size.text, family = fontfam, colour = "black"),
-          axis.ticks = element_line(colour = "black", size = size.line),
+          axis.ticks = element_line(colour = "black", linewidth = size.line),
           plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")) +
-    theme(panel.border = element_rect(size = size.line)) +
+    theme(panel.border = element_rect(linewidth = size.line)) +
     labs(y = ylab, x = xlab) +
     scale_y_continuous(limits = y.lim,
                        breaks = y.breaks,
@@ -320,10 +320,10 @@ plot_factbars <- function(.data,
   width.erbar <- ifelse(missing(width.erbar), width.bar/4, width.erbar)
   cl <- match.call()
   datac <-
-    .data %>%
-    mutate(across(c(...), as.factor)) %>%
-    select(..., Y = {{resp}}) %>%
-    group_by(...) %>%
+    .data |>
+    mutate(across(c(...), as.factor)) |>
+    select(..., Y = {{resp}}) |>
+    group_by(...) |>
     summarise(N = n(),
               mean_var = mean(Y, na.rm = na.rm),
               sd = sd(Y, na.rm = na.rm),
@@ -333,19 +333,19 @@ plot_factbars <- function(.data,
   nam <- names(select(.data, ...))
   if(errorbar == TRUE){
     if(stat.erbar == "ci"){
-      datac %<>% add_cols(max = mean_var + ci,
+      datac <- datac |> add_cols(max = mean_var + ci,
                           min = mean_var - ci)
     }
     if(stat.erbar == "sd"){
-      datac %<>% add_cols(max = mean_var + sd.amo,
+      datac <- datac |> add_cols(max = mean_var + sd.amo,
                           min = mean_var - sd.amo)
     }
     if(stat.erbar == "se"){
-      datac %<>% add_cols(max = mean_var + se,
+      datac <- datac |> add_cols(max = mean_var + se,
                           min = mean_var - se)
     }
   } else{
-    datac %<>% add_cols(max = mean_var,
+    datac <- datac |> add_cols(max = mean_var,
                         min = mean_var)
   }
   if (length(nam) > 1) {
@@ -429,7 +429,7 @@ plot_factbars <- function(.data,
   }
   if (!missing(lab.bar)) {
     if (length(lab.bar) > 1 & length(lab.bar) != nrow(datac)) {
-      stop("The labels must be either length 1 or the same as the levels of ",
+      cli::cli_abort("The labels must be either length 1 or the same as the levels of ",
            paste(quos(...)), " (", nrow(datac), ")")
     }
     p <- p + geom_text(aes(label = lab.bar, y = max),
@@ -455,12 +455,12 @@ plot_factbars <- function(.data,
           axis.text = element_text(size = size.text, family = fontfam, colour = "black"),
           axis.text.x = element_text(angle = lab.x.angle, vjust = lab.x.vjust, hjust = lab.x.hjust),
           axis.title = element_text(size = size.text, family = fontfam, colour = "black"),
-          axis.ticks = element_line(colour = "black", size = size.line),
+          axis.ticks = element_line(colour = "black", linewidth = size.line),
           plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
           legend.title = element_blank(),
           legend.position = legend.position,
           legend.text = element_text(size = size.text, family = fontfam)) +
-    theme(panel.border = element_rect(size = size.line)) +
+    theme(panel.border = element_rect(linewidth = size.line)) +
     labs(y = ylab, x = xlab) +
     scale_y_continuous(limits = y.lim,
                        breaks = y.breaks,
@@ -471,4 +471,5 @@ plot_factbars <- function(.data,
   }
   return(p)
 }
+
 

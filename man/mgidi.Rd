@@ -103,13 +103,12 @@ desired gains, the statistics are computed for by strata.
 Computes the multi-trait genotype-ideotype distance index, MGIDI, (Olivoto
 and Nardino, 2020), used to select genotypes in plant breeding programs based
 on multiple traits.The MGIDI index is computed as follows:
-\loadmathjax
-\mjsdeqn{MGIDI_i = \sqrt{\sum\limits_{j = 1}^f(F_{ij} - {F_j})^2}}
+\deqn{MGIDI_i = \sqrt{\sum\limits_{j = 1}^f(F_{ij} - {F_j})^2}}
 
-where \mjseqn{MGIDI_i} is the multi-trait genotype-ideotype distance index
-for the \emph{i}th genotype; \mjseqn{F_{ij}} is the score of the \emph{i}th genotype in
+where \eqn{MGIDI_i} is the multi-trait genotype-ideotype distance index
+for the \emph{i}th genotype; \eqn{F_{ij}} is the score of the \emph{i}th genotype in
 the \emph{j}th factor (\emph{i = 1, 2, ..., g; j = 1, 2, ..., f}), being \emph{g} and \emph{f}
-the number of genotypes and factors, respectively, and \mjseqn{F_j} is the
+the number of genotypes and factors, respectively, and \eqn{F_j} is the
 \emph{j}th score of the ideotype. The genotype with the lowest MGIDI is then
 closer to the ideotype and therefore should presents desired values for all
 the analyzed traits.

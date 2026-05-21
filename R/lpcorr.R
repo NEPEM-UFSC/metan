@@ -34,11 +34,11 @@
 #' library(metan)
 #' partial1 <- lpcor(iris)
 #'
-#' # Alternatively using the pipe operator %>%
-#' partial2 <- iris %>% lpcor()
+#' # Alternatively using the pipe operator |>
+#' partial2 <- iris |> lpcor()
 #'
 #' # Using a correlation matrix
-#' partial3 <- cor(iris[1:4]) %>%
+#' partial3 <- cor(iris[1:4]) |>
 #'             lpcor(n = nrow(iris))
 #'
 #' # Select all numeric variables and compute the partial correlation
@@ -53,25 +53,25 @@ lpcor <- function(.data,
                   method = "pearson") {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(lpcor,
           n = n,
           method = method)
     return(set_class(results, c("lpcor", "lpcor_group", "tbl_df", "tbl",  "data.frame")))
   }
   if (!is.matrix(.data) && !is.data.frame(.data)) {
-    stop("The object 'x' must be a correlation matrix or a data.frame.")
+    cli::cli_abort("The object 'x' must be a correlation matrix or a data.frame.")
   }
   if (is.matrix(.data) && is.null(n)) {
-    stop("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
+    cli::cli_abort("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
   }
   if (is.data.frame(.data) && !is.null(n)) {
-    stop("You cannot informe the sample size because a data frame was used as input.")
+    cli::cli_abort("You cannot informe the sample size because a data frame was used as input.")
   }
   internal <- function(x) {
     if (is.matrix(x)) {
@@ -84,8 +84,7 @@ lpcor <- function(.data,
     nvar <- ncol(cor.x)
     df <- n - nvar
     if (df < 0) {
-      warning("The number of variables is higher than the number of individuals. Hypothesis testing will not be made.",
-              call. = FALSE)
+      cli::cli_warn("The number of variables is higher than the number of individuals. Hypothesis testing will not be made.")
     }
     m <- as.matrix(cor.x)
     X.resid <- -(solve_svd(m))
@@ -93,7 +92,7 @@ lpcor <- function(.data,
     X.resid <- cov2cor(X.resid)
     results <- data.frame(linear = as.vector(t(m)[lower.tri(m, diag = F)]))
     results <- suppressWarnings(
-      results %>%
+      results |>
         mutate(partial = as.vector(t(X.resid)[lower.tri(X.resid, diag = F)]),
                t = partial/(sqrt(1 - partial^2)) * sqrt(n - nvar),
                prob = 2 * (1 - pt(abs(t), df = df)))
@@ -101,7 +100,7 @@ lpcor <- function(.data,
     names <- colnames(x)
     combnam <- combn(names, 2, paste, collapse = " x ")
     results <- mutate(results,
-                      Pairs = names(sapply(combnam, names))) %>%
+                      Pairs = names(sapply(combnam, names))) |>
       select(Pairs, everything())
     return(list(linear.mat = m,
                 partial.mat = as.matrix(X.resid),
@@ -118,7 +117,7 @@ lpcor <- function(.data,
         has_text_in_num(dfs)
       }
     } else{
-      dfs <- select(.data, ...) %>%
+      dfs <- select(.data, ...) |>
         select_numeric_cols()
       if(has_na(dfs)){
         dfs <- remove_rows_na(dfs)
@@ -168,10 +167,10 @@ print.lpcor <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
   if(has_class(x, "lpcor_group")){
-    x %>%
-    mutate(name = map(data, ~.x %>% .[[3]])) %>%
-      unnest(cols = name) %>%
-      remove_cols(data) %>%
+    x |>
+    mutate(name = map(data, ~.x[[3]])) |>
+      unnest(cols = name) |>
+      remove_cols(data) |>
       print()
   } else{
     print(x[[3]])

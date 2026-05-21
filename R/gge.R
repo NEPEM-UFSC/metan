@@ -87,10 +87,10 @@
 #' # If we have a two-way table with the mean values for
 #' # genotypes and environments
 #'
-#' table <- make_mat(data_ge, GEN, ENV, GY) %>% round(2)
+#' table <- make_mat(data_ge, GEN, ENV, GY) |> round(2)
 #' table
-#' make_long(table) %>%
-#' gge(ENV, GEN, Y) %>%
+#' make_long(table) |>
+#' gge(ENV, GEN, Y) |>
 #' plot()
 #'}
 gge <- function(.data,
@@ -104,13 +104,13 @@ gge <- function(.data,
                 ...) {
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
     results <-
-      .data %>%
+      .data |>
       doo(gge,
           env = {{env}},
           gen = {{gen}},
@@ -122,23 +122,23 @@ gge <- function(.data,
     return(set_class(results, c("tbl_df",  "gge_group", "tbl",  "data.frame")))
   } else{
     factors  <-
-      .data %>%
-      select({{env}}, {{gen}}) %>%
+      .data |>
+      select({{env}}, {{gen}}) |>
       mutate(across(everything(), as.factor))
-    vars <- .data %>% select({{resp}}, -names(factors))
-    vars %<>% select_numeric_cols()
-    factors %<>% set_names("ENV", "GEN")
+    vars <- .data |> select({{resp}}, -names(factors))
+    vars <- vars |> select_numeric_cols()
+    factors <- factors |> set_names("ENV", "GEN")
     listres <- list()
     nvar <- ncol(vars)
     for (var in 1:nvar) {
       ge_mat <-
-        factors %>%
-        mutate(Y = vars[[var]]) %>%
-        make_mat(GEN, ENV, Y) %>%
+        factors |>
+        mutate(Y = vars[[var]]) |>
+        make_mat(GEN, ENV, Y) |>
         as.matrix()
       if(has_na(ge_mat)){
         ge_mat <- impute_missing_val(ge_mat, verbose = FALSE, ...)$.data
-        warning("Data imputation used to fill the GxE matrix", call. = FALSE)
+        warning("Data imputation used to fill the GxE matrix")
       }
       grand_mean <- mean(ge_mat)
       mean_env <- colMeans(ge_mat)
@@ -147,10 +147,10 @@ gge <- function(.data,
       labelgen <- rownames(ge_mat)
       labelenv <- colnames(ge_mat)
       if (any(is.na(ge_mat))) {
-        stop("missing data in input data frame")
+        cli::cli_abort("missing data in input data frame")
       }
       if (any(apply(ge_mat, 2, is.numeric) == FALSE)) {
-        stop("not all columns are of class 'numeric'")
+        cli::cli_abort("not all columns are of class 'numeric'")
       }
       if (!(centering %in% c("none", "environment", "global", "double") |
             centering %in% 0:3)) {
@@ -311,7 +311,7 @@ gge <- function(.data,
 #'   automatically generated information in the plot such as singular value
 #'   partitioning, scaling and centering.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param ... Currently not used.
 #' @return A ggplot2-based biplot.
@@ -360,11 +360,11 @@ plot.gge <- function(x,
                      size.text.gen = 3.5,
                      size.text.env = 3.5,
                      size.text.lab = 12,
-                     size.text.win = 4.5,
+                     size.text.win = 5,
                      size.line = 0.5,
                      axis_expand = 1.2,
                      title = TRUE,
-                     plot_theme = theme_metan(),
+                     plot_theme = theme_metan_minimal(),
                      ...) {
   if(is.null(leg.lab)){
     leg.lab <- case_when(
@@ -377,7 +377,7 @@ plot.gge <- function(x,
   }
   model <- x[[var]]
   if (!has_class(model, c("gge", "gtb", "gytb"))) {
-    stop("The model must be of class 'gge'")
+    cli::cli_abort("The model must be of class {.cls gge}, {.cls gtb}, or {.cls gytb}.")
   }
   coord_gen <- model$coordgen[, c(1, 2)]
   coord_env <- model$coordenv[, c(1, 2)]
@@ -392,7 +392,7 @@ plot.gge <- function(x,
   ngen <- nrow(coord_gen)
   nenv <- nrow(coord_env)
   if (centering == "none") {
-    stop("It is not possible to create a GGE biplot with a model produced without centering")
+    cli::cli_abort("It is not possible to create a GGE biplot with a model produced without centering.")
   }
   plotdata <- data.frame(rbind(data.frame(coord_gen,
                                           type = "genotype",
@@ -436,7 +436,7 @@ plot.gge <- function(x,
       P2 <- P1 +
         geom_segment(xend = 0,
                      yend = 0,
-                     size = size.line,
+                     linewidth = size.line,
                      aes(col = type),
                      data = plotdata,
                      show.legend = FALSE)
@@ -444,14 +444,14 @@ plot.gge <- function(x,
       P2 <- P1 +
         geom_segment(xend = 0,
                      yend = 0,
-                     size = size.line,
+                     linewidth = size.line,
                      col = alpha(col.line, col.alpha),
                      data = subset(plotdata, type == "environment"))
     }
     P2 <- P2 +
       geom_segment(xend = 0,
                    yend = 0,
-                   size = size.line,
+                   linewidth = size.line,
                    col = alpha(col.line, col.alpha),
                    data = subset(plotdata, type == "environment")) +
       geom_point(aes(d1, d2, fill = type, shape = type),
@@ -485,7 +485,7 @@ plot.gge <- function(x,
         has_class(model, "gytb") ~ "GYT Biplot",
         has_class(model, "gtb") ~ "GT Biplot",
         TRUE ~ "GGE biplot"
-      ) %>%
+      ) |>
         ggtitle()
     }
   }
@@ -507,23 +507,24 @@ plot.gge <- function(x,
       geom_segment(aes(xend = x1_x, yend = x1_y),
                    color = col.gen,
                    linetype = line.type.gen,
-                   size = size.line,
+                   linewidth = size.line,
                    data = subset(plotdata, type == "genotype")) +
       geom_abline(intercept = 0,
                   slope = med2/med1,
                   color = col.line,
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_abline(intercept = 0,
                   slope = -med1/med2,
                   color = col.line,
-                  size = size.line) +
-      geom_segment(x = 0,
-                   y = 0,
-                   xend = med1,
-                   yend = med2,
-                   arrow = arrow(length = unit(0.3, "cm")),
-                   size = size.line,
-                   color = col.line) +
+                  linewidth = size.line) +
+      annotate("segment",
+               x = 0,
+               y = 0,
+               xend = med1,
+               yend = med2,
+               arrow = arrow(length = unit(0.3, "cm")),
+               linewidth = size.line,
+               color = col.line) +
       geom_text(aes(color = type,
                     label = label,
                     size = type),
@@ -533,7 +534,7 @@ plot.gge <- function(x,
         has_class(model, "gytb") ~ "Average tester coordination view of the GYT biplot",
         has_class(model, "gtb") ~ "Average tester coordination form of the GT biplot",
         TRUE ~ "Mean vs. Stability"
-      ) %>%
+      ) |>
         ggtitle()
     }
   }
@@ -572,22 +573,22 @@ plot.gge <- function(x,
     colnames(segs) <- NULL
     segs <- data.frame(segs)
     colnames(polign) <- c("X1", "X2")
-    winners <- plotdata[plotdata$type == "genotype", ][indice[-1], ] %>% add_cols(win = "yes")
-    others <- anti_join(plotdata, winners, by = "label") %>% add_cols(win = "no")
+    winners <- plotdata[plotdata$type == "genotype", ][indice[-1], ] |> add_cols(win = "yes")
+    others <- anti_join(plotdata, winners, by = "label") |> add_cols(win = "no")
     df_winners <- rbind(winners, others)
     P2 <- P1 +
       geom_polygon(data = polign,
                    aes(x = X1, y = X2),
                    fill = NA,
                    col = col.gen,
-                   size = size.line) +
+                   linewidth = size.line) +
       geom_segment(data = segs,
                    aes(x = X1, y = X2),
                    xend = 0,
                    yend = 0,
                    linetype = line.type.gen,
                    color = col.gen,
-                   size = size.line) +
+                   linewidth = size.line) +
       geom_point(data = subset(df_winners, win == "no"),
                  aes(d1, d2, fill = type, shape = type),
                  size = size.shape,
@@ -646,7 +647,7 @@ plot.gge <- function(x,
         has_class(x, "gytb") ~ "The which-won-where view of the GYT biplot",
         has_class(x, "gtb") ~ "The which-won-where view of the GT biplot",
         TRUE ~ "Which-won-where view of the GGE biplot"
-      ) %>%
+      ) |>
         ggtitle()
     }
   }
@@ -667,20 +668,21 @@ plot.gge <- function(x,
                    end = end),
                color = col.circle,
                alpha = col.alpha.circle,
-               size = size.line,
+               linewidth = size.line,
                inherit.aes = F,
                na.rm = TRUE) +
-      geom_segment(xend = 0,
-                   yend = 0,
-                   x = mean(coord_env[, 1]),
-                   y = mean(coord_env[, 2]),
-                   arrow = arrow(ends = "first", length = unit(0.1, "inches")),
-                   size = size.line,
-                   color = col.line) +
+      annotate("segment",
+               x = mean(coord_env[, 1]),
+               y = mean(coord_env[, 2]),
+               xend = 0,
+               yend = 0,
+               arrow = arrow(ends = "first", length = unit(0.1, "inches")),
+               linewidth = size.line,
+               color = col.line) +
       geom_abline(intercept = 0,
                   slope = mean(coord_env[, 2])/mean(coord_env[, 1]),
                   color = col.line,
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_point(aes(d1, d2, fill = type, shape = type),
                  size = size.shape,
                  stroke = size.stroke,
@@ -692,7 +694,7 @@ plot.gge <- function(x,
                    xend = 0,
                    yend = 0,
                    color = alpha(col.line, col.alpha),
-                   size = size.line) +
+                   linewidth = size.line) +
       {if(repel)geom_text_repel(aes(col = type, label = label, size = type),
                                 show.legend = FALSE,
                                 color = c(rep(col.gen, ngen), rep(col.env, nenv)),
@@ -710,7 +712,7 @@ plot.gge <- function(x,
   # Examine an environment
   if (type == 5) {
     if (!sel_env %in% labelenv) {
-      stop(paste("The environment", sel_env, "is not in the list of environment labels"))
+      cli::cli_abort("The environment {.val {sel_env}} is not in the list of environment labels.")
     }
     venvironment <- labelenv == sel_env
     x1 <- NULL
@@ -735,15 +737,15 @@ plot.gge <- function(x,
       geom_abline(slope = coord_env[venvironment, 2]/coord_env[venvironment, 1],
                   intercept = 0,
                   color = alpha(col.line, col.alpha),
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_abline(slope = -coord_env[venvironment, 1]/coord_env[venvironment, 2],
                   intercept = 0,
                   col = alpha(col.line, col.alpha),
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_segment(data = subset(plotdata, type == "environment" & label == sel_env),xend = 0,
                    yend = 0,
                    col = alpha(col.line, col.alpha),
-                   size = size.line,
+                   linewidth = size.line,
                    arrow = arrow(ends = "first", length = unit(0.5, "cm"))) +
       geom_text(data = subset(plotdata, type == "genotype"),
                 aes(label = label),
@@ -782,11 +784,11 @@ plot.gge <- function(x,
     P2 <- P1 + geom_abline(intercept = 0,
                            slope = med2/med1,
                            col = col.line,
-                           size = size.line) +
+                           linewidth = size.line) +
       geom_abline(intercept = 0,
                   slope = -med1/med2,
                   color = col.line,
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_arc(data = circles,
                aes(r = radio,
                    x0 = x0,
@@ -797,13 +799,14 @@ plot.gge <- function(x,
                alpha = col.alpha.circle,
                inherit.aes = F,
                na.rm = TRUE) +
-      geom_segment(x = 0,
-                   y = 0,
-                   xend = xcoord,
-                   yend = ycoord,
-                   arrow = arrow(length = unit(0.15, "inches")),
-                   size = size.line,
-                   color = col.line) +
+      annotate("segment",
+               x = 0,
+               y = 0,
+               xend = xcoord,
+               yend = ycoord,
+               arrow = arrow(length = unit(0.15, "inches")),
+               linewidth = size.line,
+               color = col.line) +
       geom_point(fill = col.env,
                  shape = shape.env,
                  size = size.shape,
@@ -825,10 +828,12 @@ plot.gge <- function(x,
                            col = col.env,
                            hjust = "outward",
                            vjust = "outward")} +
-      geom_point(aes(xcoord, ycoord),
-                 shape = 1,
-                 size = 4,
-                 color = col.stroke)
+      annotate("point",
+               x = xcoord,
+               y = ycoord,
+               shape = 1,
+               size = 4,
+               color = col.stroke)
     if (title == TRUE) {
       ggt <- ggtitle("Ranking Environments")
     }
@@ -836,7 +841,7 @@ plot.gge <- function(x,
   # Examine a genotype
   if (type == 7) {
     if (!sel_gen %in% labelgen) {
-      stop(paste("The genotype", sel_gen, "is not in the list of genotype labels"))
+      cli::cli_abort("The genotype {.val {sel_gen}} is not in the list of genotype labels.")
     }
     vgenotype <- labelgen == sel_gen
     x1 <- NULL
@@ -862,17 +867,17 @@ plot.gge <- function(x,
       geom_abline(slope = coord_gen[vgenotype, 2]/coord_gen[vgenotype, 1],
                   intercept = 0,
                   color = alpha(col.gen, col.alpha),
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_abline(slope = -coord_gen[vgenotype, 1]/coord_gen[vgenotype, 2],
                   intercept = 0,
                   col = alpha(col.gen, col.alpha),
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_segment(data = subset(plotdata, type == "genotype" & label == sel_gen),
                    xend = 0,
                    yend = 0,
                    col = alpha(col.gen, col.alpha),
                    arrow = arrow(ends = "first", length = unit(0.5, "cm")),
-                   size = size.line) +
+                   linewidth = size.line) +
       geom_text(data = subset(plotdata, type == "environment"),
                 aes(label = label),
                 show.legend = FALSE,
@@ -918,11 +923,11 @@ plot.gge <- function(x,
       geom_abline(intercept = 0,
                   slope = med2/med1,
                   col = col.gen,
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_abline(intercept = 0,
                   slope = -med1/med2,
                   color = col.gen,
-                  size = size.line) +
+                  linewidth = size.line) +
       geom_arc(data = circles,
                aes(r = radio,
                    x0 = x0,
@@ -931,15 +936,17 @@ plot.gge <- function(x,
                    end = pi * 2),
                color = col.circle,
                alpha = col.alpha.circle,
-               size = size.line,
-               inherit.aes = F) +
-      geom_segment(x = 0,
-                   y = 0,
-                   xend = coordx,
-                   yend = coordy,
-                   arrow = arrow(length = unit(0.15, "inches")),
-                   size = size.line,
-                   color = col.gen) +
+               linewidth = size.line,
+               inherit.aes = F,
+               na.rm = TRUE) +
+      annotate("segment",
+               x = 0,
+               y = 0,
+               xend = coordx,
+               yend = coordy,
+               arrow = arrow(length = unit(0.15, "inches")),
+               linewidth = size.line,
+               color = col.gen) +
       geom_point(aes(d1, d2, fill = type, shape = type),
                  size = size.shape,
                  stroke = size.stroke,
@@ -957,10 +964,12 @@ plot.gge <- function(x,
                            color = c(rep(col.gen, ngen), rep(col.env, nenv)),
                            hjust = "outward",
                            vjust = "outward")} +
-      geom_point(aes(coordx, coordy),
-                 shape = 1,
-                 color = col.stroke,
-                 size = 3)
+      annotate("point",
+               x = coordx,
+               y = coordy,
+               shape = 1,
+               color = col.stroke,
+               size = 3)
     if (title == TRUE) {
       ggt <- ggtitle("Ranking Genotypes")
     }
@@ -968,55 +977,65 @@ plot.gge <- function(x,
   # Compare two genotypes
   if (type == 9) {
     if (!sel_gen1 %in% labelgen) {
-      stop(paste("The genotype", sel_gen1, "is not in the list of genotype labels"))
+      cli::cli_abort("The genotype {.val {sel_gen1}} is not in the list of genotype labels.")
     }
     if (!sel_gen2 %in% labelgen) {
-      stop(paste("The genotype", sel_gen2, "is not in the list of genotype labels"))
+      cli::cli_abort("The genotype {.val {sel_gen2}} is not in the list of genotype labels.")
     }
     if (sel_gen1 == sel_gen2) {
-      stop(paste("It is not possible to compare a genotype to itself"))
+      cli::cli_abort("It is not possible to compare genotype {.val {sel_gen1}} to itself.")
     }
-    vgenotype1 <- labelgen == sel_gen1
-    vgenotype2 <- labelgen == sel_gen2
+
+    # 1. Safely extract coordinates from the actual plotdata to avoid scale mismatches
+    g1_x <- plotdata$d1[plotdata$label == sel_gen1 & plotdata$type == "genotype"]
+    g1_y <- plotdata$d2[plotdata$label == sel_gen1 & plotdata$type == "genotype"]
+    g2_x <- plotdata$d1[plotdata$label == sel_gen2 & plotdata$type == "genotype"]
+    g2_y <- plotdata$d2[plotdata$label == sel_gen2 & plotdata$type == "genotype"]
+
+    # 2. Calculate the connecting vector delta
+    dx <- g1_x - g2_x
+    dy <- g1_y - g2_y
+
+    # 3. Calculate the true perpendicular slope safely protecting against division by zero
+    perp_slope <- if (dy == 0) Inf else -dx / dy
+
     P2 <- P1 +
-      geom_segment(x = plotdata$d1[plotdata$label == sel_gen1 & plotdata$type == "genotype"],
-                   xend = plotdata$d1[plotdata$label == sel_gen2 & plotdata$type == "genotype"],
-                   y = plotdata$d2[plotdata$label == sel_gen1 & plotdata$type == "genotype"],
-                   yend = plotdata$d2[plotdata$label == sel_gen2 & plotdata$type == "genotype"],
-                   col = col.gen,
-                   size = size.line) +
-      geom_abline(intercept = 0,
-                  slope = -(coord_gen[vgenotype1, 1] - coord_gen[vgenotype2, 1])/
-                    (coord_gen[vgenotype1, 2] - coord_gen[vgenotype2, 2]),
-                  color = col.gen,
-                  size = size.line) +
-      geom_text(aes(label = label),
-                show.legend = FALSE,
+      # Enforce strict 1:1 aspect ratio so perpendicular lines actually look perpendicular!
+      coord_fixed(ratio = 1) +
+
+      # Segment connecting the two genotypes
+      geom_segment(x = g1_x, xend = g2_x, y = g1_y, yend = g2_y,
+                   col = col.gen, linewidth = size.line, linetype = "dashed") +
+
+      # Perpendicular line passing perfectly through the origin
+      geom_abline(intercept = 0, slope = perp_slope,
+                  color = col.gen, linewidth = size.line) +
+
+      # Environment Text
+      geom_text(aes(label = label), show.legend = FALSE,
                 data = subset(plotdata, type == "environment"),
-                col = col.env,
-                size = size.text.env) +
+                col = col.env, size = size.text.env) +
+
+      # Non-selected Genotypes (Faded)
       geom_text(data = subset(plotdata, type == "genotype" & !label %in% c(sel_gen1, sel_gen2)),
-                aes(label = label),
-                show.legend = FALSE,
-                col = alpha(col.gen, alpha = col.alpha),
-                size = size.text.gen) +
+                aes(label = label), show.legend = FALSE,
+                col = alpha(col.gen, alpha = col.alpha), size = size.text.gen) +
+
+      # Selected Genotypes Text (Highlighted)
       geom_text(data = subset(plotdata, type == "genotype" & label %in% c(sel_gen1, sel_gen2)),
-                aes(label = label),
-                show.legend = FALSE,
-                col = col.gen,
-                size = size.text.win,
-                hjust = "outward",
-                vjust = "outward") +
+                aes(label = label), show.legend = FALSE,
+                col = col.gen, size = size.text.win,
+                hjust = "outward", vjust = "outward") +
+
+      # Selected Genotypes Points
       geom_point(data = subset(plotdata, type == "genotype" & label %in% c(sel_gen1, sel_gen2)),
-                 shape = shape.gen,
-                 fill = col.gen,
-                 color = col.stroke,
-                 size = size.shape) +
+                 shape = shape.gen, fill = col.gen, color = col.stroke, size = size.shape) +
       plot_theme
+
     if (title == TRUE) {
       ggt <- ggtitle(paste("Comparison of Genotype", sel_gen1, "with Genotype", sel_gen2))
     }
-  }
+}
   # Relationship among environments
   if (type == 10) {
     P2 <- P1 +
@@ -1024,7 +1043,7 @@ plot.gge <- function(x,
                    xend = 0,
                    yend = 0,
                    col = alpha(col.line, col.alpha),
-                   size = size.line) +
+                   linewidth = size.line) +
       geom_point(data = subset(plotdata, type == "environment"),
                  shape = shape.env,
                  fill = col.env,
@@ -1118,14 +1137,14 @@ plot.gge <- function(x,
 #'
 predict.gge <- function(object, naxis = 2, output = "wide", ...) {
   if (has_class(object, "gtb")) {
-    stop("The object must be of class 'gge'.")
+    cli::cli_abort("The object must be of class 'gge'.")
   }
   listres <- list()
   varin <- 1
   for (var in 1:length(object)) {
     objectin <- object[[var]]
     if (naxis > min(dim(objectin$coordenv))) {
-      stop("The number of principal components cannot be greater than min(g, e), in this case ",
+      cli::cli_abort("The number of principal components cannot be greater than min(g, e), in this case ",
            min(dim(objectin$coordenv)))
     }
     # SVP
@@ -1168,11 +1187,13 @@ predict.gge <- function(object, naxis = 2, output = "wide", ...) {
     }
     if (output == "long") {
       temp <-
-        pred %>%
-        make_long() %>%
+        pred |>
+        make_long() |>
         as_tibble()
     }
     listres[[paste(names(object[var]))]] <- temp
   }
   return(listres)
 }
+
+

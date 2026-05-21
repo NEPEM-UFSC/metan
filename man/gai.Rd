@@ -36,9 +36,8 @@ tibble with the following columns is returned.
 
 Performs a stability analysis based on the geometric mean (GAI), according to
 the following model (Mohammadi and Amri, 2008):
-\loadmathjax
-\mjsdeqn{GAI = \sqrt[E]{{\mathop {\bar Y}\nolimits_1  + \mathop {\bar Y}\nolimits_2  + ... + \mathop {\bar Y}\nolimits_i }}}
-where \mjseqn{\bar Y_1}, \mjseqn{\bar Y_2}, and \mjseqn{\bar Y_i} are
+\deqn{GAI = \sqrt[E]{{\mathop {\bar Y}\nolimits_1  + \mathop {\bar Y}\nolimits_2  + ... + \mathop {\bar Y}\nolimits_i }}}
+where \eqn{\bar Y_1}, \eqn{\bar Y_2}, and \eqn{\bar Y_i} are
 the mean yields of the first, second and \emph{i}-th genotypes across
 environments, and E is the number of environments
 }

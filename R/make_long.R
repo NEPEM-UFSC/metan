@@ -36,28 +36,28 @@
 #'
 make_long <- function(mat, gen_in = "rows") {
   if (!gen_in %in% c("rows", "cols")) {
-    stop("The argument 'gen_in' must be one of the 'rows' or 'cols'.")
+    cli::cli_abort("The argument 'gen_in' must be one of the 'rows' or 'cols'.")
   }
   if (is.matrix(mat)) {
     mat <- as.data.frame(mat)
   }
   if (!has_rownames(mat) == TRUE) {
-    stop("The object in .data has no row names.")
+    cli::cli_abort("The object in .data has no row names.")
   }
   if (gen_in == "rows") {
     data <-
-      mat %>%
-      rownames_to_column("GEN") %>%
-      pivot_longer(names_to = "ENV", values_to = "Y", -GEN)  %>%
-      reorder_cols(ENV, .before = "GEN") %>%
+      mat |>
+      rownames_to_column("GEN") |>
+      pivot_longer(names_to = "ENV", values_to = "Y", -GEN)  |>
+      reorder_cols(ENV, .before = "GEN") |>
       arrange(ENV, GEN)
   }
   if (gen_in == "cols") {
     data <-
-      mat %>%
-      rownames_to_column("ENV") %>%
-      pivot_longer(names_to = "GEN", values_to = "Y", -ENV) %>%
-      reorder_cols(ENV, .before = "GEN") %>%
+      mat |>
+      rownames_to_column("ENV") |>
+      pivot_longer(names_to = "GEN", values_to = "Y", -ENV) |>
+      reorder_cols(ENV, .before = "GEN") |>
       arrange(ENV, GEN)
   }
   return(as_tibble(data))

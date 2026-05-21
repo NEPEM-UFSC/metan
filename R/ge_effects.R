@@ -40,19 +40,19 @@ ge_effects <- function(.data,
                        type = "ge",
                        verbose = TRUE) {
   if(!type  %in% c("ge", "gge")){
-    stop("Invalid value for the argument 'type': It must be either 'ge' or 'gge'", call. = FALSE)
+    cli::cli_abort("Invalid value for the argument 'type': It must be either 'ge' or 'gge'")
   }
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>% select({{resp}}, -names(factors))
-  vars %<>% select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  vars <- .data |> select({{resp}}, -names(factors))
+  vars <- vars |> select_numeric_cols()
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -60,16 +60,16 @@ ge_effects <- function(.data,
     }
     data <- mean_by(data, ENV, GEN, na.rm = TRUE)
     if(type == "ge"){
-      effects <- data %>%
-        mutate(ge = residuals(lm(Y ~ ENV + GEN, data = data))) %>%
-        make_mat(GEN, ENV, ge) %>%
-        rownames_to_column("GEN") %>%
+      effects <- data |>
+        mutate(ge = residuals(lm(Y ~ ENV + GEN, data = data))) |>
+        make_mat(GEN, ENV, ge) |>
+        rownames_to_column("GEN") |>
         as_tibble()
     } else{
-      effects <- data %>%
-        mutate(gge = residuals(lm(Y ~ ENV, data = data))) %>%
-        make_mat(GEN, ENV, gge)    %>%
-        rownames_to_column("GEN") %>%
+      effects <- data |>
+        mutate(gge = residuals(lm(Y ~ ENV, data = data))) |>
+        make_mat(GEN, ENV, gge)    |>
+        rownames_to_column("GEN") |>
         as_tibble()
     }
       listres[[paste(names(vars[var]))]] <- effects
@@ -92,7 +92,7 @@ ge_effects <- function(.data,
 #' @param var The variable to plot. Defaults to `var = 1` the first
 #'   variable of `x`.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param x.lab The label of x-axis. Each plot has a default value. New
 #'   arguments can be inserted as `x.lab = "my label"`.
@@ -114,10 +114,10 @@ ge_effects <- function(.data,
 #' plot(ge_eff)
 #' }
 #'
-plot.ge_effects <- function(x, var = 1, plot_theme = theme_metan(), x.lab = NULL, y.lab = NULL,
+plot.ge_effects <- function(x, var = 1, plot_theme = theme_metan_minimal(), x.lab = NULL, y.lab = NULL,
                             leg.position = "right", size.text = 12, ...){
-  data <- x[[var]] %>%
-    column_to_rownames("GEN") %>%
+  data <- x[[var]] |>
+    column_to_rownames("GEN") |>
     make_long()
   names <- names(data)
   if (is.null(y.lab) == FALSE) {
@@ -156,3 +156,4 @@ plot.ge_effects <- function(x, var = 1, plot_theme = theme_metan(), x.lab = NULL
   return(p)
 
 }
+

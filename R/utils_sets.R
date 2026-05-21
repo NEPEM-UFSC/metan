@@ -35,7 +35,7 @@
 #'
 #' # Operations with data frames
 #' # Add a row id for better understanding
-#' sets <- data_ge %>% add_row_id()
+#' sets <- data_ge |> add_row_id()
 #'
 #' set_1 <- sets[1:5,]
 #' set_2 <- sets[2:6,]
@@ -84,10 +84,10 @@ set_helper <- function(..., pairs = FALSE, fun = intersect){
     }
   }
   if (length(sets) <= 1) {
-    stop("The list must contain at least 2 vectors.", call. = FALSE)
+    cli::cli_abort("The list must contain at least 2 vectors.")
   }
   if (!all_df_in_list(sets) & length(unique(sapply(sets, class))) != 1) {
-    stop("Vectors must be in the same class.", call. = FALSE)
+    cli::cli_abort("Vectors must be in the same class.")
   }
   if(is.null(names(sets))){
     names(sets) <- paste("set", seq_len(length(sets)), sep = "_")

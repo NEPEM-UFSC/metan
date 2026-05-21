@@ -2,8 +2,7 @@
 % Please edit documentation in R/acv.R
 \name{acv}
 \alias{acv}
-\title{Adjusted Coefficient of Variation
-\loadmathjax}
+\title{Adjusted Coefficient of Variation}
 \usage{
 acv(mean, var, na.rm = FALSE)
 }
@@ -32,15 +31,15 @@ A tibble with the following columns
 
 Computes the scale-adjusted coefficient of variation,
 \emph{acv}, (Doring and Reckling, 2018) to account for the systematic
-dependence of \mjseqn{\sigma^2} from \mjseqn{\mu}. The \emph{acv} is
+dependence of \eqn{\sigma^2} from \eqn{\mu}. The \emph{acv} is
 computed as follows:
-\mjsdeqn{acv = \frac{\sqrt{10^{\tilde v_i}}}{\mu_i}\times 100}
-where \mjseqn{\tilde v_i} is the adjusted logarithm of the variance
+\deqn{acv = \frac{\sqrt{10^{\tilde v_i}}}{\mu_i}\times 100}
+where \eqn{\tilde v_i} is the adjusted logarithm of the variance
 computed as:
-\mjsdeqn{\tilde v_i = a + (b - 2)\frac{1}{n}\sum m_i + 2m_i + e_i}
-being \mjseqn{a} and \mjseqn{b} the coefficients of the linear regression for
-\mjseqn{log_{10}} of the variance over the \mjseqn{log_{10}} of the mean;
-\mjseqn{ m_i} is the \mjseqn{log_{10}} of the mean, and \mjseqn{ e_i} is the
+\deqn{\tilde v_i = a + (b - 2)\frac{1}{n}\sum m_i + 2m_i + e_i}
+being \eqn{a} and \eqn{b} the coefficients of the linear regression for
+\eqn{log_{10}} of the variance over the \eqn{log_{10}} of the mean;
+\eqn{ m_i} is the \eqn{log_{10}} of the mean, and \eqn{ e_i} is the
 Power Law Residuals (POLAR), i.e., the residuals for the previously described
 regression.
 }

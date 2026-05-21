@@ -7,7 +7,7 @@
 \method{plot}{can_cor}(
   x,
   type = 1,
-  plot_theme = theme_metan(),
+  plot_theme = theme_metan_minimal(),
   size.tex.lab = 12,
   size.tex.pa = 3.5,
   x.lab = NULL,
@@ -37,7 +37,7 @@ produce a plot with the scores of the variables in the first group,
 second group, or \code{type = 4} to produce a circle of correlations.}
 
 \item{plot_theme}{The graphical theme of the plot. Default is
-\code{plot_theme = theme_metan()}. For more details,see
+\code{plot_theme = theme_metan_minimal()}. For more details,see
 \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 
 \item{size.tex.lab}{The size of the text in axis text and labels.}
@@ -108,9 +108,9 @@ cc1 = can_corr(data_ge2,
 plot(cc1, 2)
 
 cc2 <-
-data_ge2 \%>\%
-mean_by(GEN) \%>\%
-column_to_rownames("GEN") \%>\%
+data_ge2 |>
+mean_by(GEN) |>
+column_to_rownames("GEN") |>
 can_corr(FG = c(PH, EH, EP),
                SG = c(EL, ED, CL, CD, CW, KW, NR))
 plot(cc2, 2, labels = TRUE)

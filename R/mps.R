@@ -180,14 +180,14 @@ mps <- function(.data,
 
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
     if(!missing(block)){
       results <-
-        .data %>%
+        .data |>
         doo(mps,
             env = {{env}},
             gen = {{gen}},
@@ -203,7 +203,7 @@ mps <- function(.data,
             verbose = verbose)
     } else{
       results <-
-        .data %>%
+        .data |>
         doo(mps,
             env = {{env}},
             gen = {{gen}},
@@ -221,14 +221,14 @@ mps <- function(.data,
   }
   stab <- c("waasb", "ecovalence", "hmgv", "s2di", "r2", "rmse", "wi", "polar", "acv", "pi", "gai", "s1", "s2", "s3", "s6", "n1", "n2", "n3", "n4", "asv", "ev", "za", "waas", "shukla")
   if(!stability %in%  stab){
-    stop("`stability` must be one of the ", paste(stab, collapse = ", "), call. = FALSE)
+    cli::cli_abort("`stability` must be one of the {.val {stab}}")
   }
   if(is.numeric(ideotype_mper)){
-    stop("Using a numeric vector in `ideotype_mper` is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'ideotype_mper = c(100, 100, 0)'.\nNew code: 'ideotype_mper = c(\"h, h, l\")", call. = FALSE)
+    cli::cli_abort("Using a numeric vector in `ideotype_mper` is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'ideotype_mper = c(100, 100, 0)'.\nNew code: 'ideotype_mper = c(\"h, h, l\")")
   }
 
   if(is.numeric(ideotype_stab)){
-    stop("Using a numeric vector in `ideotype_stab` is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'ideotype_stab = c(100, 100, 0)'.\nNew code: 'ideotype_stab = c(\"h, h, l\")", call. = FALSE)
+    cli::cli_abort("Using a numeric vector in `ideotype_stab` is deprecated as of metan 1.9.0. use 'h' or 'l' instead.\nOld code: 'ideotype_stab = c(100, 100, 0)'.\nNew code: 'ideotype_stab = c(\"h, h, l\")")
   }
   if(missing(block)){
     mod <-
@@ -252,13 +252,13 @@ mps <- function(.data,
   }
   # mean performance
   observed <-
-    gmd(mod, "data", verbose = FALSE) %>%
-    mean_by(GEN) %>%
+    gmd(mod, "data", verbose = FALSE) |>
+    mean_by(GEN) |>
     column_to_rownames("GEN")
   mperf <-
     switch(performance,
-           blupg =  gmd(mod, "blupg", verbose = FALSE) %>% column_to_rownames("GEN"),
-           blueg =  gmd(mod, "blueg", verbose = FALSE) %>% column_to_rownames("GEN")
+           blupg =  gmd(mod, "blupg", verbose = FALSE) |> column_to_rownames("GEN"),
+           blueg =  gmd(mod, "blueg", verbose = FALSE) |> column_to_rownames("GEN")
     )
   nvar <- ncol(mperf)
   if(is.null(ideotype_mper)){
@@ -267,15 +267,14 @@ mps <- function(.data,
     names(ideotype.D) <- names(data)
   } else{
     rescaled <-
-      unlist(strsplit(ideotype_mper, split="\\s*(\\s|,)\\s*")) %>%
+      unlist(strsplit(ideotype_mper, split="\\s*(\\s|,)\\s*")) |>
       all_lower_case()
     if (length(rescaled) != ncol(mperf)) {
-      warning("Invalid length in `ideotype_mper`. Setting `ideotype_mper = '", ideotype_mper[[1]],
-              "'` to all the ", nvar, " variables.", call. = FALSE)
+      cli::cli_warn("Invalid length in `ideotype_mper`. Setting `ideotype_mper = '{ideotype_mper[[1]]}'` to all the {nvar} variables.")
       rescaled <- replicate(nvar, ideotype_mper[[1]])
     }
     if(!all(rescaled %in% c("h", "l", "m"))){
-      stop("argument `ideotype_mper` must have 'h', 'l', or 'm' only", call. = FALSE)
+      cli::cli_abort("argument `ideotype_mper` must have 'h', 'l', or 'm' only")
     }
     ideotype.D <- ifelse(rescaled == "m", 50, 100)
     names(ideotype.D) <- colnames(mperf)
@@ -301,8 +300,8 @@ mps <- function(.data,
                            gen = {{gen}},
                            rep = {{rep}},
                            resp = {{resp}},
-                           verbose = FALSE) %>%
-             gmd("ShuklaVar", verbose = FALSE) %>%
+                           verbose = FALSE) |>
+             gmd("ShuklaVar", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # AMMI-based indexes
            waas = performs_ammi(.data,
@@ -310,119 +309,119 @@ mps <- function(.data,
                                 gen = {{gen}},
                                 rep = {{rep}},
                                 resp = {{resp}},
-                                verbose = FALSE) %>%
-             ammi_indexes() %>%
-             gmd("WAAS", verbose = FALSE) %>%
+                                verbose = FALSE) |>
+             ammi_indexes() |>
+             gmd("WAAS", verbose = FALSE) |>
              column_to_rownames("GEN"),
            za = performs_ammi(.data,
                               env = {{env}},
                               gen = {{gen}},
                               rep = {{rep}},
                               resp = {{resp}},
-                              verbose = FALSE) %>%
-             ammi_indexes() %>%
-             gmd("ZA", verbose = FALSE) %>%
+                              verbose = FALSE) |>
+             ammi_indexes() |>
+             gmd("ZA", verbose = FALSE) |>
              column_to_rownames("GEN"),
            ev = performs_ammi(.data,
                               env = {{env}},
                               gen = {{gen}},
                               rep = {{rep}},
                               resp = {{resp}},
-                              verbose = FALSE) %>%
-             ammi_indexes() %>%
-             gmd("EV", verbose = FALSE) %>%
+                              verbose = FALSE) |>
+             ammi_indexes() |>
+             gmd("EV", verbose = FALSE) |>
              column_to_rownames("GEN"),
            sipc = performs_ammi(.data,
                                 env = {{env}},
                                 gen = {{gen}},
                                 rep = {{rep}},
                                 resp = {{resp}},
-                                verbose = FALSE) %>%
-             ammi_indexes() %>%
-             gmd("SIPC", verbose = FALSE) %>%
+                                verbose = FALSE) |>
+             ammi_indexes() |>
+             gmd("SIPC", verbose = FALSE) |>
              column_to_rownames("GEN"),
            asv = performs_ammi(.data,
                                env = {{env}},
                                gen = {{gen}},
                                rep = {{rep}},
                                resp = {{resp}},
-                               verbose = FALSE) %>%
-             ammi_indexes() %>%
-             gmd("ASV", verbose = FALSE) %>%
+                               verbose = FALSE) |>
+             ammi_indexes() |>
+             gmd("ASV", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Thennarasu's stability statistics
            n1 = Thennarasu(.data,
                            env = {{env}},
                            gen = {{gen}},
                            resp = {{resp}},
-                           verbose = FALSE) %>%
-             gmd("N1", verbose = FALSE) %>%
+                           verbose = FALSE) |>
+             gmd("N1", verbose = FALSE) |>
              column_to_rownames("GEN"),
            n2 = Thennarasu(.data,
                            env = {{env}},
                            gen = {{gen}},
                            resp = {{resp}},
-                           verbose = FALSE) %>%
-             gmd("N2", verbose = FALSE) %>%
+                           verbose = FALSE) |>
+             gmd("N2", verbose = FALSE) |>
              column_to_rownames("GEN"),
            n3 = Thennarasu(.data,
                            env = {{env}},
                            gen = {{gen}},
                            resp = {{resp}},
-                           verbose = FALSE) %>%
-             gmd("N3", verbose = FALSE) %>%
+                           verbose = FALSE) |>
+             gmd("N3", verbose = FALSE) |>
              column_to_rownames("GEN"),
            n4 = Thennarasu(.data,
                            env = {{env}},
                            gen = {{gen}},
                            resp = {{resp}},
-                           verbose = FALSE) %>%
-             gmd("N4", verbose = FALSE) %>%
+                           verbose = FALSE) |>
+             gmd("N4", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Huehn's stability statistics
            s1 = Huehn(.data,
                       env = {{env}},
                       gen = {{gen}},
                       resp = {{resp}},
-                      verbose = FALSE) %>%
-             gmd("S1", verbose = FALSE) %>%
+                      verbose = FALSE) |>
+             gmd("S1", verbose = FALSE) |>
              column_to_rownames("GEN"),
            s2 = Huehn(.data,
                       env = {{env}},
                       gen = {{gen}},
                       resp = {{resp}},
-                      verbose = FALSE) %>%
-             gmd("S2", verbose = FALSE) %>%
+                      verbose = FALSE) |>
+             gmd("S2", verbose = FALSE) |>
              column_to_rownames("GEN"),
            s3 = Huehn(.data,
                       env = {{env}},
                       gen = {{gen}},
                       resp = {{resp}},
-                      verbose = FALSE) %>%
-             gmd("S3", verbose = FALSE) %>%
+                      verbose = FALSE) |>
+             gmd("S3", verbose = FALSE) |>
              column_to_rownames("GEN"),
            s6 = Huehn(.data,
                       env = {{env}},
                       gen = {{gen}},
                       resp = {{resp}},
-                      verbose = FALSE) %>%
-             gmd("S6", verbose = FALSE) %>%
+                      verbose = FALSE) |>
+             gmd("S6", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Geometric adaptability index
            gai = gai(.data,
                      env = {{env}},
                      gen = {{gen}},
                      resp = {{resp}},
-                     verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                     verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Lin e Binns' superiority index
            pi = superiority(.data,
                             env = {{env}},
                             gen = {{gen}},
                             resp = {{resp}},
-                            verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                            verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Annicchiarico's genotypic confidence index
            wi = Annicchiarico(.data,
@@ -430,24 +429,24 @@ mps <- function(.data,
                               gen = {{gen}},
                               rep = {{rep}},
                               resp = {{resp}},
-                              verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                              verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # Power Law Residuals
            polar = ge_polar(.data,
                             env = {{env}},
                             gen = {{gen}},
                             resp = {{resp}},
-                            verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                            verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # adjusted coefficient of variation
            acv = ge_acv(.data,
                         env = {{env}},
                         gen = {{gen}},
                         resp = {{resp}},
-                        verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                        verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # WAASB
            waasb = waasb(.data = .data,
@@ -456,8 +455,8 @@ mps <- function(.data,
                          rep = {{rep}},
                          resp = {{resp}},
                          random = random,
-                         verbose = FALSE) %>%
-             gmd("WAASB", verbose = FALSE) %>%
+                         verbose = FALSE) |>
+             gmd("WAASB", verbose = FALSE) |>
              column_to_rownames("GEN"),
            #Ecovalence
            ecovalence = ecovalence(.data,
@@ -465,13 +464,13 @@ mps <- function(.data,
                                    gen = {{gen}},
                                    rep = {{rep}},
                                    resp = {{resp}},
-                                   verbose = FALSE) %>%
-             gmd(verbose = FALSE) %>%
+                                   verbose = FALSE) |>
+             gmd(verbose = FALSE) |>
              column_to_rownames("GEN"),
            # hmgv
-           hmgv = blup_indexes(mod) %>%
-             suppressWarnings() %>%
-             gmd("HMGV", verbose = FALSE) %>%
+           hmgv = blup_indexes(mod) |>
+             suppressWarnings() |>
+             gmd("HMGV", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # deviations from the regression
            s2di = ge_reg(.data,
@@ -479,8 +478,8 @@ mps <- function(.data,
                          gen = {{gen}},
                          rep = {{rep}},
                          resp = {{resp}},
-                         verbose = FALSE) %>%
-             gmd("s2di", verbose = FALSE) %>%
+                         verbose = FALSE) |>
+             gmd("s2di", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # RMSE
            rmse = ge_reg(.data,
@@ -488,8 +487,8 @@ mps <- function(.data,
                          gen = {{gen}},
                          rep = {{rep}},
                          resp = {{resp}},
-                         verbose = FALSE) %>%
-             gmd("RMSE", verbose = FALSE) %>%
+                         verbose = FALSE) |>
+             gmd("RMSE", verbose = FALSE) |>
              column_to_rownames("GEN"),
            # R2
            r2 = ge_reg(.data,
@@ -497,8 +496,8 @@ mps <- function(.data,
                        gen = {{gen}},
                        rep = {{rep}},
                        resp = {{resp}},
-                       verbose = FALSE) %>%
-             gmd("R2", verbose = FALSE) %>%
+                       verbose = FALSE) |>
+             gmd("R2", verbose = FALSE) |>
              column_to_rownames("GEN")
     )
   ifelse(nvar == 1,
@@ -510,15 +509,14 @@ mps <- function(.data,
     names(ideotype.D) <- names(data)
   } else{
     rescaled <-
-      unlist(strsplit(ideotype_stab, split="\\s*(\\s|,)\\s*")) %>%
+      unlist(strsplit(ideotype_stab, split="\\s*(\\s|,)\\s*")) |>
       all_lower_case()
     if (length(rescaled) != ncol(mperf)) {
-      warning("Invalid length in `ideotype_stab`. Setting `ideotype_stab = '", ideotype_stab[[1]],
-              "'` to all the ", nvar, " variables.", call. = FALSE)
+      cli::cli_warn("Invalid length in `ideotype_stab`. Setting `ideotype_stab = '{ideotype_stab[[1]]}'` to all the {nvar} variables.")
       rescaled <- replicate(nvar, ideotype_stab[[1]])
     }
     if(!all(rescaled %in% c("h", "l", "m"))){
-      stop("`ideotype_stab` must have 'h', 'l', or 'm' only", call. = FALSE)
+      cli::cli_abort("`ideotype_stab` must have 'h', 'l', or 'm' only")
     }
     ideotype.D <- ifelse(rescaled == "m", 50, 100)
     names(ideotype.D) <- colnames(stab)
@@ -543,13 +541,12 @@ mps <- function(.data,
     peso_perf <- wmper
     peso_stab <- 100 - peso_perf
     if (length(wmper) != nvar) {
-      warning("Invalid length in `wmper`. Setting `wmper = ", wmper[[1]],
-              "` to all the ", nvar, " variables.", call. = FALSE)
+      cli::cli_warn("Invalid length in `wmper`. Setting `wmper = {wmper[[1]]}` to all the {nvar} variables.")
       peso_perf <- replicate(nvar, wmper[[1]])
       peso_stab <- 100 - peso_perf
     }
     if (min(wmper) < 0 | max(wmper) > 100) {
-      stop("The range of the numeric vector `wmper` must be between 0 and 100.")
+      cli::cli_abort("The range of the numeric vector `wmper` must be between 0 and 100.")
     }
   }
   ifelse(nvar == 1,
@@ -561,15 +558,15 @@ mps <- function(.data,
       tibble(gen = rownames(mperf_res),
              mper = as.numeric(mperf_res[[i]]),
              stab = as.numeric(stab_res[[i]]),
-             mps_ind = ((mper * peso_perf[i]) + (stab * peso_stab[i]))/(peso_perf[i] + peso_stab[i])) %>%
-      select_cols(gen, mps_ind) %>%
+             mps_ind = ((mper * peso_perf[i]) + (stab * peso_stab[i]))/(peso_perf[i] + peso_stab[i])) |>
+      dplyr::select(gen, mps_ind) |>
       set_names("GEN", names(mperf_res)[i])
     listres[[paste(names(mperf_res)[i])]] <- weghting
   }
-  mps_ind <- listres %>% reduce(left_join, by = "GEN")
+  mps_ind <- listres |> reduce(left_join, by = "GEN")
   if(verbose == TRUE){
-    message("Mean performance: ", performance)
-    message("Stability: ", stability)
+    cli::cli_inform("Mean performance: {performance}")
+    cli::cli_inform("Stability: {stability}")
   }
   return(
     list(
@@ -586,8 +583,7 @@ mps <- function(.data,
       stab_method = stability,
       wstab = peso_stab,
       sense_stab = ifelse(rescaled == 0, "l", "h"),
-      .resid =  gmd(mod, "data", verbose = FALSE) %>% mean_by(ENV, GEN)
-    ) %>% set_class("mps")
+      .resid =  gmd(mod, "data", verbose = FALSE) |> mean_by(ENV, GEN)
+    ) |> set_class("mps")
   )
 }
-

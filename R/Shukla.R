@@ -48,26 +48,40 @@
 #'              rep = REP,
 #'              resp = PH)
 #'}
-Shukla <- function(.data, env, gen, rep, resp, verbose = TRUE) {
-  factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
-    mutate(across(everything(), as.factor))
+Shukla <- function(.data, env, gen, rep = NULL, resp, verbose = TRUE) {
+  if (missing(rep)) {
+    factors  <-
+      .data |>
+      select({{env}}, {{gen}}) |>
+      mutate(across(everything(), as.factor))
+    factors <- factors |> set_names("ENV", "GEN")
+  } else {
+    factors  <-
+      .data |>
+      select({{env}}, {{gen}}, {{rep}}) |>
+      mutate(across(everything(), as.factor))
+    factors <- factors |> set_names("ENV", "GEN", "REP")
+  }
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
   g <- nlevels(factors$GEN)
   e <- nlevels(factors$ENV)
-  r <- nlevels(factors$REP)
+  if (!missing(rep)) {
+    r <- nlevels(factors$REP)
+  }
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -75,20 +89,20 @@ Shukla <- function(.data, env, gen, rep, resp, verbose = TRUE) {
     }
     g_means <- mean_by(data, GEN)
     ge_means <- mean_by(data, GEN, ENV)
-    ge_effect <- ge_means %>%
-      mutate(ge = residuals(lm(Y ~ ENV + GEN, data = .))) %>%
-      make_mat(GEN, ENV, ge) %>%
+    ge_effect <- ge_means |>
+      # Ensure we have the residuals mapped correctly to the rows
+      mutate(ge = stats::residuals(stats::lm(Y ~ ENV + GEN, data = dplyr::pick(everything())))) |>
+      # Convert long format to wide matrix format
+      make_mat(GEN, ENV, ge) |>
       as.matrix()
     Wi <- rowSums(ge_effect^2, na.rm = TRUE)
     ShuklaVar <- (g * (g - 1) * Wi - sum(Wi, na.rm = TRUE)) / ((e - 1) * (g - 1) * ( g - 2))
-    temp <- as_tibble(cbind(g_means, ShuklaVar)) %>%
+    temp <- as_tibble(cbind(g_means, ShuklaVar)) |>
       mutate(rMean = rank(-Y),
              rShukaVar = rank(ShuklaVar),
              ssiShukaVar = rMean + rShukaVar)
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
@@ -137,13 +151,10 @@ print.Shukla <- function(x, export = FALSE, file.name = NULL, digits = 3, ...) {
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Shukla stability variance\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     print(var)
   }
-  cat("\n\n\n")
+  cli::cli_text("")
   if (export == TRUE) {
     sink()
   }

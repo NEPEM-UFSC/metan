@@ -41,7 +41,7 @@ resp_surf <- function(.data, factor1, factor2, rep = NULL, resp,
                       prob = 0.05, verbose = TRUE) {
   if (!missing(rep)) {
     data <-
-      .data %>% select({{factor1}}, {{factor2}}, {{rep}}, {{resp}}) %>%
+      .data |> select({{factor1}}, {{factor2}}, {{rep}}, {{resp}}) |>
       as_factor(1:3)
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -56,7 +56,7 @@ resp_surf <- function(.data, factor1, factor2, rep = NULL, resp,
     ANOVA <- aov(F1, data = data)
   } else {
     data <-
-      .data %>% select({{factor1}}, {{factor2}}, {{resp}}) %>%
+      .data |> select({{factor1}}, {{factor2}}, {{resp}}) |>
       as_factor(1:2)
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -91,100 +91,61 @@ resp_surf <- function(.data, factor1, factor2, rep = NULL, resp,
                            residuals = SurfMod$residuals)
   if (verbose == TRUE) {
     if (!missing(rep)) {
-      cat("-----------------------------------------------------------------\n")
-      cat("Result for the analysis of variance", "\n")
-      cat("Model: Y = m + bk + Ai + Dj + (AD)ij + eijk",
-          "\n")
-      cat("-----------------------------------------------------------------\n")
+      cli::cli_h2("Result for the analysis of variance")
+      cli::cli_inform("Model: Y = m + bk + Ai + Dj + (AD)ij + eijk")
       print(summary(ANOVA))
       Norm <- shapiro.test(ANOVA$residuals)
-      cat("-----------------------------------------------------------------\n")
-      cat("Shapiro-Wilk's test for normality of residuals:",
-          "\n")
-      cat("-----------------------------------------------------------------\n")
-      cat("W = ", Norm$statistic, "p-valor = ", Norm$p.value,
-          "\n")
+      cli::cli_h2("Shapiro-Wilk's test for normality of residuals")
+      cli::cli_inform("W = {Norm$statistic}  p-valor = {Norm$p.value}")
       if (Norm$p.value > 0.05) {
-        cat("According to S-W test, residuals may be considered normal.",
-            "\n")
+        cli::cli_alert_success("According to S-W test, residuals may be considered normal.")
       }
     }
-    cat("-----------------------------------------------------------------\n")
-    cat("Anova table for the response surface model", "\n")
-    cat("-----------------------------------------------------------------\n")
+    cli::cli_h2("Anova table for the response surface model")
     print(anova(SurfMod))
-    cat("-----------------------------------------------------------------\n")
-    cat("Model equation for response surface model", "\n")
-    cat("Y = B0 + B1*A + B2*D + B3*A^2 + B4*D^2 + B5*A*D",
-        "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat("Estimated parameters", "\n")
-    cat(paste0("B0: ", format(round(B0, 7), nsmall = 7), "\n"))
-    cat(paste0("B1: ", format(round(B1, 7), nsmall = 7), "\n"))
-    cat(paste0("B2: ", format(round(B2, 7), nsmall = 7), "\n"))
-    cat(paste0("B3: ", format(round(B3, 7), nsmall = 7), "\n"))
-    cat(paste0("B4: ", format(round(B4, 7), nsmall = 7), "\n"))
-    cat(paste0("B5: ", format(round(B5, 7), nsmall = 7), "\n"))
-    cat("-----------------------------------------------------------------\n")
-    cat("Matrix of parameters (A)", "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat(paste0(format(round(P[1, 1], 7), nsmall = 7)), "  ",
-        format(round(P[1, 2], 7), nsmall = 7), "\n")
-    cat(paste0(format(round(P[2, 1], 7), nsmall = 7)), "  ",
-        format(round(P[2, 2], 7), nsmall = 7), "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat("Inverse of the matrix A (invA)", "\n")
-    cat(paste0(format(round(invA[1, 1], 7), nsmall = 7)),
-        "  ", format(round(invA[1, 2], 7), nsmall = 7), "\n")
-    cat(paste0(format(round(invA[2, 1], 7), nsmall = 7)),
-        "  ", format(round(invA[2, 2], 7), nsmall = 7), "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat("Vetor of parameters B1 e B2 (X)", "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat(paste0("B1: ", format(round(B1, 7), nsmall = 7),
-               "\n"))
-    cat(paste0("B2: ", format(round(B2, 7), nsmall = 7),
-               "\n"))
-    cat("-----------------------------------------------------------------\n")
-    cat("Equation for the optimal points (A and D)", "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat("-0.5*(invA*X)")
-    cat(paste0("\nEigenvalue 1: ", round(AV1, 6), "\nEigenvalue 2: ",
-               round(AV2, 6)))
-    cat("\n")
+    cli::cli_h2("Model equation for response surface model")
+    cli::cli_inform("Y = B0 + B1*A + B2*D + B3*A^2 + B4*D^2 + B5*A*D")
+    cli::cli_h2("Estimated parameters", "")
+    cli::cli_inform("B0: {format(round(B0, 7), nsmall = 7)}")
+    cli::cli_inform("B1: {format(round(B1, 7), nsmall = 7)}")
+    cli::cli_inform("B2: {format(round(B2, 7), nsmall = 7)}")
+    cli::cli_inform("B3: {format(round(B3, 7), nsmall = 7)}")
+    cli::cli_inform("B4: {format(round(B4, 7), nsmall = 7)}")
+    cli::cli_inform("B5: {format(round(B5, 7), nsmall = 7)}")
+    cli::cli_h2("Matrix of parameters (A)", "")
+    cli::cli_inform("{format(round(P[1, 1], 7), nsmall = 7)}  {format(round(P[1, 2], 7), nsmall = 7)}")
+    cli::cli_inform("{format(round(P[2, 1], 7), nsmall = 7)}  {format(round(P[2, 2], 7), nsmall = 7)}")
+    cli::cli_h2("Inverse of the matrix A (invA)")
+    cli::cli_inform("{format(round(invA[1, 1], 7), nsmall = 7)}  {format(round(invA[1, 2], 7), nsmall = 7)}")
+    cli::cli_inform("{format(round(invA[2, 1], 7), nsmall = 7)}  {format(round(invA[2, 2], 7), nsmall = 7)}")
+    cli::cli_h2("Vetor of parameters B1 e B2 (X)", "")
+    cli::cli_inform("B1: {format(round(B1, 7), nsmall = 7)}")
+    cli::cli_inform("B2: {format(round(B2, 7), nsmall = 7)}")
+    cli::cli_h2("Equation for the optimal points (A and D)")
+    cli::cli_inform("-0.5*(invA*X)")
+    cli::cli_inform("Eigenvalue 1: {round(AV1, 6)}  Eigenvalue 2: {round(AV2, 6)}")
+    cli::cli_inform("")
     if (AV1 > 0 && AV2 > 0) {
-      cat(paste0("Stacionary point is minimum!"))
+      cli::cli_alert_info("Stationary point is minimum!")
     } else if (AV1 < 0 && AV2 < 0) {
-      cat(paste0("Stacionary point is maximum!"))
-    } else cat(paste0("The stationary point is outside the intervals of the trataments"))
-    cat("\n")
-    cat("-----------------------------------------------------------------\n")
-    cat("Stacionary point obtained with the following original units:",
-        "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat(paste0("Optimal dose (", A, "): ", round(dA, 4), "\n"))
-    cat(paste0("Optimal dose (", D, "): ", round(dD, 4), "\n"))
-    cat(paste0("Predicted: ", round(pred_val, 4), "\n"))
-    cat("-----------------------------------------------------------------\n")
-    cat("Fitted model", "\n")
-    cat("-----------------------------------------------------------------\n")
-    cat(paste0("A = ", A, "\n"))
-    cat(paste0("D = ", D, "\n"))
-    cat(paste0("y = ", round(B0, 5), "+", round(B1, 5), "A+",
-               round(B2, 5), "D+", round(B3, 5), "A^2+", round(B4,
-                                                                5), "D^2+", round(B5, 5), "A*D", "\n"))
-    cat("-----------------------------------------------------------------\n")
+      cli::cli_alert_info("Stationary point is maximum!")
+    } else cli::cli_inform("The stationary point is outside the intervals of the trataments")
+    cli::cli_inform("")
+    cli::cli_h2("Stationary point (original units)")
+    cli::cli_inform("Optimal dose ({A}): {round(dA, 4)}")
+    cli::cli_inform("Optimal dose ({D}): {round(dD, 4)}")
+    cli::cli_inform("Predicted:  {round(pred_val, 4)}")
+    cli::cli_h2("Fitted model", "")
+    cli::cli_inform("A = {A}")
+    cli::cli_inform("D = {D}")
+    cli::cli_inform("y = {round(B0,5)}+{round(B1,5)}A+{round(B2,5)}D+{round(B3,5)}A^2+{round(B4,5)}D^2+{round(B5,5)}A*D")
     pvalor.shapiro <- shapiro.test(results$residuals)$p.value
-    cat("Shapiro-Wilk normality test\n")
-    cat("p-value: ", pvalor.shapiro, "\n")
+    cli::cli_inform("Shapiro-Wilk normality test")
+    cli::cli_h2("p-value: ", pvalor.shapiro, "")
     if (pvalor.shapiro < 0.05) {
-      cat("WARNING: at 5% of significance, residuals can not be considered normal!",
-          "\n")
-      cat("------------------------------------------------------------------")
+      cli::cli_alert_warning("WARNING: at 5% of significance, residuals can not be considered normal!")
     } else {
-      cat("According to Shapiro-Wilk normality test at 5% of significance, residuals can be considered normal.",
-          "\n")
-      cat("------------------------------------------------------------------\n")
+      cli::cli_alert_success("According to Shapiro-Wilk normality test at 5% of significance, residuals can be considered normal.")
     }
   }
   invisible(structure(list(results = results,
@@ -219,7 +180,7 @@ resp_surf <- function(.data, factor1, factor2, rep = NULL, resp,
 #'   values produce high-resolution plots but may increase the computation time.
 #' @param bins The number of bins shown in the plot. Defaults to `10`.
 #' @param plot_theme The graphical theme of the plot. Default is
-#'   `plot_theme = theme_metan()`. For more details, see
+#'   `plot_theme = theme_metan_minimal()`. For more details, see
 #'   [ggplot2::theme()].
 #' @param ... Currently not used
 #' @return An object of class `gg, ggplot`.
@@ -249,7 +210,7 @@ plot.resp_surf <- function(x,
                            ylab = NULL,
                            resolution = 100,
                            bins = 10,
-                           plot_theme = theme_metan(),
+                           plot_theme = theme_metan_minimal(),
                            ...) {
   data <- x[["model"]][["model"]]
   mod = x$model
@@ -260,7 +221,7 @@ plot.resp_surf <- function(x,
                          max(unique(data[3])),
                          length.out = resolution))
   names(seq) <- names(data[2:3])
-  seq <- mutate(seq, z = predict(mod, newdata = seq)) %>%
+  seq <- mutate(seq, z = predict(mod, newdata = seq)) |>
     set_names("x", "y", "z")
   xlab <- ifelse(is.null(xlab), names(data[2]), xlab)
   ylab <- ifelse(is.null(ylab), names(data[3]), ylab)

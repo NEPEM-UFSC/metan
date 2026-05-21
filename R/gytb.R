@@ -113,42 +113,42 @@ gytb <- function(.data,
                  svp = "trait") {
 
   factors  <-
-    .data %>%
-    select({{gen}}) %>%
+    .data |>
+    select({{gen}}) |>
     set_names("GEN")
   yld <-
-    .data %>%
-    select({{yield}}, -{{gen}}) %>%
-    select_numeric_cols() %>%
+    .data |>
+    select({{yield}}, -{{gen}}) |>
+    select_numeric_cols() |>
     pull()
   others <-
-    .data %>%
-    select({{traits}}, -{{gen}}, -{{yield}}) %>%
+    .data |>
+    select({{traits}}, -{{gen}}, -{{yield}}) |>
     select_numeric_cols()
   if(is.null(weight)){
     weights <- rep(1, length(others))
   } else{
     if(length(weight) != length(others)){
-      stop("weight must have length ", ncol(others), ", the number of traits in 'traits' argument.")
+      cli::cli_abort("weight must have length {ncol(others)}, the number of traits in 'traits' argument.")
     }
     weights <-  weight
   }
   if(is.null(ideotype)){
     ideotype <- rep("h", length(others))
   } else{
-    ideotype <- unlist(strsplit(ideotype, split="\\s*(\\s|,)\\s*")) %>%
+    ideotype <- unlist(strsplit(ideotype, split="\\s*(\\s|,)\\s*")) |>
       all_lower_case()
     if(length(ideotype) != length(others)){
-      stop("Ideotype must have length ", ncol(others), ", the number of traits in 'traits' argument.")
+      cli::cli_abort("Ideotype must have length {ncol(others)}, the number of traits in 'traits' argument.")
     }
     if(!all(ideotype %in% c("h", "l"))){
-      stop("argument 'ideotype' must have 'h' or 'l' only", call. = FALSE)
+      cli::cli_abort("argument 'ideotype' must have 'h' or 'l' only")
     }
   }
   varinc <- others[, which(ideotype == "h")]
   if(ncol(varinc) > 0 ){
     varinc <-
-      varinc %>%
+      varinc |>
       apply(MARGIN = 2, function(x){
         yld * x
       })
@@ -160,7 +160,7 @@ gytb <- function(.data,
   vardec <- others[, which(ideotype == "l")]
   if(ncol(vardec) > 0 ){
     vardec <-
-      vardec %>%
+      vardec |>
       apply(MARGIN = 2, function(x){
         yld / x
       })
@@ -174,8 +174,8 @@ gytb <- function(.data,
     has_text_in_num(data)
   }
   gt_mat <-
-    mean_by(data, GEN) %>%
-    column_to_rownames("GEN") %>%
+    mean_by(data, GEN) |>
+    column_to_rownames("GEN") |>
     as.matrix()
 
   grand_mean <- mean(gt_mat)
@@ -185,23 +185,23 @@ gytb <- function(.data,
   labelgen <- rownames(gt_mat)
   labelenv <- colnames(gt_mat)
   if (any(is.na(gt_mat))) {
-    stop("missing data in input data frame")
+    cli::cli_abort("missing data in input data frame")
   }
   if (any(apply(gt_mat, 2, is.numeric) == FALSE)) {
-    stop("not all columns are of class 'numeric'")
+    cli::cli_abort("not all columns are of class 'numeric'")
   }
   if (!(centering %in% c("none", "trait", "global", "double") |
         centering %in% 0:3)) {
-    warning(paste("Centering method", centering, "not found; defaulting to environment centered"))
+    cli::cli_warn("Centering method {centering} not found; defaulting to environment centered")
     centering <- "trait"
   }
   if (!(svp %in% c("genotype", "trait", "symmetrical") |
         svp %in% 1:3)) {
-    warning(paste("svp method", svp, "not found; defaulting to column metric preserving"))
+    cli::cli_warn("svp method {svp} not found; defaulting to column metric preserving")
     svp <- "trait"
   }
   if (!(scaling %in% c("none", "sd") | scaling %in% 0:1)) {
-    warning(paste("scaling method", scaling, "not found; defaulting to no scaling"))
+    cli::cli_warn("scaling method {scaling} not found; defaulting to no scaling")
     scaling <- "none"
   }
   labelaxes <- paste("PC", 1:ncol(diag(svd(gt_mat)$d)), sep = "")
@@ -274,7 +274,7 @@ gytb <- function(.data,
          grand_mean = grand_mean,
          mean_gen = mean_gen,
          mean_env = mean_trait,
-         scale_val = scale_val) %>%
+         scale_val = scale_val) |>
     set_class(c("gge", "gytb"))
   return(set_class(list(mod = tmp), c("gge", "gytb")))
 }

@@ -6,13 +6,12 @@
 #' Computes the multi-trait genotype-ideotype distance index, MGIDI, (Olivoto
 #' and Nardino, 2020), used to select genotypes in plant breeding programs based
 #' on multiple traits.The MGIDI index is computed as follows:
-#' \loadmathjax
-#' \mjsdeqn{MGIDI_i = \sqrt{\sum\limits_{j = 1}^f(F_{ij} - {F_j})^2}}
+#' \deqn{MGIDI_i = \sqrt{\sum\limits_{j = 1}^f(F_{ij} - {F_j})^2}}
 #'
-#' where \mjseqn{MGIDI_i} is the multi-trait genotype-ideotype distance index
-#' for the *i*th genotype; \mjseqn{F_{ij}} is the score of the *i*th genotype in
+#' where \eqn{MGIDI_i} is the multi-trait genotype-ideotype distance index
+#' for the *i*th genotype; \eqn{F_{ij}} is the score of the *i*th genotype in
 #' the *j*th factor (*i = 1, 2, ..., g; j = 1, 2, ..., f*), being *g* and *f*
-#' the number of genotypes and factors, respectively, and \mjseqn{F_j} is the
+#' the number of genotypes and factors, respectively, and \eqn{F_j} is the
 #' *j*th score of the ideotype. The genotype with the lowest MGIDI is then
 #' closer to the ideotype and therefore should presents desired values for all
 #' the analyzed traits.
@@ -170,7 +169,7 @@ mgidi <- function(.data,
                   verbose = TRUE) {
   if(is_grouped_df(.data)){
     bind <-
-      .data %>%
+      .data |>
       doo(mgidi,
           use_data = use_data,
           SI = SI,
@@ -184,8 +183,8 @@ mgidi <- function(.data,
 
   if(has_class(.data, c("gamem_group", "gafem_group", "waasb_group"))){
     bind <-
-      .data %>%
-      mutate(data = map(data, ~.x %>%
+      .data |>
+      mutate(data = map(data, ~.x |>
                           mgidi(use_data = use_data,
                                 SI = SI,
                                 mineval = mineval,
@@ -197,29 +196,29 @@ mgidi <- function(.data,
   } else{
     d <- match.call()
     if(!use_data %in% c("blup", "pheno")){
-      stop("Argument 'use_data = ", d["use_data"], "'", "invalid. It must be either 'blup' or 'pheno'.")
+      cli::cli_abort("Argument 'use_data = ", d["use_data"], "'", "invalid. It must be either 'blup' or 'pheno'.")
     }
     if(has_class(.data, c("gamem", "waasb"))){
       data <-
-        gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) %>%
+        gmd(.data, ifelse(use_data == "blup", "blupg", "data"), verbose = FALSE) |>
         mean_by(GEN)
     } else if(has_class(.data, "gafem")){
       data <-
-        gmd(.data, "Y", verbose = FALSE) %>%
+        gmd(.data, "Y", verbose = FALSE) |>
         mean_by(GEN)
     } else{
       data <- .data
       cols_class <- sapply(data, function(x) !is.numeric(x))
       if(all(cols_class == FALSE)){
-        warning("All columns are numeric. A sequential id will be used as genotype name.", call. = FALSE)
+        warning("All columns are numeric. A sequential id will be used as genotype name.")
         data <- data |> mutate(gen = paste0("G", 1:nrow(data)), .before = 1)
       } else{
         nonn_cols <- which(cols_class == TRUE)
         if(length(nonn_cols) > 1){
-          stop("More than one non-numeric column. Please, verify.", call. = FALSE)
+          cli::cli_abort("More than one non-numeric column. Please, verify.")
         }
         if(nonn_cols != 1){
-          warning("The genotype column seems to be in the wrong location. Relocating it to the first position.", call. = FALSE)
+          warning("The genotype column seems to be in the wrong location. Relocating it to the first position.")
           data <- column_to_first(data, all_of(nonn_cols))
         }
       }
@@ -230,7 +229,7 @@ mgidi <- function(.data,
     rownames(data) <- gen_name
     var_name <- colnames(data)
     if (nvar == 1) {
-      stop("The multi-trait stability index cannot be computed with one single variable.", call. = FALSE)
+      cli::cli_abort("The multi-trait stability index cannot be computed with one single variable.")
     }
     if(is.null(ideotype)){
       rescaled <- rep(100, nvar)
@@ -238,10 +237,10 @@ mgidi <- function(.data,
       ideotype.D <- rep(100, nvar)
       names(ideotype.D) <- var_name
     } else{
-      rescaled <- unlist(strsplit(ideotype, split="\\s*(\\s|,)\\s*")) %>%
+      rescaled <- unlist(strsplit(ideotype, split="\\s*(\\s|,)\\s*")) |>
         all_lower_case()
       if(length(rescaled) != nvar){
-        stop("Ideotype must have length ", nvar, ", the number of columns in data")
+        cli::cli_abort("Ideotype must have length ", nvar, ", the number of columns in data")
       }
       ideotype.D <- ifelse(rescaled == "m", 50, 100)
       names(ideotype.D) <- var_name
@@ -257,7 +256,7 @@ mgidi <- function(.data,
     means <- data.frame(matrix(ncol = nvar, nrow = nrow(data)))
     rownames(means) <- gen_name
     vars <- tibble(VAR = var_name,
-                   sense = rescaled) %>%
+                   sense = rescaled) |>
       mutate(sense = ifelse(sense == 0, "decrease", "increase"))
     data2 <- data
     for (i in 1:nvar) {
@@ -270,7 +269,7 @@ mgidi <- function(.data,
     }
     data <- data2
     if(has_na(means)){
-      warning("Missing values observed in the table of means. Using complete observations to compute the correlation matrix.", call. = FALSE)
+      warning("Missing values observed in the table of means. Using complete observations to compute the correlation matrix.")
     }
     if(is.null(weights)){
       weights <- rep(1, nvar)
@@ -315,7 +314,7 @@ mgidi <- function(.data,
                   `Cum. variance (%)` = cumsum(`Variance (%)`))
     Communality <- diag(A %*% t(A))
     Uniquenesses <- 1 - Communality
-    fa <- cbind(A, Communality, Uniquenesses) %>% as_tibble(rownames = NA) %>%  rownames_to_column("VAR")
+    fa <- cbind(A, Communality, Uniquenesses) |> as_tibble(rownames = NA) |>  rownames_to_column("VAR")
     z <- scale(means, center = FALSE, scale = apply(means, 2, sd, na.rm = TRUE))
     canonical_loadings <- t(t(A) %*% solve_svd(cor.means))
     scores <- z %*% canonical_loadings
@@ -333,20 +332,20 @@ mgidi <- function(.data,
       # Avoid NAs
       gen_ide[, col][gen_ide[, col] == 0] <- 1e-10
     }
-    MGIDI <- apply(gen_ide, 1, function(x){sqrt(sum(x^2))}) %>% sort(decreasing = FALSE)
+    MGIDI <- apply(gen_ide, 1, function(x){sqrt(sum(x^2))}) |> sort(decreasing = FALSE)
     contr.factor <-
-      data.frame((sqrt(gen_ide^2)/apply(gen_ide, 1, function(x) sum(sqrt(x^2)))) * 100) %>%
-      rownames_to_column("GEN") %>%
+      data.frame((sqrt(gen_ide^2)/apply(gen_ide, 1, function(x) sum(sqrt(x^2)))) * 100) |>
+      rownames_to_column("GEN") |>
       as_tibble()
 
     means.factor <- means[, names.pos.var.factor]
     observed <- means[, names.pos.var.factor]
     contri_long <- pivot_longer(contr.factor, -GEN)
     contri_fac_rank <-
-      contri_long %>%
-      ge_winners(name, GEN, value, type = "ranks", better = "l") %>%
-      split_factors(ENV) %>%
-      map_dfc(~.x %>% pull())
+      contri_long |>
+      ge_winners(name, GEN, value, type = "ranks", better = "l") |>
+      split_factors(ENV) |>
+      map_dfc(~.x |> pull())
     if (!is.null(ngs)) {
       selected <- names(MGIDI)[1:ngs]
       data_order <- data[colnames(observed)]
@@ -361,37 +360,37 @@ mgidi <- function(.data,
       if(has_class(.data, c("gamem", "gafem"))){
         h2 <- gmd(.data, "h2", verbose = FALSE)
         sel_dif_mean <-
-          left_join(sel_dif_mean, h2, by = "VAR") %>%
+          left_join(sel_dif_mean, h2, by = "VAR") |>
           add_cols(SG = SD * h2,
                    SGperc = SG / Xo * 100)
       }
       sel_dif_mean <-
-        sel_dif_mean %>%
-        left_join(vars, by = "VAR") %>%
+        sel_dif_mean |>
+        left_join(vars, by = "VAR") |>
         mutate(goal = case_when(
           sense == "decrease" & SDperc < 0  |  sense == "increase" & SDperc > 0 ~ 100,
           TRUE ~ 0
         ))
       stat_gain <-
-        sel_dif_mean %>%
-        group_by(sense) %>%
+        sel_dif_mean |>
+        group_by(sense) |>
         summarise(across(any_of(c("SDperc", "SGperc")),
                          list(n = ~n(),
                               min = min,
                               mean = mean,
                               max = max,
                               sum = sum,
-                              sd = sd))) %>%
-        pivot_longer(-sense) %>%
-        separate(name, into = c("variable", "stat")) %>%
+                              sd = sd))) |>
+        pivot_longer(-sense) |>
+        separate(name, into = c("variable", "stat")) |>
         pivot_wider(names_from = stat, values_from = value)
 
       contri_fac_rank_sel <-
-        contri_long %>%
-        subset(GEN %in% selected) %>%
-        ge_winners(name, GEN, value, type = "ranks", better = "l") %>%
-        split_factors(ENV) %>%
-        map_dfc(~.x %>% pull())
+        contri_long |>
+        subset(GEN %in% selected) |>
+        ge_winners(name, GEN, value, type = "ranks", better = "l") |>
+        split_factors(ENV) |>
+        map_dfc(~.x |> pull())
 
       # Complementarity matrix
       compl_sel_gen <-
@@ -404,26 +403,16 @@ mgidi <- function(.data,
       contri_fac_rank_sel <- NULL
     }
     if (verbose) {
-      cat("\n-------------------------------------------------------------------------------\n")
-      cat("Principal Component Analysis\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_h2("Principal Component Analysis")
       print(round_cols(pca))
-      cat("-------------------------------------------------------------------------------\n")
-      cat("Factor Analysis - factorial loadings after rotation-\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_h2("Factor Analysis - factorial loadings after rotation")
       print(round_cols(fa))
-      cat("-------------------------------------------------------------------------------\n")
-      cat("Comunalit Mean:", mean(Communality), "\n")
-      cat("-------------------------------------------------------------------------------\n")
+      cli::cli_inform("Comunalit Mean: {mean(Communality)}")
       if (!is.null(ngs)) {
-        cat("Selection differential \n")
-        cat("-------------------------------------------------------------------------------\n")
+        cli::cli_h2("Selection differential")
         print(sel_dif_mean)
-        cat("------------------------------------------------------------------------------\n")
-        cat("Selected genotypes\n")
-        cat("-------------------------------------------------------------------------------\n")
-        cat(selected)
-        cat("\n-------------------------------------------------------------------------------\n")
+        cli::cli_h2("Selected genotypes")
+        cli::cli_inform("{selected}")
       }
     }
 
@@ -435,13 +424,13 @@ mgidi <- function(.data,
                           MSA = MSA,
                           communalities = Communality,
                           communalities_mean = mean(Communality),
-                          initial_loadings = data.frame(initial_loadings) %>% rownames_to_column("VAR") %>% as_tibble(),
-                          finish_loadings = data.frame(A) %>% rownames_to_column("VAR") %>% as_tibble(),
-                          canonical_loadings = data.frame(canonical_loadings) %>% rownames_to_column("VAR") %>% as_tibble(),
-                          scores_gen = data.frame(scores) %>% rownames_to_column("GEN") %>% as_tibble(),
-                          scores_ide = data.frame(ideotypes.scores) %>% rownames_to_column("GEN") %>% as_tibble(),
-                          gen_ide = as_tibble(gen_ide, rownames = NA) %>% rownames_to_column("GEN"),
-                          MGIDI = as_tibble(MGIDI, rownames = NA) %>% rownames_to_column("Genotype") %>% rename(MGIDI = value),
+                          initial_loadings = data.frame(initial_loadings) |> rownames_to_column("VAR") |> as_tibble(),
+                          finish_loadings = data.frame(A) |> rownames_to_column("VAR") |> as_tibble(),
+                          canonical_loadings = data.frame(canonical_loadings) |> rownames_to_column("VAR") |> as_tibble(),
+                          scores_gen = data.frame(scores) |> rownames_to_column("GEN") |> as_tibble(),
+                          scores_ide = data.frame(ideotypes.scores) |> rownames_to_column("GEN") |> as_tibble(),
+                          gen_ide = as_tibble(gen_ide, rownames = NA) |> rownames_to_column("GEN"),
+                          MGIDI = as_tibble(MGIDI, rownames = NA) |> rownames_to_column("Genotype") |> rename(MGIDI = value),
                           contri_fac = contr.factor,
                           contri_fac_rank = contri_fac_rank,
                           contri_fac_rank_sel = contri_fac_rank_sel,
@@ -533,22 +522,22 @@ plot.mgidi <- function(x,
                        legend.position = "bottom",
                        ...) {
   if(!type %in% c("index", "contribution")){
-    stop("The argument index must be one of the 'index' or 'contribution'", call. = FALSE)
+    cli::cli_abort("The argument index must be one of the 'index' or 'contribution'")
   }
   if(!genotypes %in% c("selected", "all")){
-    stop("The argument 'genotypes' must be one of the 'selected' or 'all'", call. = FALSE)
+    cli::cli_abort("The argument 'genotypes' must be one of the 'selected' or 'all'")
   }
   if(type == "index"){
     x.lab <- ifelse(!missing(x.lab), x.lab, "Genotypes")
     y.lab <- ifelse(!missing(y.lab), y.lab, "Multi-trait genotype-ideotype distance index")
-    data <- x$MGIDI %>% add_cols(sel = "Selected")
+    data <- x$MGIDI |> add_cols(sel = "Selected")
     data[["sel"]][(round(nrow(data) * (SI/100), 0) + 1):nrow(data)] <- "Nonselected"
     cutpoint <- max(subset(data, sel == "Selected")$MGIDI)
     if (radar == FALSE) {
       p <-
         ggplot(data = data, aes(x = reorder(Genotype, -MGIDI), y = MGIDI)) +
-        geom_hline(yintercept = cutpoint, col = col.sel, size = size.line) +
-        geom_path(colour = "black", group = 1, size = size.line) +
+        geom_hline(yintercept = cutpoint, col = col.sel, linewidth = size.line) +
+        geom_path(colour = "black", group = 1, linewidth = size.line) +
         geom_point(size = size.point,
                    aes(fill = sel),
                    shape = 21,
@@ -576,8 +565,8 @@ plot.mgidi <- function(x,
       data$angle<-ifelse(angle_1 < -90, angle_1+180, angle_1)
       p <-
         ggplot(data = data, aes(x = reorder(Genotype, -MGIDI), y = MGIDI)) +
-        geom_hline(yintercept = cutpoint, col = col.sel, size = size.line) +
-        geom_path(colour = "black", group = 1, size = size.line) +
+        geom_hline(yintercept = cutpoint, col = col.sel, linewidth = size.line) +
+        geom_path(colour = "black", group = 1, linewidth = size.line) +
         geom_point(size = size.point,
                    aes(fill = sel),
                    shape = 21,
@@ -611,15 +600,15 @@ plot.mgidi <- function(x,
   } else{
     if(genotypes == "selected"){
       data <-
-        x$contri_fac %>%
+        x$contri_fac |>
         subset(GEN %in% x$sel_gen)
       data$GEN <-
         factor(data$GEN, levels = x$sel_gen)
     } else{
       data <- x$contri_fac
     }
-    data %<>%
-      pivot_longer(-GEN) %>%
+    data <- data |>
+      pivot_longer(-GEN) |>
       arrange(GEN)
     title <- ifelse(is.null(title), "Strengths and weaknesses view", title)
     y.lab <- ifelse(!missing(y.lab), y.lab, "Contribution to the MGIDI")
@@ -664,7 +653,7 @@ plot.mgidi <- function(x,
         theme(legend.position = legend.position,
               axis.ticks = element_line(linewidth = size.line),
               plot.margin = margin(0.5, 0.5, 0, 0, "cm"),
-              panel.border = element_rect(size = size.line),
+              panel.border = element_rect(linewidth = size.line),
               ...)+
         scale_x_discrete(guide = guide_axis(n.dodge = n.dodge, check.overlap = check.overlap),
                          expand = expansion(0))+
@@ -716,39 +705,26 @@ print.mgidi <- function(x,
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Correlation matrix used used in factor analysis \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Correlation matrix used in factor analysis")
   print(x$cormat, digits = 2)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Principal component analysis \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Principal component analysis")
   print(x$PCA)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Initial loadings \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Initial loadings")
   print(x$initial_loadings)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Loadings after varimax rotation \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Loadings after varimax rotation")
   print(x$finish_loadings)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Scores for genotypes-ideotype \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Scores for genotypes-ideotype")
   print(rbind(x$scores_gen, x$scores_ide))
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Multi-trait genotype-ideotype distance index \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Multi-trait genotype-ideotype distance index")
   print(x$MGIDI)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Selection differential \n")
-  cat("-------------------------------------------------------------------------------\n")
+  cli::cli_h2("Selection differential")
   print(x$sel_dif)
-  cat("-------------------------------------------------------------------------------\n")
-  cat("Selected genotypes \n")
-  cat("-------------------------------------------------------------------------------\n")
-  cat(x$sel_gen)
+  cli::cli_h2("Selected genotypes")
+  cli::cli_inform("{x$sel_gen}")
   if (export == TRUE) {
     sink()
   }
 }
+
+
+

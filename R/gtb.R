@@ -88,12 +88,12 @@ gtb <- function(.data,
                 scaling = "sd",
                 svp = "trait") {
   factors  <-
-    .data %>%
+    .data |>
     select({{gen}})
-  vars <- .data %>%
-    select({{resp}}, -names(factors)) %>%
+  vars <- .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("GEN")
+  factors <- factors |> set_names("GEN")
   data <-
     cbind(factors, vars)
   if(has_na(data)){
@@ -101,8 +101,8 @@ gtb <- function(.data,
     has_text_in_num(data)
   }
     gt_mat <-
-    mean_by(data, GEN) %>%
-    column_to_rownames("GEN") %>%
+    mean_by(data, GEN) |>
+    column_to_rownames("GEN") |>
     as.matrix()
     grand_mean <- mean(gt_mat)
     mean_trait <- colMeans(gt_mat)
@@ -111,10 +111,10 @@ gtb <- function(.data,
     labelgen <- rownames(gt_mat)
     labelenv <- colnames(gt_mat)
     if (any(is.na(gt_mat))) {
-      stop("missing data in input data frame")
+      cli::cli_abort("missing data in input data frame")
     }
     if (any(apply(gt_mat, 2, is.numeric) == FALSE)) {
-      stop("not all columns are of class 'numeric'")
+      cli::cli_abort("not all columns are of class 'numeric'")
     }
     if (!(centering %in% c("none", "trait", "global", "double") |
           centering %in% 0:3)) {
@@ -186,7 +186,8 @@ gtb <- function(.data,
            labelenv = labelenv, labelaxes = labelaxes, ge_mat = gt_mat,
            centering = centering, scaling = scaling, svp = svp,
            d = d, grand_mean = grand_mean, mean_gen = mean_gen,
-           mean_env = mean_trait, scale_val = scale_val) %>%
+           mean_env = mean_trait, scale_val = scale_val) |>
       set_class(c("gge", "gtb"))
   return(set_class(list(mod = tmp), c("gge", "gtb")))
 }
+

@@ -49,7 +49,7 @@ model <- waasb(data_ge2,
                env = ENV,
                gen = GEN,
                rep = REP,
-               resp = PH) \%>\%
+               resp = PH) |>
          wsmp()
 
 p1 <- plot(model)

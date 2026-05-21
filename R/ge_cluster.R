@@ -75,25 +75,25 @@ ge_cluster <- function(.data, env = NULL, gen = NULL, resp = NULL,
                        table = FALSE, distmethod = "euclidean",
                        clustmethod = "ward.D", scale = TRUE, cluster =  "env", nclust = NULL) {
   if(!cluster %in% c("env", "gen")){
-    stop("The argument 'cluster' must use either 'env' or 'gen'.")
+    cli::cli_abort("The argument 'cluster' must use either 'env' or 'gen'.")
   }
   if(table == FALSE & missing(gen) & missing(env) & missing(resp)){
-    stop("Invalid input. If the input data is a two-way table then you must set the argument 'table' to TRUE.")
+    cli::cli_abort("Invalid input. If the input data is a two-way table then you must set the argument 'table' to TRUE.")
   }
   if (!distmethod %in% c("euclidean", "maximum", "manhattan",
                          "canberra", "binary", "minkowski")) {
-    stop("The argument 'distmethod' is incorrect. It should be one of the 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary', or 'minkowski'.")
+    cli::cli_abort("The argument 'distmethod' is incorrect. It should be one of the 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary', or 'minkowski'.")
   }
   if (!clustmethod %in% c("complete", "ward.D", "ward.D2",
                           "single", "average", "mcquitty", "median", "centroid")) {
-    stop("The argument 'distmethod' is incorrect. It should be one of the 'ward.D', 'ward.D2', 'single', 'average', 'mcquitty', 'median' or 'centroid'.")
+    cli::cli_abort("The argument 'distmethod' is incorrect. It should be one of the 'ward.D', 'ward.D2', 'single', 'average', 'mcquitty', 'median' or 'centroid'.")
   }
   if (table == FALSE) {
     data <- as.matrix(make_mat(.data, {{gen}}, {{env}}, {{resp}}))
   }
   if (table == TRUE) {
     if(any(sapply(.data, is.numeric) == FALSE)){
-      stop("All columns must be numeric. Please check and fix.")
+      cli::cli_abort("All columns must be numeric. Please check and fix.")
     }
     data <- as.matrix(.data)
   }
@@ -149,10 +149,10 @@ ge_cluster <- function(.data, env = NULL, gen = NULL, resp = NULL,
     Tab <- NULL
   }
   Sqt <- sum(sweep(data, 2, apply(data, 2, mean))^2)
-  labels = groups %>%
-    as.data.frame() %>%
-    rownames_to_column("Code") %>%
-    rename(Cluster = ".") %>%
+  labels = groups |>
+    as.data.frame() |>
+    rownames_to_column("Code") |>
+    rename(Cluster = groups) |>
     arrange(Cluster)
 
   return(structure(list(data = data, cutpoint = pcorte,

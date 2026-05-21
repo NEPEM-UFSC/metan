@@ -92,7 +92,7 @@ cc1 <- can_corr(data_ge2,
 
 
 # Canonical correlations for each environment
-cc3 <- data_ge2 \%>\%
+cc3 <- data_ge2 |>
        can_corr(FG = c(PH, EH, EP),
                 SG = c(EL, ED, CL, CD, CW, KW, NR),
                 by = ENV,

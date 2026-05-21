@@ -1,0 +1,136 @@
+name,abbreviation,source,level
+All Sky Surface Shortwave Downward Irradiance,ALLSKY_SFC_SW_DWN,Solar Fluxes and Related,hourly
+Clear Sky Surface Shortwave Downward Irradiance,CLRSKY_SFC_SW_DWN,Solar Fluxes and Related,hourly
+All Sky Surface Shortwave Downward Direct Normal Irradiance,ALLSKY_SFC_SW_DNI,Solar Fluxes and Related,hourly
+All Sky Surface Shortwave Diffuse Irradiance,ALLSKY_SFC_SW_DIFF,Solar Fluxes and Related,hourly
+Top-Of-Atmosphere Shortwave Downward Irradiance,TOA_SW_DWN,Solar Fluxes and Related,hourly
+All Sky Surface Photosynthetically Active Radiation (PAR) Total,ALLSKY_SFC_PAR_TOT,Solar Fluxes and Related,hourly
+Clear Sky Surface Photosynthetically Active Radiation (PAR) Total,CLRSKY_SFC_PAR_TOT,Solar Fluxes and Related,hourly
+All Sky Surface UVA Irradiance,ALLSKY_SFC_UVA,Solar Fluxes and Related,hourly
+All Sky Surface UVB Irradiance,ALLSKY_SFC_UVB,Solar Fluxes and Related,hourly
+All Sky Surface UV Index,ALLSKY_SFC_UV_INDEX,Solar Fluxes and Related,hourly
+Temperature at 2 Meters,T2M,Temperatures,hourly
+Dew/Frost Point at 2 Meters,T2MDEW,Temperatures,hourly
+Wet Bulb Temperature at 2 Meters,T2MWET,Temperatures,hourly
+Specific Humidity at 2 Meters,QV2M,Humidity/Precipitation,hourly
+Relative Humidity at 2 Meters,RH2M,Humidity/Precipitation,hourly
+Precipitation,PRECTOTCORR,Humidity/Precipitation,hourly
+Surface Pressure,PS,Wind/Pressure,hourly
+Wind Speed at 2 Meters,WS2M,Wind/Pressure,hourly
+Wind Direction at 2 Meters,WD2M,Wind/Pressure,hourly
+Wind Speed at 10 Meters,WS10M,Wind/Pressure,hourly
+Wind Direction at 10 Meters,WD10M,Wind/Pressure,hourly
+All Sky Surface Shortwave Downward Irradiance,ALLSKY_SFC_SW_DWN,Solar Fluxes and Related,daily
+Clear Sky Surface Shortwave Downward Irradiance,CLRSKY_SFC_SW_DWN,Solar Fluxes and Related,daily
+All Sky Surface Shortwave Downward Direct Normal Irradiance,ALLSKY_SFC_SW_DNI,Solar Fluxes and Related,daily
+All Sky Surface Shortwave Diffuse Irradiance,ALLSKY_SFC_SW_DIFF,Solar Fluxes and Related,daily
+Top-Of-Atmosphere Shortwave Downward Irradiance,TOA_SW_DWN,Solar Fluxes and Related,daily
+All Sky Surface Photosynthetically Active Radiation (PAR) Total,ALLSKY_SFC_PAR_TOT,Solar Fluxes and Related,daily
+Clear Sky Surface Photosynthetically Active Radiation (PAR) Total,CLRSKY_SFC_PAR_TOT,Solar Fluxes and Related,daily
+All Sky Surface UVA Irradiance,ALLSKY_SFC_UVA,Solar Fluxes and Related,daily
+All Sky Surface UVB Irradiance,ALLSKY_SFC_UVB,Solar Fluxes and Related,daily
+All Sky Surface UV Index,ALLSKY_SFC_UV_INDEX,Solar Fluxes and Related,daily
+Temperature at 2 Meters,T2M,Temperatures/Thermal IR Flux,daily
+Dew/Frost Point at 2 Meters,T2MDEW,Temperatures/Thermal IR Flux,daily
+Wet Bulb Temperature at 2 Meters,T2MWET,Temperatures/Thermal IR Flux,daily
+Earth Skin Temperature,TS,Temperatures/Thermal IR Flux,daily
+Temperature at 2 Meters Range,T2M_RANGE,Temperatures/Thermal IR Flux,daily
+Temperature at 2 Meters Maximum,T2M_MAX,Temperatures/Thermal IR Flux,daily
+Temperature at 2 Meters Minimum,T2M_MIN,Temperatures/Thermal IR Flux,daily
+All Sky Surface Longwave Downward Irradiance,ALLSKY_SFC_LW_DWN,Temperatures/Thermal IR Flux,daily
+Specific Humidity at 2 Meters,QV2M,Humidity/Precipitation,daily
+Relative Humidity at 2 Meters,RH2M,Humidity/Precipitation,daily
+Precipitation,PRECTOTCORR,Humidity/Precipitation,daily
+Surface Pressure,PS,Wind/Pressure,daily
+Wind Speed at 2 Meters,WS2M,Wind/Pressure,daily
+Wind Speed at 2 Meters Maximum,WS2M_MAX,Wind/Pressure,daily
+Wind Speed at 2 Meters Minimum,WS2M_MIN,Wind/Pressure,daily
+Wind Speed at 2 Meters Range,WS2M_RANGE,Wind/Pressure,daily
+Wind Direction at 2 Meters,WD2M,Wind/Pressure,daily
+Wind Speed at 10 Meters,WS10M,Wind/Pressure,daily
+Wind Speed at 10 Meters Maximum,WS10M_MAX,Wind/Pressure,daily
+Wind Speed at 10 Meters Minimum,WS10M_MIN,Wind/Pressure,daily
+Wind Speed at 10 Meters Range,WS10M_RANGE,Wind/Pressure,daily
+Wind Direction at 10 Meters,WD10M,Wind/Pressure,daily
+Surface Soil Wetness (surface to 5 cm below),GWETTOP,Soil Properties,daily
+Root Zone Soil Wetness (surface to 100 cm below),GWETROOT,Soil Properties,daily
+Profile Soil Moisture (surface to bedrock),GWETPROF,Soil Properties,daily
+All Sky Surface Shortwave Downward Irradiance,ALLSKY_SFC_SW_DWN,Solar Fluxes and Related,monthly
+Clear Sky Surface Shortwave Downward Irradiance,CLRSKY_SFC_SW_DWN,Solar Fluxes and Related,monthly
+All Sky Surface Shortwave Downward Direct Normal Irradiance,ALLSKY_SFC_SW_DNI,Solar Fluxes and Related,monthly
+All Sky Surface Shortwave Diffuse Irradiance,ALLSKY_SFC_SW_DIFF,Solar Fluxes and Related,monthly
+All Sky Surface Albedo,ALLSKY_SRF_ALB,Solar Fluxes and Related,monthly
+Top-Of-Atmosphere Shortwave Downward Irradiance,TOA_SW_DWN,Solar Fluxes and Related,monthly
+Cloud Amount,CLOUD_AMT,Solar Fluxes and Related,monthly
+All Sky Surface Photosynthetically Active Radiation (PAR) Total,ALLSKY_SFC_PAR_TOT,Solar Fluxes and Related,monthly
+Clear Sky Surface Photosynthetically Active Radiation (PAR) Total,CLRSKY_SFC_PAR_TOT,Solar Fluxes and Related,monthly
+All Sky Surface UVA Irradiance,ALLSKY_SFC_UVA,Solar Fluxes and Related,monthly
+All Sky Surface UVB Irradiance,ALLSKY_SFC_UVB,Solar Fluxes and Related,monthly
+All Sky Surface UV Index,ALLSKY_SFC_UV_INDEX,Solar Fluxes and Related,monthly
+Temperature at 2 Meters,T2M,Temperatures/Thermal IR Flux,monthly
+Dew/Frost Point at 2 Meters,T2MDEW,Temperatures/Thermal IR Flux,monthly
+Wet Bulb Temperature at 2 Meters,T2MWET,Temperatures/Thermal IR Flux,monthly
+Earth Skin Temperature,TS,Temperatures/Thermal IR Flux,monthly
+Temperature at 2 Meters Range,T2M_RANGE,Temperatures/Thermal IR Flux,monthly
+Temperature at 2 Meters Maximum,T2M_MAX,Temperatures/Thermal IR Flux,monthly
+Temperature at 2 Meters Minimum,T2M_MIN,Temperatures/Thermal IR Flux,monthly
+All Sky Surface Longwave Downward Irradiance,ALLSKY_SFC_LW_DWN,Temperatures/Thermal IR Flux,monthly
+Specific Humidity at 2 Meters,QV2M,Humidity/Precipitation,monthly
+Relative Humidity at 2 Meters,RH2M,Humidity/Precipitation,monthly
+Precipitation Average,PRECTOTCORR,Humidity/Precipitation,monthly
+Precipitation Sum Average,PRECTOTCORR_SUM,Humidity/Precipitation,monthly
+Surface Pressure,PS,Wind/Pressure,monthly
+Wind Speed at 2 Meters,WS2M,Wind/Pressure,monthly
+Wind Speed at 2 Meters Maximum,WS2M_MAX,Wind/Pressure,monthly
+Wind Speed at 2 Meters Minimum,WS2M_MIN,Wind/Pressure,monthly
+Wind Speed at 2 Meters Range,WS2M_RANGE,Wind/Pressure,monthly
+Wind Direction at 2 Meters,WD2M,Wind/Pressure,monthly
+Wind Speed at 10 Meters,WS10M,Wind/Pressure,monthly
+Wind Speed at 10 Meters Maximum,WS10M_MAX,Wind/Pressure,monthly
+Wind Speed at 10 Meters Minimum,WS10M_MIN,Wind/Pressure,monthly
+Wind Speed at 10 Meters Range,WS10M_RANGE,Wind/Pressure,monthly
+Wind Direction at 10 Meters,WD10M,Wind/Pressure,monthly
+Surface Soil Wetness (surface to 5 cm below),GWETTOP,Soil Properties,monthly
+Root Zone Soil Wetness (surface to 100 cm below),GWETROOT,Soil Properties,monthly
+Profile Soil Moisture (surface to bedrock),GWETPROF,Soil Properties,monthly
+All Sky Surface Shortwave Downward Irradiance,ALLSKY_SFC_SW_DWN,Solar Fluxes and Related,climatology
+Clear Sky Surface Shortwave Downward Irradiance,CLRSKY_SFC_SW_DWN,Solar Fluxes and Related,climatology
+All Sky Surface Shortwave Downward Direct Normal Irradiance,ALLSKY_SFC_SW_DNI,Solar Fluxes and Related,climatology
+All Sky Surface Shortwave Diffuse Irradiance,ALLSKY_SFC_SW_DIFF,Solar Fluxes and Related,climatology
+All Sky Surface Albedo,ALLSKY_SRF_ALB,Solar Fluxes and Related,climatology
+Top-Of-Atmosphere Shortwave Downward Irradiance,TOA_SW_DWN,Solar Fluxes and Related,climatology
+Cloud Amount,CLOUD_AMT,Solar Fluxes and Related,climatology
+All Sky Surface Photosynthetically Active Radiation (PAR) Total,ALLSKY_SFC_PAR_TOT,Solar Fluxes and Related,climatology
+Clear Sky Surface Photosynthetically Active Radiation (PAR) Total,CLRSKY_SFC_PAR_TOT,Solar Fluxes and Related,climatology
+All Sky Surface UVA Irradiance,ALLSKY_SFC_UVA,Solar Fluxes and Related,climatology
+All Sky Surface UVB Irradiance,ALLSKY_SFC_UVB,Solar Fluxes and Related,climatology
+All Sky Surface UV Index,ALLSKY_SFC_UV_INDEX,Solar Fluxes and Related,climatology
+Temperature at 2 Meters,T2M,Temperatures/Thermal IR Flux,climatology
+Dew/Frost Point at 2 Meters,T2MDEW,Temperatures/Thermal IR Flux,climatology
+Wet Bulb Temperature at 2 Meters,T2MWET,Temperatures/Thermal IR Flux,climatology
+Earth Skin Temperature,TS,Temperatures/Thermal IR Flux,climatology
+Temperature at 2 Meters Range,T2M_RANGE,Temperatures/Thermal IR Flux,climatology
+Temperature at 2 Meters Maximum,T2M_MAX,Temperatures/Thermal IR Flux,climatology
+Temperature at 2 Meters Minimum,T2M_MIN,Temperatures/Thermal IR Flux,climatology
+Earth Skin Temperature Maximum,TS_MAX,Temperatures/Thermal IR Flux,climatology
+Earth Skin Temperature Minimum,TS_MIN,Temperatures/Thermal IR Flux,climatology
+Frost Days,FROST_DAYS,Temperatures/Thermal IR Flux,climatology
+All Sky Surface Longwave Downward Irradiance,ALLSKY_SFC_LW_DWN,Temperatures/Thermal IR Flux,climatology
+Specific Humidity at 2 Meters,QV2M,Humidity/Precipitation,climatology
+Relative Humidity at 2 Meters,RH2M,Humidity/Precipitation,climatology
+Precipitation Average,PRECTOTCORR,Humidity/Precipitation,climatology
+Precipitation Sum Average,PRECTOTCORR_SUM,Humidity/Precipitation,climatology
+Surface Pressure,PS,Wind/Pressure,climatology
+Wind Speed at 2 Meters,WS2M,Wind/Pressure,climatology
+Wind Speed at 2 Meters Maximum,WS2M_MAX,Wind/Pressure,climatology
+Wind Speed at 2 Meters Minimum,WS2M_MIN,Wind/Pressure,climatology
+Wind Speed at 2 Meters Range,WS2M_RANGE,Wind/Pressure,climatology
+Wind Direction at 2 Meters,WD2M,Wind/Pressure,climatology
+Wind Speed at 10 Meters,WS10M,Wind/Pressure,climatology
+Wind Speed at 10 Meters Maximum,WS10M_MAX,Wind/Pressure,climatology
+Wind Speed at 10 Meters Minimum,WS10M_MIN,Wind/Pressure,climatology
+Wind Speed at 10 Meters Range,WS10M_RANGE,Wind/Pressure,climatology
+Wind Direction at 10 Meters,WD10M,Wind/Pressure,climatology
+Surface Soil Wetness (surface to 5 cm below),GWETTOP,Soil Properties,climatology
+Root Zone Soil Wetness (surface to 100 cm below),GWETROOT,Soil Properties,climatology
+Profile Soil Moisture (surface to bedrock),GWETPROF,Soil Properties,climatology

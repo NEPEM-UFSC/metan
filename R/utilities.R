@@ -156,11 +156,11 @@ extract_number <- function(.data,
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     if(missing(...)){
       results <-
-        mutate(.data, across(where(~!is.numeric(.)), gsub, pattern = pattern, replacement = "")) %>%
+        mutate(.data, across(!where(is.numeric), \(x){gsub(x, pattern = pattern, replacement = "")})) |>
         as_numeric(everything())
     } else{
       results <-
-        mutate(.data, across(c(...), gsub, pattern = pattern, replacement = "")) %>%
+        mutate(.data, across(c(...), \(x){gsub(x, pattern = pattern, replacement = "")})) |>
         as_numeric(...)
     }
     return(results)
@@ -179,10 +179,10 @@ extract_string <- function(.data,
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     if(missing(...)){
       results <-
-        mutate(.data, across(where(~!is.numeric(.)), gsub, pattern = pattern, replacement = ""))
+        mutate(.data, across(!where(is.numeric), \(x){gsub(x, pattern = pattern, replacement = "")}))
     } else{
       results <-
-        mutate(.data, across(c(...), gsub, pattern = pattern, replacement = ""))
+        mutate(.data, across(c(...), \(x){gsub(x, pattern = pattern, replacement = "")}))
     }
     return(results)
   } else{
@@ -196,7 +196,7 @@ find_text_in_num <- function(.data, ...){
     which(is.na(suppressWarnings(as.numeric(x))))
   }
   if(!missing(...)){
-    .data <- select_cols(.data, ...)
+    .data <- dplyr::select(.data, ...)
     apply(.data, 2, help_text)
 
   } else{
@@ -210,7 +210,7 @@ has_text_in_num <- function(.data){
   if(any(sapply(sapply(.data, find_text_in_num), length)> 0)){
     var_nam <- names(which(sapply(sapply(.data, find_text_in_num), length)>0))
     warning("Non-numeric variable(s) ", paste(var_nam, collapse = ", "),
-            " will not be selected.\nUse 'find_text_in_num()' to see rows with non-numeric characteres.", call. = FALSE)
+            " will not be selected.\nUse 'find_text_in_num()' to see rows with non-numeric characteres.")
   }
 }
 #' @name utils_num_str
@@ -239,17 +239,17 @@ remove_strings <- function(.data, ...){
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     if(missing(...)){
       results <-
-        mutate(.data, across(everything(), gsub, pattern = "[^0-9.-]", replacement = "")) %>%
+        mutate(.data, across(everything(), gsub, pattern = "[^0-9.-]", replacement = "")) |>
         as_numeric(everything())
     } else{
       results <-
-        mutate(.data, across(c(...), gsub, pattern = "[^0-9.-]", replacement = "")) %>%
+        mutate(.data, across(c(...), gsub, pattern = "[^0-9.-]", replacement = "")) |>
         as_numeric(...)
     }
     return(results)
   } else{
-    return(gsub(pattern = "[^0-9.-]", replacement = "", .data)) %>%
-      remove_space() %>%
+    return(gsub(pattern = "[^0-9.-]", replacement = "", .data)) |>
+      remove_space() |>
       as.numeric()
   }
 }
@@ -267,7 +267,7 @@ replace_number <- function(.data,
   }
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     results <-
-      .data %>%
+      .data |>
       mutate(across(c(...), ~gsub(pattern, replacement, ., ignore.case = ignore_case)))
     return(results)
   } else{
@@ -288,7 +288,7 @@ replace_string <- function(.data,
   }
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     results <-
-      .data %>%
+      .data |>
       mutate(across(c(...), ~gsub(pattern, replacement, ., ignore.case = ignore_case)))
     return(results)
   } else{
@@ -303,8 +303,8 @@ round_cols <- function(.data, ...,  digits = 2){
   is_mat <- is.matrix(.data)
   if(is_mat ==  TRUE){
     .data <-
-      .data %>%
-      as.data.frame() %>%
+      .data |>
+      as.data.frame() |>
       rownames_to_column()
   }
   rn_test <- has_rownames(.data)
@@ -312,17 +312,17 @@ round_cols <- function(.data, ...,  digits = 2){
     rnames <- rownames(.data)
   }
   if (missing(...)){
-    .data %<>% mutate(across(where(is.numeric), round, digits = digits))
+    .data <- .data |> mutate(across(where(is.numeric), round, digits = digits))
   } else{
-    .data %<>% mutate(across(c(...), round, digits = digits))
+    .data <- .data |> mutate(across(c(...), round, digits = digits))
   }
   if(rn_test == TRUE){
     rownames(.data) <- rnames
   }
   if(is_mat ==  TRUE){
     .data <-
-      .data %>%
-      column_to_rownames() %>%
+      .data |>
+      column_to_rownames() |>
       as.matrix()
   }
   return(.data)
@@ -394,7 +394,7 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #' * `remove_cols()`: Remove one or more columns from a data frame.
 #' * `remove_rows()`: Remove one or more rows from a data frame.
 #' * `reorder_cols()`: Reorder columns in a data frame.
-#' * `select_cols()`: Select one or more columns from a data frame.
+#' * `dplyr::select()`: Select one or more columns from a data frame.
 #' * `select_first_col()`: Select first variable, possibly with an offset.
 #' * `select_last_col()`: Select last variable, possibly with an offset.
 #' * `select_numeric_cols()`: Select all the numeric columns of a data
@@ -414,7 +414,7 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #' `add_rows()`. Values of length 1 will be recycled when using
 #' `add_cols()`.
 #'
-#' * For `remove_cols()` and `select_cols()`,  `...` is the
+#' * For `remove_cols()` and `dplyr::select()`,  `...` is the
 #' column name or column index of the variable(s) to be dropped.
 #'
 #' * For `add_prefix()` and `add_suffix()`,  `...` is the column
@@ -462,20 +462,21 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #' @examples
 #' \donttest{
 #' library(metan)
+#' library(dplyr)
 #'
 #' ################# Adding columns #################
 #' # Variables x and y .after last column
-#' data_ge %>%
+#' data_ge |>
 #'   add_cols(x = 10,
 #'            y = 30)
 #' # Variables x and y .before the variable GEN
-#' data_ge %>%
+#' data_ge |>
 #'   add_cols(x = 10,
 #'            y = 30,
 #'            .before = GEN)
 #'
 #' # Creating a new variable based on the existing ones.
-#' data_ge %>%
+#' data_ge |>
 #'   add_cols(GY2 = GY^2,
 #'            GY2_HM = GY2 + HM,
 #'            .after = GY)
@@ -485,7 +486,7 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #' reorder_cols(data_ge2, where(is.factor), .after = last_col())
 #'
 #' ######## Selecting and removing columns ##########
-#' select_cols(data_ge2, GEN, REP)
+#' dplyr::select(data_ge2, GEN, REP)
 #' remove_cols(data_ge2, GEN, REP)
 #'
 #' ########## Selecting and removing rows ###########
@@ -497,9 +498,9 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #' concatenate(data_ge, ENV, GEN, REP, drop = TRUE)
 #'
 #' # Combine with add_cols() and replace_string()
-#'data_ge2 %>%
-#'  add_cols(ENV_GEN = concatenate(., ENV, GEN, pull = TRUE),
-#'           .after = GEN) %>%
+#'data_ge2 |>
+#'  add_cols(ENV_GEN = concatenate(pick(everything()), ENV, GEN, pull = TRUE),
+#'           .after = GEN) |>
 #'  replace_string(ENV_GEN,
 #'                 pattern = "H",
 #'                 replacement = "HYB_")
@@ -526,7 +527,7 @@ tidy_strings <- function(.data, ..., sep = "_"){
 #'
 #'
 #' ################### Adding rows ##################
-#' data_ge %>%
+#' data_ge |>
 #'   add_rows(GY = 10.3,
 #'            HM = 100.11,
 #'            .after = 1)
@@ -576,7 +577,7 @@ add_rows <- function(.data, ..., .before = NULL, .after = NULL){
 #' @export
 add_row_id <- function(.data, var = "row_id"){
   if(!has_class(.data, "data.frame")){
-    stop("The object '",  match.call()[[".data"]], "' must be a data frame.")
+    cli::cli_abort("The object '",  match.call()[[".data"]], "' must be a data frame.")
   }
   df <- .data
   add_cols(df, {{var}} := seq_len(nrow(df)), .before = 1)
@@ -586,8 +587,8 @@ add_row_id <- function(.data, var = "row_id"){
 all_pairs <- function(.data, levels){
   levels <-
     get_levels(.data, {{levels}})
-  combn(levels, 2) %>%
-    t() %>%
+  combn(levels, 2) |>
+    t() |>
     as.data.frame()
 }
 #' @name utils_rows_cols
@@ -622,21 +623,21 @@ colnames_to_title <- function(.data){
 #' @name utils_rows_cols
 #' @export
 column_to_first <-function(.data, ...){
-  select_cols(.data, ..., everything())
+  dplyr::select(.data, ..., everything())
 }
 #' @name utils_rows_cols
 #' @export
 column_to_last <-function(.data, ...){
-  select_cols(.data, -c(!!!quos(...)), everything())
+  dplyr::select(.data, -c(!!!quos(...)), everything())
 }
 #' @name utils_rows_cols
 #' @export
 column_to_rownames <- function(.data, var = "rowname"){
   df <-
-    as.data.frame(.data) %>%
+    as.data.frame(.data) |>
     remove_rownames()
   if(!var %in% colnames(df)){
-    stop("Variable '", var, "' not in data.", call. = FALSE)
+    cli::cli_abort("Variable '", var, "' not in data.")
   }
   rownames(df) <- df[[var]]
   df[[var]] <- NULL
@@ -647,7 +648,7 @@ column_to_rownames <- function(.data, var = "rowname"){
 rownames_to_column <-  function(.data, var = "rowname"){
   col_names <- colnames(.data)
   if (var %in% col_names) {
-    stop("Column `", var, "` already exists in `.data`.")
+    cli::cli_abort("Column `", var, "` already exists in `.data`.")
   }
   .data[, var] <- rownames(.data)
   rownames(.data) <- NULL
@@ -714,13 +715,13 @@ concatenate <- function(.data,
 get_levels <- function(.data, ...){
   if(missing(...)){
     df <-
-      select(.data, everything()) %>% select_non_numeric_cols()
+      select(.data, everything()) |> select_non_numeric_cols()
   } else{
-    df <- select(.data, ...) %>% select_non_numeric_cols()
+    df <- select(.data, ...) |> select_non_numeric_cols()
   }
   results <-
-    df %>%
-    as_factor(everything()) %>%
+    df |>
+    as_factor(everything()) |>
     map(levels)
   if(length(results) == 1){
     return(results[[1]])
@@ -733,14 +734,14 @@ get_levels <- function(.data, ...){
 get_levels_comb <- function(.data, ...){
   if(missing(...)){
     df <-
-      select(.data, everything()) %>% select_non_numeric_cols()
+      select(.data, everything()) |> select_non_numeric_cols()
   } else{
-    df <- select(.data, ...) %>% select_non_numeric_cols()
+    df <- select(.data, ...) |> select_non_numeric_cols()
   }
-  df %>%
-    as_factor() %>%
-    map(levels) %>%
-    expand.grid() %>%
+  df |>
+    as_factor() |>
+    map(levels) |>
+    expand.grid() |>
     as_tibble()
 }
 #' @name utils_rows_cols
@@ -769,7 +770,7 @@ remove_rows <- function(.data, ...){
 #' @export
 select_first_col <- function(.data, offset = NULL){
   if(!missing(offset) && offset == 0){
-    stop("`offset` must be greater than the 0", call. = FALSE)
+    cli::cli_abort("`offset` must be greater than the 0")
   }
   offset <- ifelse(missing(offset), ncol(.data) - 1, ncol(.data) - offset)
   select(.data, last_col(offset = offset))
@@ -786,7 +787,7 @@ select_numeric_cols <- function(.data){
   if(is_grouped_df(.data)){
     .data <- ungroup(.data)
   }
-  select_if(.data, is.numeric)
+  select(.data, where(is.numeric))
 }
 #' @name utils_rows_cols
 #' @export
@@ -794,7 +795,7 @@ select_non_numeric_cols <- function(.data){
   if(is_grouped_df(.data)){
     .data <- ungroup(.data)
   }
-  select_if(.data, ~!is.numeric(.x))
+  select(.data, !where(is.numeric))
 }
 #' @name utils_rows_cols
 #' @export
@@ -876,11 +877,10 @@ tidy_colnames <- function(.data, sep = "_"){
 #'the square root of the number of samples (n) if `n =< 100` or `5 * log10(n)`
 #'if `n > 100`.
 #'
-#'The amplitude (\mjseqn{A}) of the data is used to define the size of the class (\mjseqn{c}),
+#'The amplitude (\eqn{A}) of the data is used to define the size of the class (\eqn{c}),
 #'given by
 #'
-#' \loadmathjax
-#' \mjsdeqn{c = \frac{A}{n - 1}}
+#' \deqn{c = \frac{A}{n - 1}}
 #'
 #' The lower limit of the first class (LL1) is given by min(data) - c / 2. The
 #' upper limit is given by LL1 + c. The limits of the other classes are given in
@@ -948,8 +948,8 @@ tidy_colnames <- function(.data, sep = "_"){
 #' # Confidence interval 0.95 for the mean
 #' # All numeric variables
 #' # Grouped by levels of ENV
-#' data_ge2 %>%
-#'   group_by(ENV) %>%
+#' data_ge2 |>
+#'   group_by(ENV) |>
 #'   ci_mean_t()
 #'
 #' # standard error of the mean
@@ -957,7 +957,7 @@ tidy_colnames <- function(.data, sep = "_"){
 #' sem(data_ge2, PH, EH)
 #'
 #' # Frequency table for variable NR
-#' data_ge2 %>%
+#' data_ge2 |>
 #'   freq_table(NR)
 #'}
 #'
@@ -965,7 +965,7 @@ tidy_colnames <- function(.data, sep = "_"){
 av_dev <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -975,13 +975,13 @@ av_dev <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -991,7 +991,7 @@ av_dev <- function(.data, ..., na.rm = FALSE) {
 ci_mean_t <- function(.data, ..., na.rm = FALSE, level = 0.95) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1001,13 +1001,13 @@ ci_mean_t <- function(.data, ..., na.rm = FALSE, level = 0.95) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1017,7 +1017,7 @@ ci_mean_t <- function(.data, ..., na.rm = FALSE, level = 0.95) {
 ci_mean_z <- function(.data, ..., na.rm = FALSE, level = 0.95) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1027,13 +1027,13 @@ ci_mean_z <- function(.data, ..., na.rm = FALSE, level = 0.95) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1043,7 +1043,7 @@ ci_mean_z <- function(.data, ..., na.rm = FALSE, level = 0.95) {
 cv <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1053,13 +1053,13 @@ cv <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1071,15 +1071,15 @@ freq_table <- function(.data, var, k = NULL, digits = 3){
   if(is_grouped_df(.data)){
     res <-
       metan::doo(.data,
-                 ~freq_table(., {{var}}, k = k, digits = digits))
+                 ~freq_table(.x, {{var}}, k = k, digits = digits))
     freqs <-
-      res %>%
-      mutate(freqs = map(data, ~.x %>% .[["freqs"]])) %>%
-      unnest(freqs) %>%
+      res |>
+      mutate(freqs = map(data, ~.x[["freqs"]])) |>
+      unnest(freqs) |>
       remove_cols(data)
     breaks <-
-      res %>%
-      mutate(freqs = map(data, ~.x %>% .[["breaks"]])) %>%
+      res |>
+      mutate(freqs = map(data, ~.x[["breaks"]])) |>
       remove_cols(data)
     return(list(freqs = freqs,
                 breaks = breaks))
@@ -1134,21 +1134,21 @@ freq_table <- function(.data, var, k = NULL, digits = 3){
       fi <- freq(data, vi, vs, k)
       # check if any class is empty
       if(any(fi == 0)){
-        warning("An empty class is not advised. Try to reduce the number of classes with the `k` argument", call. = FALSE)
+        warning("An empty class is not advised. Try to reduce the number of classes with the `k` argument")
       }
       # building the classes
       classe <- paste(vi, "|--- ", vs)
       classe[k] <- paste(vi[k], "|---|", vs[k])
       freqs <-
         data.frame(class = classe,
-                   abs_freq = fi) %>%
+                   abs_freq = fi) |>
         mutate(abs_freq_ac = cumsum(abs_freq),
                rel_freq = abs_freq / sum(abs_freq),
                rel_freq_ac = cumsum(rel_freq))
       freqs[nrow(freqs) + 1, ] <- c("Total", sum(freqs[, 2]), sum(freqs[, 2]), 1, 1)
       freqs <-
-        freqs %>%
-        as_numeric(2:5) %>%
+        freqs |>
+        as_numeric(2:5) |>
         round_cols(digits = digits)
 
       breaks <- sort(c(vi, vs))
@@ -1164,22 +1164,22 @@ freq_table <- function(.data, var, k = NULL, digits = 3){
     }
 
     #check the class of the variable
-    class_data <- .data %>% pull({{var}}) %>% class()
+    class_data <- .data |> pull({{var}}) |> class()
     # if variable is discrete or categorical
     if(class_data %in% c("character", "factor", "integer")){
       df <-
-        .data %>%
-        count({{var}}) %>%
-        as_character(1) %>%
+        .data |>
+        count({{var}}) |>
+        as_character(1) |>
         mutate(abs_freq = n,
                abs_freq_ac = cumsum(abs_freq),
                rel_freq = abs_freq / sum(abs_freq),
-               rel_freq_ac = cumsum(rel_freq)) %>%
-        remove_cols(n) %>%
-        as.data.frame() %>%
+               rel_freq_ac = cumsum(rel_freq)) |>
+        remove_cols(n) |>
+        as.data.frame() |>
         round_cols(digits = digits)
       df[nrow(df) + 1, ] <- c("Total", sum(df[, 2]), sum(df[, 2]), 1, 1)
-      df <- df %>% as_numeric(2:5)
+      df <- df |> as_numeric(2:5)
       return(
         structure(
           list(freqs = df,
@@ -1190,7 +1190,7 @@ freq_table <- function(.data, var, k = NULL, digits = 3){
     }
     # if variable is numeric
     if(class_data == "numeric"){
-      data <- .data %>% pull({{var}})
+      data <- .data |> pull({{var}})
       # apply the function freq_quant in the numeric vector
       freq_quant(data, k = k, digits = digits)
     }
@@ -1207,7 +1207,7 @@ freq_hist <- function(table,
                       color = "black",
                       ygrid = TRUE) {
   if (!inherits(table, "freq_table")){
-    stop("Class of object `table` is not valid. Please use `freq_table()` to create a valid object.")
+    cli::cli_abort("Class of object `table` is not valid. Please use `freq_table()` to create a valid object.")
   }
   if (table$vartype == "categorical") {
 
@@ -1277,7 +1277,7 @@ freq_hist <- function(table,
 hmean <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1287,13 +1287,13 @@ hmean <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1303,7 +1303,7 @@ hmean <- function(.data, ..., na.rm = FALSE) {
 gmean <- function(.data, ..., na.rm = FALSE){
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1313,13 +1313,13 @@ gmean <- function(.data, ..., na.rm = FALSE){
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1329,7 +1329,7 @@ gmean <- function(.data, ..., na.rm = FALSE){
 kurt <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1341,13 +1341,13 @@ kurt <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1362,11 +1362,11 @@ n_missing <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(everything(), funct)) %>%
+      .data |>
+        summarise(across(everything(), funct)) |>
         ungroup()
     } else{
-      .data %>%
+      .data |>
         summarise(across(c(...), funct))
     }
   }
@@ -1376,7 +1376,7 @@ n_missing <- function(.data, ..., na.rm = FALSE) {
 n_unique <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1386,11 +1386,11 @@ n_unique <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(everything(), funct)) %>%
+      .data |>
+        summarise(across(everything(), funct)) |>
         ungroup()
     } else{
-      .data %>%
+      .data |>
         summarise(across(c(...), funct))
     }
   }
@@ -1400,7 +1400,7 @@ n_unique <- function(.data, ..., na.rm = FALSE) {
 n_valid <- function(.data, ..., na.rm = FALSE){
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1410,13 +1410,13 @@ n_valid <- function(.data, ..., na.rm = FALSE){
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1426,7 +1426,7 @@ n_valid <- function(.data, ..., na.rm = FALSE){
 pseudo_sigma <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1436,13 +1436,13 @@ pseudo_sigma <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1452,7 +1452,7 @@ pseudo_sigma <- function(.data, ..., na.rm = FALSE) {
 range_data <- function(.data, ..., na.rm = FALSE){
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1462,13 +1462,13 @@ range_data <- function(.data, ..., na.rm = FALSE){
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1477,12 +1477,12 @@ range_data <- function(.data, ..., na.rm = FALSE){
 #' @export
 row_col_mean <- function(.data, na.rm = FALSE) {
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(!any(sapply(.data, is.numeric))){
-    stop("All columns in '.data' must be numeric")
+    cli::cli_abort("All columns in '.data' must be numeric")
   }
   mat <- as.matrix(.data)
 
@@ -1493,7 +1493,7 @@ row_col_mean <- function(.data, na.rm = FALSE) {
   }
   row_mean <- rowMeans(mat, na.rm = na.rm)
   col_mean <- colMeans(mat, na.rm = na.rm)
-  cmeans <- suppressWarnings(cbind(mat,  row_mean) %>% rbind(col_mean))
+  cmeans <- suppressWarnings(cbind(mat,  row_mean) |> rbind(col_mean))
   rownames(cmeans) <- c(row_names, "col_mean")
   cmeans[nrow(cmeans), ncol(cmeans)] <- mean(mat, na.rm = na.rm)
   return(cmeans)
@@ -1502,12 +1502,12 @@ row_col_mean <- function(.data, na.rm = FALSE) {
 #' @export
 row_col_sum <- function(.data, na.rm = FALSE) {
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(!any(sapply(.data, is.numeric))){
-    stop("All columns in '.data' must be numeric")
+    cli::cli_abort("All columns in '.data' must be numeric")
   }
   mat <- as.matrix(.data)
   if(is.null(rownames(mat))){
@@ -1517,7 +1517,7 @@ row_col_sum <- function(.data, na.rm = FALSE) {
   }
   row_sum <- rowSums(mat, na.rm = na.rm)
   col_sum <- colSums(mat, na.rm = na.rm)
-  cmeans <- suppressWarnings(cbind(mat,  row_sum) %>% rbind(col_sum))
+  cmeans <- suppressWarnings(cbind(mat,  row_sum) |> rbind(col_sum))
   rownames(cmeans) <- c(row_names, "col_sum")
   cmeans[nrow(cmeans), ncol(cmeans)] <- sum(mat, na.rm = na.rm)
   return(cmeans)
@@ -1527,7 +1527,7 @@ row_col_sum <- function(.data, na.rm = FALSE) {
 sd_amo <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1537,13 +1537,13 @@ sd_amo <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1553,7 +1553,7 @@ sd_amo <- function(.data, ..., na.rm = FALSE) {
 sd_pop <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1563,13 +1563,13 @@ sd_pop <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1579,7 +1579,7 @@ sd_pop <- function(.data, ..., na.rm = FALSE) {
 sem <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1589,13 +1589,13 @@ sem <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1605,7 +1605,7 @@ sem <- function(.data, ..., na.rm = FALSE) {
 skew <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1616,13 +1616,13 @@ skew <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1632,7 +1632,7 @@ skew <- function(.data, ..., na.rm = FALSE) {
 sum_dev <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1642,13 +1642,13 @@ sum_dev <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1658,7 +1658,7 @@ sum_dev <- function(.data, ..., na.rm = FALSE) {
 ave_dev <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1668,13 +1668,13 @@ ave_dev <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1684,7 +1684,7 @@ ave_dev <- function(.data, ..., na.rm = FALSE) {
 sum_sq_dev <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1694,13 +1694,13 @@ sum_sq_dev <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1711,7 +1711,7 @@ sum_sq_dev <- function(.data, ..., na.rm = FALSE) {
 sum_sq <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1721,13 +1721,13 @@ sum_sq <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1737,7 +1737,7 @@ sum_sq <- function(.data, ..., na.rm = FALSE) {
 var_pop <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1747,13 +1747,13 @@ var_pop <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1763,7 +1763,7 @@ var_pop <- function(.data, ..., na.rm = FALSE) {
 var_amo <- function(.data, ..., na.rm = FALSE) {
   funct <- function(df){
     if(na.rm == FALSE & has_na(df)){
-      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+      warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
       message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
       na.rm <- TRUE
     }
@@ -1773,13 +1773,13 @@ var_amo <- function(.data, ..., na.rm = FALSE) {
     funct(.data)
   } else{
     if(missing(...)){
-      .data %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     } else{
-      .data %>%
-        select_cols(group_vars(.), ...) %>%
-        summarise(across(where(is.numeric), funct)) %>%
+      .data |>
+        dplyr::select(group_vars(.data), ...) |>
+        summarise(across(where(is.numeric), funct)) |>
         ungroup()
     }
   }
@@ -1795,17 +1795,17 @@ cv_by <- function(.data,
                   .vars = NULL,
                   na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), cv, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) cv(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, cv, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) cv(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1816,17 +1816,17 @@ max_by <- function(.data,
                    .vars = NULL,
                    na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), max, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) max(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, max, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) max(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1838,43 +1838,21 @@ min_by <- function(.data,
                    .vars = NULL,
                    na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), min, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) min(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, min, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) min(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
 
-#' @name utils_stats
-#' @export
-means_by <- function(.data,
-                     ...,
-                     .vars = NULL,
-                     na.rm = FALSE){
-  deprecated_warning("1.17.0", "metan::mean_by()", "metan::mean_by()")
-  if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
-    message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
-    na.rm <- TRUE
-  }
-  if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), mean, na.rm = na.rm), .groups = "drop") %>%
-      ungroup()
-  } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, mean, na.rm = na.rm), .groups = "drop") %>%
-      ungroup()
-  }
-}
 #' @name utils_stats
 #' @export
 mean_by <- function(.data,
@@ -1882,17 +1860,17 @@ mean_by <- function(.data,
                     .vars = NULL,
                     na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), mean, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) mean(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, mean, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) mean(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1905,17 +1883,17 @@ n_by <- function(.data,
                  .vars = NULL,
                  na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(everything(), ~sum(!is.na(.))), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(everything(), ~sum(!is.na(.))), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, ~sum(!is.na(.))), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(all_of(.vars), ~sum(!is.na(.))), .groups = "drop") |>
       ungroup()
   }
 
@@ -1927,17 +1905,17 @@ sd_by <- function(.data,
                   .vars = NULL,
                   na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), sd, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) sd(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, sd, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) sd(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1948,17 +1926,17 @@ var_by <- function(.data,
                    .vars = NULL,
                    na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), var, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) var(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, var, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) var(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1969,17 +1947,17 @@ sem_by <- function(.data,
                    .vars = NULL,
                    na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), sem, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) sem(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, sem, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) sem(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -1990,17 +1968,17 @@ sum_by <- function(.data,
                    .vars = NULL,
                    na.rm = FALSE){
   if(na.rm == FALSE & has_na(.data)){
-    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.", call. = FALSE)
+    warning("NA values removed to compute the function. Use 'na.rm = TRUE' to suppress this warning.")
     message("To remove rows with NA use `remove_rows_na()'. \nTo remove columns with NA use `remove_cols_na()'.")
     na.rm <- TRUE
   }
   if(missing(.vars)){
-    group_by(.data, ...) %>%
-      summarise(across(where(is.numeric), sum, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across(where(is.numeric), \(x) sum(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   } else{
-    group_by(.data, ...) %>%
-      summarise(across({{.vars}}, sum, na.rm = na.rm), .groups = "drop") %>%
+    group_by(.data, ...) |>
+      summarise(across({{.vars}}, \(x) sum(x, na.rm = na.rm)), .groups = "drop") |>
       ungroup()
   }
 }
@@ -2043,10 +2021,10 @@ sum_by <- function(.data,
 #' @examples
 #' \donttest{
 #' library(metan)
-#' m <- cor(select_cols(data_ge2, 5:10))
+#' m <- cor(dplyr::select(data_ge2, 5:10))
 #' make_upper_tri(m)
 #' make_lower_tri(m)
-#' make_lower_tri(m) %>%
+#' make_lower_tri(m) |>
 #' make_sym(diag = 0)
 #' tidy_sym(m)
 #' tidy_sym(make_lower_tri(m))
@@ -2069,19 +2047,19 @@ make_lower_tri<-function(x, diag = NA){
 #' @export
 make_lower_upper<-function(lower, upper, diag = NA){
   if(any(rownames(upper) == rownames(lower)) == FALSE){
-    stop("Row names of 'upper' and 'lower' don't match.")
+    cli::cli_abort("Row names of 'upper' and 'lower' don't match.")
   }
   if(any(colnames(upper) == colnames(lower)) == FALSE){
-    stop("Column names of 'upper' and 'lower' don't match.")
+    cli::cli_abort("Column names of 'upper' and 'lower' don't match.")
   }
   if (nrow(lower) != ncol(lower)) {
-    stop("lower matrix must be square")
+    cli::cli_abort("lower matrix must be square")
   }
   if (nrow(upper) != ncol(upper)) {
-    stop("upper matrix must be square")
+    cli::cli_abort("upper matrix must be square")
   }
   if (nrow(lower) != ncol(upper)) {
-    stop("lower and upper matrices must have the same dimensions")
+    cli::cli_abort("lower and upper matrices must have the same dimensions")
   }
   result <- matrix(NA, nrow = nrow(upper), ncol = ncol(upper))
   result[lower.tri(result)] <- t(lower)[lower.tri(t(lower))]
@@ -2107,15 +2085,15 @@ make_sym <- function(x, make = "upper", diag = NA) {
 #' @export
 tidy_sym <- function(x, keep_diag = TRUE){
   res <-
-    x %>%
-    as_tibble(rownames = "group1") %>%
+    x |>
+    as_tibble(rownames = "group1") |>
     pivot_longer(names_to = "group2",
                  values_to = "value",
-                 -group1) %>%
-    remove_rows_na(verbose = FALSE) %>%
+                 -group1) |>
+    remove_rows_na(verbose = FALSE) |>
     arrange(group1)
   if(keep_diag == FALSE){
-    res %<>%  remove_rows(which(res[1] == res[2]))
+    res <- res |>  remove_rows(which(res[1] == res[2]))
   }
   return(res)
 }
@@ -2145,14 +2123,14 @@ tidy_sym <- function(x, keep_diag = TRUE){
 #'\donttest{
 #'library(metan)
 #'# Head the first two lines of each environment
-#'data_ge2 %>%
-#'  group_by(ENV) %>%
+#'data_ge2 |>
+#'  group_by(ENV) |>
 #'  doo(~head(., 2))
 #'
 #' # Genotype analysis for each environment using 'gafem()'
 #' # variable PH
-#' data_ge2 %>%
-#'   group_by(ENV) %>%
+#' data_ge2 |>
+#'   group_by(ENV) |>
 #'   doo(~gafem(., GEN, REP, PH, verbose = FALSE))
 #'}
 doo <- function(.data, .fun, ..., unnest = TRUE){
@@ -2161,9 +2139,9 @@ doo <- function(.data, .fun, ..., unnest = TRUE){
   } else{
     out <- nest(.data, data = everything())
   }
-  out %<>%
-    ungroup() %>%
-    mutate(data = purrr::map(.data$data, droplevels)) %>%
+  out <- out |>
+    ungroup() |>
+    mutate(data = purrr::map(.data$data, droplevels)) |>
     mutate(data = purrr::map(.data$data, .fun, ...))
   if(has_class(out$data[[1]], c("tbl_df", "data.frame")) & unnest == TRUE){
     out <- unnest(out, cols = c(data))
@@ -2191,12 +2169,12 @@ doo <- function(.data, .fun, ..., unnest = TRUE){
 #'\donttest{
 #'library(metan)
 #'df <-
-#' data_ge2 %>%
+#' data_ge2 |>
 #' add_class("my_class")
 #'class(df)
 #'has_class(df, "my_class")
-#'remove_class(df, "my_class") %>% class()
-#'set_class(df, "data_frame") %>% class()
+#'remove_class(df, "my_class") |> class()
+#'set_class(df, "data_frame") |> class()
 #'}
 #'
 add_class <- function(x, class){
@@ -2212,7 +2190,7 @@ has_class <- function(x, class){
 #' @export
 remove_class <- function(x, class){
   if(!class %in% class(x)){
-    stop("Class not found in object ", match.call()[["x"]], call. = FALSE)
+    cli::cli_abort("Class not found in object ", match.call()[["x"]])
   }
   class(x) <- setdiff(class(x), class)
   return(x)
@@ -2276,8 +2254,8 @@ stars_pval <- function(p_value){
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
 #' @examples
 #'\donttest{
-#' unb <- data_ge %>%
-#'         remove_rows(1:3) %>%
+#' unb <- data_ge |>
+#'         remove_rows(1:3) |>
 #'         droplevels()
 #' is_balanced_trial(data_ge, ENV, GEN, GY)
 #' is_balanced_trial(unb, ENV, GEN, GY)
@@ -2286,7 +2264,7 @@ stars_pval <- function(p_value){
 
 is_balanced_trial <- function(.data, env, gen, resp){
   mat <-
-    .data %>%
+    .data |>
     make_mat({{env}}, {{gen}}, {{resp}})
   if(has_na(mat) == TRUE){
     return(FALSE)
@@ -2332,7 +2310,7 @@ clip_read <- function(header = TRUE, sep = "\t", ...){
   }
   if(os == "linux"){
     if (!file.exists(Sys.which("xclip")[1L])){
-      stop("Cannot find xclip. Try installing it with 'sudo apt-get install xclip'")
+      cli::cli_abort("Cannot find xclip. Try installing it with 'sudo apt-get install xclip'")
     }
     df <- read.table(pipe("xclip -selection clipboard -o", open = "r"), ...)
   }
@@ -2347,7 +2325,7 @@ clip_write <- function(.data,
   os <- get_os()
   if(os == "windows"){
     if(!has_class(.data , c("data.frame", "matrix"))){
-      stop("Only data frames/tibbles/matrices allowed.")
+      cli::cli_abort("Only data frames/tibbles/matrices allowed.")
     }
     write.table(.data,
                 "clipboard",
@@ -2359,7 +2337,7 @@ clip_write <- function(.data,
   }
   if(os == "osx"){
     if(!has_class(.data , c("data.frame", "matrix"))){
-      stop("Only data frames/tibbles/matrices allowed.")
+      cli::cli_abort("Only data frames/tibbles/matrices allowed.")
     }
     write.table(.data,
                 file = pipe("pbcopy"),
@@ -2371,10 +2349,10 @@ clip_write <- function(.data,
   }
   if(os == "linux"){
     if(!has_class(.data , c("data.frame", "matrix"))){
-      stop("Only data frames/tibbles/matrices allowed.")
+      cli::cli_abort("Only data frames/tibbles/matrices allowed.")
     }
     if (!file.exists(Sys.which("xclip")[1L])){
-      stop("Cannot find xclip. Try installing it with 'sudo apt-get install xclip'")
+      cli::cli_abort("Cannot find xclip. Try installing it with 'sudo apt-get install xclip'")
     }
     write.table(.data,
                 file = pipe("xclip -selection clipboard -i", open="w"),
@@ -2391,7 +2369,7 @@ clip_write <- function(.data,
 # Check labels
 check_labels <- function(.data){
   if(any(sapply(.data, grepl, pattern = ":"))){
-    stop("Using ':' in genotype or environment labels is not allowed. Use '_' instead.\ne.g., replace_string(data, ENV, pattern = ':', replacement = '_', new_var = ENV)", call. = FALSE)
+    cli::cli_abort("Using ':' in genotype or environment labels is not allowed. Use '_' instead.\ne.g., replace_string(data, ENV, pattern = ':', replacement = '_', new_var = ENV)")
   }
 }
 # Case
@@ -2399,10 +2377,10 @@ helper_case <- function(.data, fun, ...){
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     .data <- as.data.frame(.data)
     if(!missing(...)){
-      mutate(.data, across(c(...), fun)) %>%
+      mutate(.data, across(c(...), fun)) |>
         as_tibble(rownames = NA)
     } else{
-      mutate(.data, across(where(~!is.numeric(.x)), fun)) %>%
+      mutate(.data, across(where(~!is.numeric(.x)), fun)) |>
         as_tibble(rownames = NA)
     }
   } else{
@@ -2441,7 +2419,7 @@ get_os <- function(){
 }
 # Coord radar for mtsi and mgidi indexes
 coord_radar <- function (theta = "x", start = 0, direction = 1) {
-  theta <- match.arg(theta, c("x", "y"))
+  theta <- rlang::arg_match(theta, c("x", "y"))
   r <- ifelse(theta == "x", "y", "x")
   ggproto("CoordRadar", CoordPolar, theta = theta, r = r, start = start,
           direction = sign(direction),
@@ -2451,7 +2429,7 @@ coord_radar <- function (theta = "x", start = 0, direction = 1) {
 has_df_in_list <- function(x){
   !any(
     is.na(
-      map(x, class) %>%
+      map(x, class) |>
         lapply(function(x){
           match('data.frame', x)
         })
@@ -2462,7 +2440,7 @@ has_df_in_list <- function(x){
 all_df_in_list <- function(x){
   !all(
     is.na(
-      map(x, class) %>%
+      map(x, class) |>
         lapply(function(x){
           match('data.frame', x)
         })
@@ -2482,7 +2460,7 @@ sec_to_hms <- function(t){
 badge <- function(stage){
   stages <- c("experimental", "stable", "superseded", "deprecated")
   if(!stage %in% stages){
-    stop("'stage' must be one of the ", stages)
+    cli::cli_abort("'stage' must be one of the ", stages)
   }
   url <- paste0("https://lifecycle.r-lib.org/articles/stages.html#",
                 stage)
@@ -2493,66 +2471,156 @@ badge <- function(stage){
   sprintf("\\ifelse{html}{%s}{%s}", html, text)
 }
 
+build_msg <- function(when, what, with, message) {
 
-# Tools for deprecating functions and arguments
-build_msg <- function(when, what, with, message){
-  if(!grepl("\\(", what) && !grepl("\\)", what)){
-    stop("must have function call syntax")
+  if (!grepl("\\(", what) && !grepl("\\)", what)) {
+    cli::cli_abort("{.arg what} must use function call syntax (e.g., {.code 'foo()'} or {.code 'foo(arg)'}).")
   }
-  get_arg <- function(x){
-    gsub("[\\(\\)]", "", regmatches(x, gregexpr("\\(.*?\\)", x))[[1]])
+
+  get_arg <- function(x) {
+    matches <- regmatches(x, gregexpr("\\(.*?\\)", x))[[1]]
+    if (length(matches) == 0) return("")
+    gsub("[\\(\\)]", "", matches)
   }
-  pkg <- ifelse(grepl("::", what), sub("::.*", "", what), ".")
-  funct <- paste(sub("\\(.*", "", sub(".*::", "", what)), "()", sep = "")
-  arg <- ifelse(!grepl("\\()\\b", what), get_arg(what) %>% remove_space(), NA)
-  if(!is.na(arg)){
-    msge <- paste0("Argument `", arg, "` of `", funct, "` is deprecated as of ", pkg, " ", when, ".")
-    if(!is.null(with)){
-      if(!grepl("\\(", with) && !grepl("\\)", with)){
-        stop("'with' must have function call syntax", call. = FALSE)
+
+  remove_space <- function(x) gsub("\\s+", "", x)
+
+  # Parse out package context and function name
+  pkg   <- ifelse(grepl("::", what), sub("::.*", "", what), ".")
+  funct <- sub("\\(.*", "", sub(".*::", "", what))
+  arg   <- get_arg(what) |> remove_space()
+
+  # --- ARGUMENT DEPRECATION TRACK ---
+  if (nzchar(arg)) {
+    # Base notification string format
+    if (pkg == ".") {
+      msge <- paste0("Argument {.arg ", arg, "} of {.fn ", funct, "} is deprecated as of version ", when, ".")
+    } else {
+      msge <- paste0("Argument {.arg ", arg, "} of {.fn ", pkg, "::", funct, "} is deprecated as of ", pkg, " version ", when, ".")
+    }
+
+    # Handle replacement logic if 'with' is specified
+    if (!is.null(with)) {
+      if (!grepl("\\(", with) && !grepl("\\)", with)) {
+        cli::cli_abort("{.arg with} must use function call syntax.")
       }
-      pkg_with <- ifelse(grepl("::", with), sub("::.*", "", with), ".")
-      funct_with <- paste(sub("\\(.*", "", sub(".*::", "", with)), "()", sep = "")
-      with_mesg <-
-        case_when(pkg_with == pkg & funct_with ==  funct ~ paste0("Please use the `", get_arg(with), "` argument instead."),
-                  pkg_with == pkg & funct_with !=  funct ~ paste0("Please use the `", get_arg(with), "` argument of `", funct_with, "` instead." ),
-                  pkg_with != pkg  & pkg_with == "." ~ paste0("Please use the `", get_arg(with), "` argument of `", funct_with, "` instead."),
-                  pkg_with != pkg ~ paste0("Please use the `", get_arg(with), "` argument of `", paste0(pkg_with, "::", funct_with), "` instead."))
+
+      pkg_with   <- ifelse(grepl("::", with), sub("::.*", "", with), ".")
+      funct_with <- sub("\\(.*", "", sub(".*::", "", with))
+      arg_with   <- get_arg(with) |> remove_space()
+
+      with_mesg <- dplyr::case_when(
+        pkg_with == pkg && funct_with == funct ~
+          paste0("Please use the {.arg ", arg_with, "} argument instead."),
+        pkg_with == pkg && funct_with != funct ~
+          paste0("Please use the {.arg ", arg_with, "} argument of {.fn ", funct_with, "} instead."),
+        pkg_with != pkg && pkg_with == "." ~
+          paste0("Please use the {.arg ", arg_with, "} argument of {.fn ", funct_with, "} instead."),
+        TRUE ~
+          paste0("Please use the {.arg ", arg_with, "} argument of {.fn ", pkg_with, "::", funct_with, "} instead.")
+      )
       msge <- paste0(msge, "\n", with_mesg)
     }
-    msge <- ifelse(is.null(message), msge, paste0(msge, "\n", message))
-  } else{
-    msge <-  paste0("`",funct, "` is deprecated as of ", pkg, " ", when)
-    if(!is.null(with)){
-      if(!grepl("\\(", with) && !grepl("\\)", with)){
-        stop("'with' must have function call syntax", call. = FALSE)
-      }
-      pkg_with <- ifelse(grepl("::", with), sub("::.*", "", with), NA)
-      funct_with <- paste(sub("\\(.*", "", sub(".*::", "", with)), "()", sep = "")
-      with_mesg <-
-        case_when(pkg_with == pkg ~ paste0("Please use `", funct_with, "` instead"),
-                  pkg_with != pkg ~ paste0("Please use the function `", funct_with, "` of the `",pkg_with, "` package."))
-      with_mesg <- ifelse(is.null(message), with_mesg, paste(message))
-      msge <- paste(msge, "\n", with_mesg, sep = "")
+
+    if (!is.null(message)) {
+      msge <- paste0(msge, "\n", message)
     }
-    msge <- ifelse(is.null(message), msge, paste0(msge, "\n", message))
+
+    # --- FUNCTION DEPRECATION TRACK ---
+  } else {
+    if (pkg == ".") {
+      msge <- paste0("{.fn ", funct, "} is deprecated as of version ", when, ".")
+    } else {
+      msge <- paste0("{.fn ", pkg, "::", funct, "} is deprecated as of ", pkg, " version ", when, ".")
+    }
+
+    if (!is.null(with)) {
+      if (!grepl("\\(", with) && !grepl("\\)", with)) {
+        cli::cli_abort("{.arg with} must use function call syntax.")
+      }
+
+      pkg_with   <- ifelse(grepl("::", with), sub("::.*", "", with), NA)
+      funct_with <- sub("\\(.*", "", sub(".*::", "", with))
+
+      # Use custom message if supplied directly, else format default replacement text
+      if (!is.null(message)) {
+        with_mesg <- message
+      } else {
+        with_mesg <- dplyr::case_when(
+          is.na(pkg_with) || pkg_with == pkg ~
+            paste0("Please use {.fn ", funct_with, "} instead."),
+          TRUE ~
+            paste0("Please use the function {.fn ", funct_with, "} from the {.pkg ", pkg_with, "} package.")
+        )
+      }
+      msge <- paste0(msge, "\n", with_mesg)
+    } else if (!is.null(message)) {
+      msge <- paste0(msge, "\n", message)
+    }
   }
+
   return(msge)
 }
-deprecated_warning <- function(when, what, with = NULL, message = NULL){
-  warning(build_msg(when, what, with, message), call. = FALSE)
+
+
+deprecated_warning <- function(when, what, with = NULL, message = NULL) {
+  # Inline styling template configuration applied downstream by cliEngine
+  msg_compiled <- build_msg(when, what, with, message)
+
+  # Split messages on newlines to leverage clean semantic vector styling blocks
+  msg_lines <- unlist(strsplit(msg_compiled, "\n"))
+
+  # Inject an informational alert indicator prefix flag onto the subsequent text lines
+  if (length(msg_lines) > 1) {
+    msg_lines[2:length(msg_lines)] <- paste0("i ", msg_lines[2:length(msg_lines)])
+  }
+
+  cli::cli_warn(msg_lines)
 }
-deprecated_error <- function(when, what, with = NULL, message = NULL){
-  stop(build_msg(when, what, with, message), call. = FALSE)
+
+
+deprecated_error <- function(when, what, with = NULL, message = NULL) {
+  msg_compiled <- build_msg(when, what, with, message)
+  msg_lines    <- unlist(strsplit(msg_compiled, "\n"))
+
+  if (length(msg_lines) > 1) {
+    msg_lines[2:length(msg_lines)] <- paste0("i ", msg_lines[2:length(msg_lines)])
+  }
+
+  cli::cli_abort(msg_lines)
 }
-deprecated <- function(){
+
+deprecated <- function() {
   "missing_arg"
 }
-is_present <- function(x){
+
+is_present <- function(x) {
   x != "missing_arg"
 }
 
 
+.get_base_path <- function(caller_name) {
+  if (!requireNamespace("rstudioapi", quietly = TRUE)) {
+    if (interactive()) {
+      cli::cli_h1("Missing Dependency")
+      choice <- menu(c("Yes", "No"), title = "Package {rstudioapi} is required. Install now?")
+      if (choice == 1) {
+        install.packages("rstudioapi", quiet = TRUE)
+      } else {
+        cli::cli_abort("To use {.fn {caller_name}}, you must install {.pkg rstudioapi}.")
+      }
+    }
+  }
+
+  path <- rstudioapi::getActiveDocumentContext()$path
+  if (path == "") {
+    cli::cli_abort(c(
+      "x" = "Current file has no path.",
+      "i" = "Please save your script before calling {.fn {caller_name}}."
+    ))
+  }
+  return(dirname(path))
+}
 
 
 #' Set and get the Working Directory quicky
@@ -2570,7 +2638,6 @@ is_present <- function(x){
 #' * [get_wd_here()] returns a full-path directory name.
 #' * [get_wd_here()] returns a message showing the current working directory.
 #' * [open_wd_here()] Opens the File Explorer of the path returned by `get_wd_here()`.
-#' @export
 #' @importFrom utils install.packages menu
 #' @name utils_wd
 #' @examples
@@ -2580,95 +2647,59 @@ is_present <- function(x){
 #' set_wd_here()
 #' open_wd_here()
 #' }
-set_wd_here <- function(path = NULL){
-  if(!requireNamespace("rstudioapi", quietly = TRUE)) {
-    if(interactive() == TRUE){
-      inst <-
-        switch(menu(c("Yes", "No"), title = "Package {rstudioapi} required but not installed.\nDo you want to install it now?"),
-               "yes", "no")
-      if(inst == "yes"){
-        install.packages("rstudioapi", quiet = TRUE)
-      } else{
-        message("To use `set_wd_here()`, first install {rstudioapi}.")
-      }
-    }
-  } else{
-    dir_path <- dirname(rstudioapi::documentPath())
-    if(!is.null(path)){
-      dir_path <- paste0(dir_path, "/", path)
-    }
-    d <- try(setwd(dir_path), TRUE)
-    if(inherits(d, "try-error")){
-      cat(paste0("Cannot change working directory to '", dir_path, "'."))
-      done <- readline(prompt = "Do you want to create this folder now? (y/n) ")
-      if(done == "y"){
-        dir.create(dir_path)
-        message("Directory '", dir_path, "' created.")
+# Internal helper to handle package checks and RStudio path logic
+#' @export
+#' @rdname utils_wd
+set_wd_here <- function(path = NULL) {
+  dir_path <- .get_base_path("set_wd_here")
+
+  if (!is.null(path)) {
+    dir_path <- file.path(dir_path, path)
+  }
+
+  d <- try(setwd(dir_path), silent = TRUE)
+
+  if (inherits(d, "try-error")) {
+    cli::cli_alert_warning("Cannot change working directory to: {.file {dir_path}}")
+
+    if (interactive()) {
+      done <- readline(prompt = "Do you want to create this folder now? (y/n): ")
+      if (tolower(done) == "y") {
+        dir.create(dir_path, recursive = TRUE)
         setwd(dir_path)
-        message("Working directory set to '", dir_path, "'")
+        cli::cli_alert_success("Directory created and session moved to: {.file {dir_path}}")
       }
-    } else{
-      message("Working directory set to '", dir_path, "'")
     }
+  } else {
+    cli::cli_alert_success("Working directory set to: {.file {dir_path}}")
   }
 }
 
 #' @export
-#' @name utils_wd
-get_wd_here <- function(path = NULL){
-  if(!requireNamespace("rstudioapi", quietly = TRUE)) {
-    if(interactive() == TRUE){
-      inst <-
-        switch(menu(c("Yes", "No"), title = "Package {rstudioapi} required but not installed.\nDo you want to install it now?"),
-               "yes", "no")
-      if(inst == "yes"){
-        install.packages("rstudioapi", quiet = TRUE)
-      } else{
-        message("To use `get_wd_here()`, first install {rstudioapi}.")
-      }
-    }
-  } else{
-    dir_path <- dirname(rstudioapi::documentPath())
-    if(!is.null(path)){
-      dir_path <- paste0(dir_path, "/", path)
-    }
-    dir_path
+#' @rdname utils_wd
+get_wd_here <- function(path = NULL) {
+  dir_path <- .get_base_path("get_wd_here")
+  if (!is.null(path)) {
+    dir_path <- file.path(dir_path, path)
   }
-}
-#' @export
-#' @name utils_wd
-open_wd_here <- function(path = get_wd_here()){
-  if(!requireNamespace("utils", quietly = TRUE)) {
-    if(interactive() == TRUE){
-      inst <-
-        switch(menu(c("Yes", "No"), title = "Package {utils} required but not installed.\nDo you want to install it now?"),
-               "yes", "no")
-      if(inst == "yes"){
-        install.packages("utils", quiet = TRUE)
-      } else{
-        message("To use `open_wd_here()`, first install {utils}.")
-      }
-    }
-  } else{
-    utils::browseURL(url = path)
-  }
+  return(dir_path)
 }
 
 #' @export
-#' @name utils_wd
-open_wd <- function(path = getwd()){
-  if(!requireNamespace("utils", quietly = TRUE)) {
-    if(interactive() == TRUE){
-      inst <-
-        switch(menu(c("Yes", "No"), title = "Package {utils} required but not installed.\nDo you want to install it now?"),
-               "yes", "no")
-      if(inst == "yes"){
-        install.packages("utils", quiet = TRUE)
-      } else{
-        message("To use `open_wd()`, first install {utils}.")
-      }
-    }
-  } else{
-    utils::browseURL(url = path)
-  }
+#' @rdname utils_wd
+open_wd_here <- function(path = get_wd_here()) {
+  open_wd(path)
 }
+
+#' @export
+#' @rdname utils_wd
+open_wd <- function(path = getwd()) {
+  if (!dir.exists(path)) {
+    cli::cli_abort("The path {.file {path}} does not exist.")
+  }
+
+  cli::cli_alert_info("Opening {.file {path}} in file browser...")
+  utils::browseURL(url = path)
+}
+
+

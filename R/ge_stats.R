@@ -47,7 +47,7 @@
 #'   relative performance of the genotypic values), by calling [blup_indexes()]
 #'   internally
 #'   * `"Pi_a", "Pi_f", "Pi_u"` (Superiority indexes for all, favorable and
-#'   unfavorable environments, respectively, calling [superiority()] internally)
+#'   unfavorable environments, respectively, calling [lin_binns()] internally)
 #'   * `"Gai"` (Geometric adaptability index, calling [gai()] internally)
 #'   * `"S1"` (mean of the absolute rank differences of a genotype over the n
 #'   environments), `"S2"` (variance among the ranks over the k environments),
@@ -146,7 +146,7 @@
 #' @export
 #' @seealso [acv()], [ammi_indexes()], [ecovalence()], [Fox()], [gai()],
 #'   [ge_reg()], [hmgv()], [hmrpgv()], [rpgv()], [Huehn()], [ge_polar()],
-#'   [Shukla()], [superiority()], [Thennarasu()], [waas()], [waasb()]
+#'   [Shukla()], [lin_binns()], [Thennarasu()], [waas()], [waasb()]
 #'
 #' @examples
 #' \donttest{
@@ -164,20 +164,24 @@ ge_stats = function(.data,
                     verbose = TRUE,
                     prob = 0.05){
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
+    .data |>
+    select({{env}}, {{gen}}, {{rep}}) |>
     mutate(across(everything(), as.factor))
-  vars <- .data %>%
-    select({{resp}}, -names(factors)) %>%
+  vars <- .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
+  factors <- factors |> set_names("ENV", "GEN", "REP")
   listres <- list()
   nvar <- ncol(vars)
+  var <- 0
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -203,7 +207,7 @@ ge_stats = function(.data,
     fox_mod <- Fox(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     gai_mod <- gai(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     hue_mod <- Huehn(data, ENV, GEN, Y, verbose = FALSE)[[1]]
-    lb_mod <- superiority(data, ENV, GEN, Y, verbose = FALSE)[[1]]
+    lb_mod <- lin_binns(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     then_mod <- Thennarasu(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     ammm_mod <- performs_ammi(data, ENV, GEN, REP, Y, verbose = FALSE)
     ammm_mod <- ammi_indexes(ammm_mod)[[1]]
@@ -294,9 +298,7 @@ ge_stats = function(.data,
                    N4 = then_mod$N4,
                    N4_R = then_mod$N4_R)
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
@@ -346,27 +348,20 @@ print.ge_stats <- function(x,
   on.exit(options(opar))
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     if(what == "all"){
-      cat("---------------------------------------------------------------------------\n")
-      cat("Stability statistics and ranks\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Stability statistics and ranks")
       print(var)
     }
     if(what == "stats"){
-      cat("---------------------------------------------------------------------------\n")
-      cat("Stability statistics\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Stability statistics")
       print(select(var, -contains("_R")))
     }
     if(what == "ranks"){
-      cat("---------------------------------------------------------------------------\n")
-      cat("Ranks for stability statistics\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Ranks for stability statistics")
       print(select(var, contains("_R")))
     }
-    cat("---------------------------------------------------------------------------\n")
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()

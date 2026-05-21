@@ -4,7 +4,7 @@
 \alias{ecovalence}
 \title{Stability analysis based on Wricke's model}
 \usage{
-ecovalence(.data, env, gen, rep, resp, verbose = TRUE)
+ecovalence(.data, env, gen, rep = NULL, resp, verbose = TRUE)
 }
 \arguments{
 \item{.data}{The dataset containing the columns related to Environments,
@@ -31,7 +31,38 @@ variable used in the argument \code{resp}.
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
 
-The function computes the ecovalence (Wricke, 1965) for stability analysis.
+The function computes the ecovalence (\eqn{W_i^2}) proposed by Wricke (1962, 1965)
+for stability analysis. Ecovalence quantifies the structural contribution of
+individual genotypes to the total Genotype-by-Environment (GxE) interaction
+sum of squares (\eqn{SS_{G\times E}}).
+
+In unbalanced multi-environment networks characterized by varying cell replications
+or missing observations, the algorithm automatically adjusts by calculating the
+interaction deviations from predicted Least-Square Means (LS-means/EM-means) and
+weighting individual contributions by their respective environmental cell replication size.
+}
+\details{
+Under balanced designs, Wricke's Ecovalence (\eqn{W_i^2}) for the \eqn{i}-th genotype
+evaluated across \eqn{E} environments is calculated as follows:
+
+\deqn{W_i^2 = \sum_{j=1}^{E} (Y_{ij} - \bar{Y}_{i\cdot} - \bar{Y}_{\cdot j} + \bar{Y}_{\cdot \cdot})^2}{W_i^2 = \sum (Y_{ij} - Y_{i.} - Y_{.j} + Y_{..})^2}
+
+Where \eqn{Y_{ij}} is the observed mean phenotypic value of genotype \eqn{i} in
+environment \eqn{j}; \eqn{\bar{Y}_{i\cdot}} is the marginal mean of genotype \eqn{i} across
+all environments; \eqn{\bar{Y}_{\cdot j}} is the marginal mean of environment \eqn{j}
+across all genotypes; and \eqn{\bar{Y}_{\cdot \cdot}} is the overall grand mean.
+
+For unbalanced designs, the non-orthogonal nature of the data is accounted for
+by extracting adjusted cell predictions (\eqn{\hat{Y}_{ij}}) from a linear mixed model
+framework, executing the following weighted formulation:
+
+\deqn{W_i^2 = \sum_{j=1}^{E} n_{ij} \left( \hat{Y}_{ij} - \hat{\mu}_{i\cdot} - \hat{\mu}_{\cdot j} + \hat{\mu}_{\cdot\cdot} \right)^2}{W_i^2 = \sum n_{ij} (\hat{Y}_{ij} - \hat{\mu}_{i.} - \hat{\mu}_{.j} + \hat{\mu}_{..})^2}
+
+Where \eqn{n_{ij}} represents the specific number of replicates/cells for genotype \eqn{i}
+within environment \eqn{j}, and the parameters wrapped with hats (\eqn{\hat{\cdot}}) denote
+the predicted marginal parameters estimated over a balanced reference grid. Genotypes
+exhibiting lower ecovalence values possess smaller deviations from the main additive
+effects, indicating high performance predictability and structural stability.
 }
 \examples{
 \donttest{
@@ -45,6 +76,9 @@ out <- ecovalence(data_ge2,
 
 }
 \references{
+Wricke, G. 1962. Über eine Methode zur Erfassung der ökologischen
+Streubreite in Feldversuchen. Z. Pflanzenzuecht. 47: 92-96.
+
 Wricke, G. 1965. Zur berechnung der okovalenz bei sommerweizen
 und hafer. Z. Pflanzenzuchtg 52:127-138.
 }

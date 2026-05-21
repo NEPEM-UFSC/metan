@@ -64,14 +64,14 @@
 #'
 #'
 #' # Using a data frame
-#' col_diag_gen <- data_ge2 %>%
-#'                 group_by(GEN) %>%
+#' col_diag_gen <- data_ge2 |>
+#'                 group_by(GEN) |>
 #'                 colindiag()
 #'
 #' # Diagnostic by levels of a factor
 #' # For variables with "N" in variable name
-#' col_diag_gen <- data_ge2 %>%
-#'                 group_by(GEN) %>%
+#' col_diag_gen <- data_ge2 |>
+#'                 group_by(GEN) |>
 #'                 colindiag(contains("N"))
 #'}
 colindiag <- function(.data,
@@ -80,26 +80,26 @@ colindiag <- function(.data,
                       n = NULL) {
 
   if (!has_class(.data, c("matrix", "data.frame", "grouped_df", "covcor_design", "tbl_df"))) {
-    stop("The object 'x' must be a correlation matrix, a data.frame or a grouped data.frame")
+    cli::cli_abort("The object 'x' must be a correlation matrix, a data.frame or a grouped data.frame")
   }
   if (is.matrix(.data) && is.null(n)) {
-    stop("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
+    cli::cli_abort("You have a matrix but the sample size used to compute the correlations (n) was not declared.")
   }
   if (is.data.frame(.data) && !is.null(n)) {
-    stop("You cannot informe the sample size because a data frame was used as input.")
+    cli::cli_abort("You cannot informe the sample size because a data frame was used as input.")
   }
   if (!missing(by)){
     if(length(as.list(substitute(by))[-1L]) != 0){
-      stop("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.", call. = FALSE)
+      cli::cli_abort("Only one grouping variable can be used in the argument 'by'.\nUse 'group_by()' to pass '.data' grouped by more than one variable.")
     }
     .data <- group_by(.data, {{by}})
   }
   if(is_grouped_df(.data)){
-    results <- .data %>%
+    results <- .data |>
       doo(colindiag,
           ...,
           n = n)
-    return(results %>% set_class(c("colingroup", "tbl_df", "tbl",  "data.frame")))
+    return(results |> set_class(c("colingroup", "tbl_df", "tbl",  "data.frame")))
   }
   internal <- function(x) {
     if (is.matrix(x)) {
@@ -158,7 +158,7 @@ colindiag <- function(.data,
   }
   if (is.data.frame(.data)) {
     if(!missing(...)){
-      dfs <-  select_cols(.data, ...) %>%
+      dfs <-  dplyr::select(.data, ...) |>
         select_numeric_cols()
       if(has_na(dfs)){
         dfs <- remove_rows_na(dfs)
@@ -173,7 +173,7 @@ colindiag <- function(.data,
     }
     out <- internal(dfs)
   }
-  invisible(out %>% set_class("colindiag"))
+  return(out |> set_class("colindiag"))
 }
 
 
@@ -209,56 +209,46 @@ print.colindiag <- function(x, export = FALSE, file.name = NULL, digits = 3, ...
     for (i in 1:nrow(x)){
       df <- x[i,]
       names <-
-        select(df, -data) %>%
+        select(df, -data) |>
         concatenate(everything(), pull = TRUE)
-      cat("Level:", names, "\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_h2("Level: {names}")
       dat <- df[["data"]][[1]]
       cn <- dat$indicators$cn
       VIF <- dat$VIF$VIF
       if (cn > 1000) {
-        cat(paste0("Severe multicollinearity in the matrix! Pay attention on the variables listed bellow\n",
-                   "cn = ", round(cn, digits), "\n"))
+        cli::cli_alert_warning("Severe multicollinearity in the matrix! Pay attention on the variables listed below. cn = {round(cn, digits)}")
       }
       if (cn < 100) {
-        cat(paste0("Weak multicollinearity in the matrix\n",
-                   "cn = ", round(cn, digits), "\n"))
+        cli::cli_alert_success("Weak multicollinearity in the matrix. cn = {round(cn, digits)}")
       }
       if (cn > 100 & cn < 1000) {
-        cat(paste0("The multicollinearity in the matrix should be investigated.\n",
-                   "cn = ", round(cn, digits), "\n", "Largest VIF = ",
-                   max(VIF), "\n"))
+        cli::cli_alert_warning("The multicollinearity in the matrix should be investigated. cn = {round(cn, digits)} | Largest VIF = {max(VIF)}")
       }
-      cat(paste0("Matrix determinant: ", round(dat$indicators$det, 7)), "\n")
-      cat(paste0("Largest correlation: ", dat$indicators$largest_corr), "\n")
-      cat(paste0("Smallest correlation: ", dat$indicators$smallest_corr), "\n")
-      cat(paste0("Number of VIFs > 10: ", length(which(VIF > 10))), "\n")
-      cat(paste0("Number of correlations with r >= |0.8|: ",dat$indicators$ncorhigh), "\n")
-      cat(paste0("Variables with largest weight in the last eigenvalues: \n", dat$indicators$weight_var), "\n")
-      cat("---------------------------------------------------------------------------\n")
+      cli::cli_inform("Matrix determinant: {round(dat$indicators$det, 7)}")
+      cli::cli_inform("Largest correlation:  {dat$indicators$largest_corr}")
+      cli::cli_inform("Smallest correlation:  {dat$indicators$smallest_corr}")
+      cli::cli_inform("Number of VIFs > 10: {length(which(VIF > 10))}")
+      cli::cli_inform("Number of correlations with r >= |0.8|:  {dat$indicators$ncorhigh}")
+      cli::cli_inform("Variables with largest weight in the last eigenvalues: \n {dat$indicators$weight_var}")
     }
   } else{
     cn <- x$indicators$cn
     VIF <- x$VIF$VIF
     if (cn > 1000) {
-      cat(paste0("Severe multicollinearity in the matrix! Pay attention on the variables listed bellow\n",
-                 "cn = ", round(cn, digits), "\n"))
+      cli::cli_alert_warning("Severe multicollinearity in the matrix! Pay attention on the variables listed below. cn = {round(cn, digits)}")
     }
     if (cn < 100) {
-      cat(paste0("Weak multicollinearity in the matrix\n",
-                 "cn = ", round(cn, digits), "\n"))
+      cli::cli_alert_success("Weak multicollinearity in the matrix. cn = {round(cn, digits)}")
     }
     if (cn > 100 & cn < 1000) {
-      cat(paste0("The multicollinearity in the matrix should be investigated.\n",
-                 "cn = ", round(cn, digits), "\n", "Largest VIF = ",
-                 max(VIF), "\n"))
+      cli::cli_alert_warning("The multicollinearity in the matrix should be investigated. cn = {round(cn, digits)} | Largest VIF = {max(VIF)}")
     }
-    cat(paste0("Matrix determinant: ", round(x$indicators$det, 7)), "\n")
-    cat(paste0("Largest correlation: ", x$indicators$largest_corr), "\n")
-    cat(paste0("Smallest correlation: ", x$indicators$smallest_corr), "\n")
-    cat(paste0("Number of VIFs > 10: ", length(which(VIF > 10))), "\n")
-    cat(paste0("Number of correlations with r >= |0.8|: ",x$indicators$ncorhigh), "\n")
-    cat(paste0("Variables with largest weight in the last eigenvalues: \n", x$indicators$weight_var), "\n")
+    cli::cli_inform("Matrix determinant: {round(x$indicators$det, 7)}")
+    cli::cli_inform("Largest correlation:  {x$indicators$largest_corr}")
+    cli::cli_inform("Smallest correlation:  {x$indicators$smallest_corr}")
+    cli::cli_inform("Number of VIFs > 10: {length(which(VIF > 10))}")
+    cli::cli_inform("Number of correlations with r >= |0.8|:  {x$indicators$ncorhigh}")
+    cli::cli_inform("Variables with largest weight in the last eigenvalues: \n {x$indicators$weight_var}")
   }
   if (export == TRUE) {
     sink()

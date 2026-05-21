@@ -112,15 +112,15 @@ mtsi_index <-
     mtsi(mtsi_model, index = 'waasb')
 
 
-# Based on mean performance and stability (using pipe operator \%>\%)
+# Based on mean performance and stability (using pipe operator |>)
 # GY: higher is better
 # HM: lower is better
 
 mtsi_index2 <-
- data_ge \%>\%
+ data_ge |>
  waasb(ENV, GEN, REP,
        resp = c(GY, HM),
-       mresp = c("h, l")) \%>\%
+       mresp = c("h, l")) |>
  mtsi()
 }
 }

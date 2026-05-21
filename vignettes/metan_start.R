@@ -20,11 +20,11 @@ mge <- ge_means(data_ge,
                 gen = GEN,
                 resp = everything())
 # Genotype-environment means
-get_model_data(mge) %>% round_cols()
+get_model_data(mge) |> round_cols()
 # Environment means
-get_model_data(mge, what = "env_means") %>% round_cols()
+get_model_data(mge, what = "env_means") |> round_cols()
 # Genotype means
-get_model_data(mge, what = "gen_means") %>% round_cols()
+get_model_data(mge, what = "gen_means") |> round_cols()
 
 ## -----------------------------------------------------------------------------
 ammi_model <- performs_ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
@@ -46,9 +46,9 @@ arrange_ggplot(a, b, c, tag_levels = "a", ncol = 1)
 
 ## -----------------------------------------------------------------------------
 predicted <- predict(ammi_model, naxis = c(4, 6))
-predicted %>% 
-   subset(TRAIT == "GY") %>% 
-   make_mat(GEN, ENV, YpredAMMI) %>% 
+predicted |> 
+   subset(TRAIT == "GY") |> 
+   make_mat(GEN, ENV, YpredAMMI) |> 
   round_cols()
 
 ## ----warning=FALSE------------------------------------------------------------
@@ -61,7 +61,7 @@ plot(model2, which = c(1, 2, 7), ncol = 1)
 plot(model2, type = "re", nrow = 3)
 
 ## -----------------------------------------------------------------------------
-get_model_data(model2) %>% round_cols(digits = 3)
+get_model_data(model2) |> round_cols(digits = 3)
 
 
 ## ----fig.height=8, fig.width=4------------------------------------------------
@@ -74,17 +74,17 @@ e <- plot_blup(model2,
 arrange_ggplot(d, e, tag_levels = list(c("d", "e")), ncol = 1)
 
 ## -----------------------------------------------------------------------------
-get_model_data(model2, what = "blupge") %>% 
+get_model_data(model2, what = "blupge") |> 
   round_cols()
 
 ## -----------------------------------------------------------------------------
 model3 <- waasb(data_ge, ENV, GEN, REP, everything(), verbose = FALSE)
-get_model_data(model3, what = "WAASB") %>% 
+get_model_data(model3, what = "WAASB") |> 
   round_cols()
 
 ## -----------------------------------------------------------------------------
 index <- blup_indexes(model3)
-get_model_data(index) %>% round_cols()
+get_model_data(index) |> round_cols()
 
 ## ----echo = TRUE--------------------------------------------------------------
 gge_model <- gge(data_ge, ENV, GEN, GY)
@@ -97,6 +97,6 @@ arrange_ggplot(e, f, tag_levels = list(c("e", "f")), ncol = 1)
 
 ## -----------------------------------------------------------------------------
 stat_ge <- ge_stats(data_ge, ENV, GEN, REP, GY)
-get_model_data(stat_ge) %>% 
+get_model_data(stat_ge) |> 
   round_cols()
 

@@ -38,22 +38,26 @@
 #'
 ge_acv <- function(.data, env, gen, resp, verbose = TRUE) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}) %>%
+    .data |>
+    select({{env}}, {{gen}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN")
+  factors <- factors |> set_names("ENV", "GEN")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
     data <-
-      factors %>%
+      factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
@@ -62,23 +66,22 @@ ge_acv <- function(.data, env, gen, resp, verbose = TRUE) {
 
     temp <- make_mat(data, ENV, GEN, Y)
     if(has_na(temp)){
-      warning("Missing values in the GxE matrix\nIndex was computed after removing them.", call. = FALSE)
+      warning("Missing values in the GxE matrix\nIndex was computed after removing them.")
     }
     varamo <- sapply(temp, var, na.rm = TRUE)
     means <- sapply(temp, mean, na.rm = TRUE)
     results <-
-      acv(means, varamo) %>%
-      select_cols(acv) %>%
-      colnames_to_upper() %>%
+      acv(means, varamo) |>
+      dplyr::select(acv) |>
+      colnames_to_upper() |>
       add_cols(GEN = names(means),
-               ACV_R = rank(ACV)) %>%
+               ACV_R = rank(ACV)) |>
       reorder_cols(GEN, .before = ACV)
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- results
   }
   return(structure(listres, class = "ge_acv"))
 }
+

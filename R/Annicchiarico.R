@@ -52,33 +52,37 @@ Annicchiarico <- function(.data,
                           prob = 0.25,
                           verbose = TRUE) {
   factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
+    .data |>
+    select({{env}}, {{gen}}, {{rep}}) |>
     mutate(across(everything(), as.factor))
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}, -names(factors)) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
+  factors <- factors |> set_names("ENV", "GEN", "REP")
   nvar <- ncol(vars)
   listres <- list()
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
     environments <-
-      data %>%
-      mean_by(ENV, na.rm = TRUE) %>%
+      data |>
+      mean_by(ENV, na.rm = TRUE) |>
       add_cols(index = Y - mean(Y),
-               class = ifelse(index < 0, "unfavorable", "favorable")) %>%
+               class = ifelse(index < 0, "unfavorable", "favorable")) |>
       as_tibble()
-    data <- left_join(data, environments %>% select(ENV, class), by = "ENV")
+    data <- left_join(data, environments |> select(ENV, class), by = "ENV")
     mat_g <- make_mat(data, row = GEN, col = ENV, value = Y)
     rp_g <- sweep(mat_g, 2, colMeans(mat_g, na.rm = TRUE), "/") * 100
     Wi_g <- rowMeans(rp_g, na.rm = TRUE) - qnorm(1 - prob) * apply(rp_g, 1, sd, na.rm = TRUE)
@@ -112,12 +116,10 @@ Annicchiarico <- function(.data,
                  general = general,
                  favorable = favorable,
                  unfavorable = unfavorable)
-    if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
-    }
     listres[[paste(names(vars[var]))]] <- temp
+    if (verbose == TRUE) {
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
+    }
   }
   return(structure(listres, class = "Annicchiarico"))
 }
@@ -166,24 +168,16 @@ print.Annicchiarico <- function(x, export = FALSE, file.name = NULL, digits = 3,
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Environmental index\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("Environmental index")
     print(var$environments)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Analysis for all environments\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Analysis for all environments")
     print(var$general)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Analysis for favorable environments\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Analysis for favorable environments")
     print(var$favorable)
-    cat("---------------------------------------------------------------------------\n")
-    cat("Analysis for unfavorable environments\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h2("Analysis for unfavorable environments")
     print(var$unfavorable)
-    cat("\n\n\n")
+    cli::cli_text("")
   }
   if (export == TRUE) {
     sink()

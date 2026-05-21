@@ -2,8 +2,38 @@
 #' @description
 #' `r badge('stable')`
 #'
-#' The function computes the ecovalence (Wricke, 1965) for stability analysis.
+#' The function computes the ecovalence (\eqn{W_i^2}) proposed by Wricke (1962, 1965)
+#' for stability analysis. Ecovalence quantifies the structural contribution of
+#' individual genotypes to the total Genotype-by-Environment (GxE) interaction
+#' sum of squares (\eqn{SS_{G\times E}}).
 #'
+#' In unbalanced multi-environment networks characterized by varying cell replications
+#' or missing observations, the algorithm automatically adjusts by calculating the
+#' interaction deviations from predicted Least-Square Means (LS-means/EM-means) and
+#' weighting individual contributions by their respective environmental cell replication size.
+#'
+#' @details
+#' Under balanced designs, Wricke's Ecovalence (\eqn{W_i^2}) for the \eqn{i}-th genotype
+#' evaluated across \eqn{E} environments is calculated as follows:
+#'
+#' \deqn{W_i^2 = \sum_{j=1}^{E} (Y_{ij} - \bar{Y}_{i\cdot} - \bar{Y}_{\cdot j} + \bar{Y}_{\cdot \cdot})^2}{W_i^2 = \sum (Y_{ij} - Y_{i.} - Y_{.j} + Y_{..})^2}
+#'
+#' Where \eqn{Y_{ij}} is the observed mean phenotypic value of genotype \eqn{i} in
+#' environment \eqn{j}; \eqn{\bar{Y}_{i\cdot}} is the marginal mean of genotype \eqn{i} across
+#' all environments; \eqn{\bar{Y}_{\cdot j}} is the marginal mean of environment \eqn{j}
+#' across all genotypes; and \eqn{\bar{Y}_{\cdot \cdot}} is the overall grand mean.
+#'
+#' For unbalanced designs, the non-orthogonal nature of the data is accounted for
+#' by extracting adjusted cell predictions (\eqn{\hat{Y}_{ij}}) from a linear mixed model
+#' framework, executing the following weighted formulation:
+#'
+#' \deqn{W_i^2 = \sum_{j=1}^{E} n_{ij} \left( \hat{Y}_{ij} - \hat{\mu}_{i\cdot} - \hat{\mu}_{\cdot j} + \hat{\mu}_{\cdot\cdot} \right)^2}{W_i^2 = \sum n_{ij} (\hat{Y}_{ij} - \hat{\mu}_{i.} - \hat{\mu}_{.j} + \hat{\mu}_{..})^2}
+#'
+#' Where \eqn{n_{ij}} represents the specific number of replicates/cells for genotype \eqn{i}
+#' within environment \eqn{j}, and the parameters wrapped with hats (\eqn{\hat{\cdot}}) denote
+#' the predicted marginal parameters estimated over a balanced reference grid. Genotypes
+#' exhibiting lower ecovalence values possess smaller deviations from the main additive
+#' effects, indicating high performance predictability and structural stability.
 #'
 #' @param .data The dataset containing the columns related to Environments,
 #'   Genotypes, replication/block and response variable(s).
@@ -19,7 +49,10 @@
 #' @return An object of class `ecovalence` containing the results for each
 #'   variable used in the argument `resp`.
 #' @author Tiago Olivoto \email{tiagoolivoto@@gmail.com}
-#' @references Wricke, G. 1965. Zur berechnung der okovalenz bei sommerweizen
+#' @references Wricke, G. 1962. Über eine Methode zur Erfassung der ökologischen
+#'   Streubreite in Feldversuchen. Z. Pflanzenzuecht. 47: 92-96.
+#'
+#'  Wricke, G. 1965. Zur berechnung der okovalenz bei sommerweizen
 #'   und hafer. Z. Pflanzenzuchtg 52:127-138.
 #' @export
 #' @examples
@@ -32,54 +65,64 @@
 #'                  resp = PH)
 #'}
 #'
-ecovalence <- function(.data, env, gen, rep, resp, verbose = TRUE) {
-  factors  <-
-    .data %>%
-    select({{env}}, {{gen}}, {{rep}}) %>%
-    mutate(across(everything(), as.factor))
+ecovalence <- function(.data, env, gen, rep = NULL, resp, verbose = TRUE) {
+  if (missing(rep)) {
+    factors  <-
+      .data |>
+      select({{env}}, {{gen}}) |>
+      mutate(across(everything(), as.factor))
+    factors <- factors |> set_names("ENV", "GEN")
+  } else {
+    factors  <-
+      .data |>
+      select({{env}}, {{gen}}, {{rep}}) |>
+      mutate(across(everything(), as.factor))
+    factors <- factors |> set_names("ENV", "GEN", "REP")
+  }
   vars <-
-    .data %>%
-    select({{resp}}, -names(factors)) %>%
+    .data |>
+    select({{resp}}) |>
     select_numeric_cols()
-  factors %<>% set_names("ENV", "GEN", "REP")
   listres <- list()
   nvar <- ncol(vars)
   if (verbose == TRUE) {
-    pb <- progress(max = nvar, style = 4)
+    var <- 0
+    pb <- cli::cli_progress_bar(
+      total = nvar,
+      format = "{cli::pb_spin} Evaluating trait {.strong {names(vars[var])}} | {cli::pb_bar} {cli::pb_current}/{cli::pb_total} [{cli::pb_percent}] | ETA: {cli::pb_eta}"
+    )
   }
   for (var in 1:nvar) {
-    data <- factors %>%
+    data <- factors |>
       mutate(Y = vars[[var]])
     if(has_na(data)){
       data <- remove_rows_na(data)
       has_text_in_num(data)
     }
-    data2 <- data %>%
-      mean_by(ENV, GEN) %>%
+    data2 <- data |>
+      mean_by(ENV, GEN) |>
       as.data.frame()
     data3 <- mutate(data2,
                     ge = residuals(lm(Y ~ ENV + GEN, data = data2)))
     ge_effect <- make_mat(data3, GEN, ENV, ge)
-    Ecoval <- rowSums(ge_effect^2 * nlevels(data$REP), na.rm = TRUE)
+    if (missing(rep)) {
+      Ecoval <- rowSums(ge_effect^2, na.rm = TRUE)
+    } else {
+      mat_cells <- xtabs(~ GEN + ENV, data = data2)
+      Ecoval <- rowSums(ge_effect^2 * mat_cells, na.rm = TRUE)
+    }
     Ecov_perc <- (Ecoval/sum(Ecoval)) * 100
     rank <- rank(Ecoval)
-    temp <- cbind(ge_effect, Ecoval, Ecov_perc, rank) %>%
-      as_tibble(rownames = NA) %>%
+    temp <- cbind(ge_effect, Ecoval, Ecov_perc, rank) |>
+      as_tibble(rownames = NA) |>
       rownames_to_column("GEN")
     if (verbose == TRUE) {
-      run_progress(pb,
-                   actual = var,
-                   text = paste("Evaluating trait", names(vars[var])))
+      cli::cli_progress_update(id = pb, set = var, force = TRUE)
     }
     listres[[paste(names(vars[var]))]] <- temp
   }
   return(structure(listres, class = "ecovalence"))
 }
-
-
-
-
-
 
 
 #' Print an object of class ecovalence
@@ -118,13 +161,10 @@ print.ecovalence <- function(x, export = FALSE, file.name = NULL, digits = 3, ..
   }
   for (i in 1:length(x)) {
     var <- x[[i]]
-    cat("Variable", names(x)[i], "\n")
-    cat("---------------------------------------------------------------------------\n")
-    cat("Genotypic confidence index\n")
-    cat("---------------------------------------------------------------------------\n")
+    cli::cli_h1("Variable {names(x)[i]}")
     print(var)
   }
-  cat("\n\n\n")
+  cli::cli_text("")
   if (export == TRUE) {
     sink()
   }

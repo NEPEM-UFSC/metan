@@ -75,23 +75,23 @@ The easiest way of obtaining the results of the model above is by using the func
 
 * Details of the analysis
 ```{r}
-get_model_data(gen_mod, "details") %>% print_table()
+get_model_data(gen_mod, "details") |> print_table()
 ```
 
 * Likelihood ratio test for genotype effect
 ```{r}
-get_model_data(gen_mod, "lrt") %>% print_table()
+get_model_data(gen_mod, "lrt") |> print_table()
 ```
 
 * Variance components and genetic parameters
 ```{r}
-get_model_data(gen_mod, "genpar") %>% print_table()
+get_model_data(gen_mod, "genpar") |> print_table()
 ```
 
 
 * Predicted means
 ```{r}
-get_model_data(gen_mod, "blupg") %>% print_table()
+get_model_data(gen_mod, "blupg") |> print_table()
 
 ```
 
@@ -108,9 +108,9 @@ where $y_{ijk}$ is the observed value of the *i*th genotype in the *k*th block o
 
 ```{r}
 gen_alpha <- gamem(data_alpha, GEN, REP, YIELD, block = BLOCK)
-get_model_data(gen_alpha, "lrt") %>% print_table()
-get_model_data(gen_alpha, "details") %>% print_table()
-get_model_data(gen_alpha, "genpar") %>% print_table()
+get_model_data(gen_alpha, "lrt") |> print_table()
+get_model_data(gen_alpha, "details") |> print_table()
+get_model_data(gen_alpha, "genpar") |> print_table()
 
 
 ```
@@ -419,8 +419,8 @@ To obtain the WAASB index for a set of variables, the function `get_model_data()
 
 ```{r}
 waasb(data_ge2, ENV, GEN, REP,
-     resp = c(PH, ED, TKW, NKR)) %>%
- get_model_data(what = "WAASB") %>%
+     resp = c(PH, ED, TKW, NKR)) |>
+ get_model_data(what = "WAASB") |>
  print_table()
 ```
 
@@ -530,8 +530,8 @@ $$
 
 ```{r  }
 Res_ind <- 
-data_ge %>%
-gamem_met(ENV, GEN, REP, GY, verbose = FALSE) %>% 
+data_ge |>
+gamem_met(ENV, GEN, REP, GY, verbose = FALSE) |> 
 blup_indexes()
 
 print_table(Res_ind$GY)
@@ -545,9 +545,9 @@ print_table(Res_ind$GY)
 The FAI-BLUP is a multi-trait index based on factor analysis and ideotype-design recentely proposed by @Rocha2018. It is based on factor analysis, when the factorial scores of each ideotype are designed according to the desirable and undesirable factors. Then, a spatial probability is estimated based on genotype-ideotype distance, enabling genotype ranking. Here we will use the mixed-model `mod` as inpute data. By default, the selection is made to increase the value of all traits. Change this default with the arguments `DI` and `UI`.
 
 ```{r  fig.height = 5, fig.width = 5.5, fig.align = "center", warning=FALSE, message=FALSE}
-data_g %>%
-  gamem(GEN, REP, everything()) %>%
-  fai_blup() %>%
+data_g |>
+  gamem(GEN, REP, everything()) |>
+  fai_blup() |>
   plot()
 ```
 
@@ -581,4 +581,5 @@ print_table <- function(table, rownames = FALSE, digits = 3, ...){
 
 
 # References
+
 

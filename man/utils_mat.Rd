@@ -60,10 +60,10 @@ matrix.
 \examples{
 \donttest{
 library(metan)
-m <- cor(select_cols(data_ge2, 5:10))
+m <- cor(dplyr::select(data_ge2, 5:10))
 make_upper_tri(m)
 make_lower_tri(m)
-make_lower_tri(m) \%>\%
+make_lower_tri(m) |>
 make_sym(diag = 0)
 tidy_sym(m)
 tidy_sym(make_lower_tri(m))

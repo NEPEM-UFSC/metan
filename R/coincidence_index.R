@@ -5,8 +5,7 @@
 #'
 #' Computes the coincidence index (Hamblin and Zimmermann, 1986) as follows:
 #'
-#' \loadmathjax
-#' \mjsdeqn{CI = \frac{A-C}{M-C}\times 100}
+#' \deqn{CI = \frac{A-C}{M-C}\times 100}
 #' where *A* is the number of selected genotypes common to different
 #' methods; *C* is the number of expected genotypes selected by chance; and
 #' *M* is the number of genotypes selected according to the selection
@@ -54,11 +53,11 @@ coincidence_index <- function(..., total, sel1 = NULL, sel2 = NULL){
         })
       )
     if(length(names)  < 2){
-      stop("The coincidence index cannot be computed with only one model.", call. = FALSE)
+      cli::cli_abort("The coincidence index cannot be computed with only one model.")
     }
     models <- list(...)
     if(any(sapply(models, class) %in% c("mgidi", "fai_blup", "sh", "mtsi") == FALSE)){
-      stop("Only objects of class 'mgidi', 'mtsi', 'fai_blup', and 'sh' are accepted.")
+      cli::cli_abort("Only objects of class 'mgidi', 'mtsi', 'fai_blup', and 'sh' are accepted.")
     }
     selected <- lapply(models, function(x){
       if(inherits(x, "fai_blup")){
@@ -70,13 +69,12 @@ coincidence_index <- function(..., total, sel1 = NULL, sel2 = NULL){
     names(selected) <- names
     ngsel <- sapply(selected, length)
     if(length(unique(as.numeric(ngsel))) > 1){
-      stop("The number of selected genotypes must be the same for all the models\n",
-           paste(capture.output(print(data.frame(ngsel))), collapse = "\n"), call. = FALSE)
+      cli::cli_abort("The number of selected genotypes must be the same for all the models\n{paste(capture.output(print(data.frame(ngsel))), collapse = '\n')}")
     }
     index <- combn(length(selected), 2)
     ncomb <- ncol(index)
     results <-
-      data.frame(Model = combn(names(selected), 2, paste, collapse = "_::_")) %>%
+      data.frame(Model = combn(names(selected), 2, paste, collapse = "_::_")) |>
       separate(Model, into = c("V1", "V2"), sep = "_::_")
     values <- NULL
     common <- NULL
@@ -99,10 +97,10 @@ coincidence_index <- function(..., total, sel1 = NULL, sel2 = NULL){
       list(coincidence = results,
            coincidence_mat = make_mat(results, V1, V2, index),
            genotypes = Reduce(intersect, genotypes))
-    return(final %>% set_class("coincidence"))
+    return(final |> set_class("coincidence"))
   } else{
     if(length(sel1) != length(sel2)){
-      stop("The lenght of 'sel1' and 'sel2' must be equal")
+      cli::cli_abort("The lenght of 'sel1' and 'sel2' must be equal")
     }
     return(comp_coinc(sel1, sel2, total))
   }
@@ -142,9 +140,7 @@ print.coincidence <- function(x, export = FALSE, file.name = NULL, digits = 4, .
   }
   opar <- options(pillar.sigfig = digits)
   on.exit(options(opar))
-  cat("---------------------------------------------------------------------------\n")
-  cat("Coincidence index and common genotypes\n")
-  cat("---------------------------------------------------------------------------\n")
+  cli::cli_h2("Coincidence index and common genotypes")
   print(x$coincidence)
   if (export == TRUE) {
     sink()

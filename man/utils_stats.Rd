@@ -31,7 +31,6 @@
 \alias{cv_by}
 \alias{max_by}
 \alias{min_by}
-\alias{means_by}
 \alias{mean_by}
 \alias{n_by}
 \alias{sd_by}
@@ -104,8 +103,6 @@ cv_by(.data, ..., .vars = NULL, na.rm = FALSE)
 max_by(.data, ..., .vars = NULL, na.rm = FALSE)
 
 min_by(.data, ..., .vars = NULL, na.rm = FALSE)
-
-means_by(.data, ..., .vars = NULL, na.rm = FALSE)
 
 mean_by(.data, ..., .vars = NULL, na.rm = FALSE)
 
@@ -238,11 +235,10 @@ If a variable (say, data) is continuous, the number of classes (k) is given by
 the square root of the number of samples (n) if \verb{n =< 100} or \code{5 * log10(n)}
 if \code{n > 100}.
 
-The amplitude (\mjseqn{A}) of the data is used to define the size of the class (\mjseqn{c}),
+The amplitude (\eqn{A}) of the data is used to define the size of the class (\eqn{c}),
 given by
 
-\loadmathjax
-\mjsdeqn{c = \frac{A}{n - 1}}
+\deqn{c = \frac{A}{n - 1}}
 
 The lower limit of the first class (LL1) is given by min(data) - c / 2. The
 upper limit is given by LL1 + c. The limits of the other classes are given in
@@ -267,8 +263,8 @@ skew(nvec)
 # Confidence interval 0.95 for the mean
 # All numeric variables
 # Grouped by levels of ENV
-data_ge2 \%>\%
-  group_by(ENV) \%>\%
+data_ge2 |>
+  group_by(ENV) |>
   ci_mean_t()
 
 # standard error of the mean
@@ -276,7 +272,7 @@ data_ge2 \%>\%
 sem(data_ge2, PH, EH)
 
 # Frequency table for variable NR
-data_ge2 \%>\%
+data_ge2 |>
   freq_table(NR)
 }
 

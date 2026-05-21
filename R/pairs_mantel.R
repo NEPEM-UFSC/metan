@@ -57,9 +57,9 @@
 #'\donttest{
 #' library(metan)
 #' # iris dataset
-#' lpc <- iris %>%
-#'        group_by(Species) %>%
-#'        lpcor() %>%
+#' lpc <- iris |>
+#'        group_by(Species) |>
+#'        lpcor() |>
 #'        pairs_mantel(names = c('setosa', 'versicolor', 'virginica'))
 #'
 #'
@@ -68,7 +68,7 @@
 #' lpdata <- as.lpcor(cor(mt_num[1:5]),
 #'                    cor(mt_num[1:5]),
 #'                    cor(mt_num[2:6]),
-#'                    cor(mt_num[4:8])) %>%
+#'                    cor(mt_num[4:8])) |>
 #'           pairs_mantel()
 #'}
 pairs_mantel <- function(...,
@@ -101,12 +101,12 @@ pairs_mantel <- function(...,
                          digits = 2) {
   class <- list(...)
   if (!type %in% c(1:2)) {
-    stop("The argument type must be 1 (linear correlation) or 2 (partial correlation).")
+    cli::cli_abort("The argument type must be 1 (linear correlation) or 2 (partial correlation).")
   }
   if (sum(lapply(class, function(x)
     !any(class(x) %in% c("lpcor_group", "lpcor", "mahala_group",
                          "covcor_design", "group_clustering", "clustering") == TRUE)) > 0)) {
-    stop("The object must be of the class lpcor. Please use 'as.lpcorr' to convert correlation matrices into the correct format.")
+    cli::cli_abort("The object must be of the class lpcor. Please use 'as.lpcorr' to convert correlation matrices into the correct format.")
   }
   if (any(class(...) == "lpcor_group")) {
     data <- lapply(...[[2]], function(x) {
@@ -125,7 +125,7 @@ pairs_mantel <- function(...,
   }
   w <- c(21:25)
   if (is.null(fill.point) == TRUE && any(w == shape.point)) {
-    stop(call. = FALSE, "If 'shape.point' is a value between 21 and 25, you must provide a color for fill the shape using the argument 'fill.point.'")
+    cli::cli_abort(call. = FALSE, "If 'shape.point' is a value between 21 and 25, you must provide a color for fill the shape using the argument 'fill.point.'")
   }
   for (i in 1:length(data)) {
     if (i == 1) {
@@ -270,3 +270,4 @@ pairs_mantel <- function(...,
     dev.off()
   }
 }
+

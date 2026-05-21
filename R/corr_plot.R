@@ -94,7 +94,7 @@
 #' @examples
 #' \donttest{
 #' library(metan)
-#' dataset <- data_ge2 %>% select_cols(1:7)
+#' dataset <- data_ge2 |> dplyr::select(1:7)
 #'
 #' # Default plot setting
 #' corr_plot(dataset)
@@ -177,22 +177,22 @@ corr_plot <- function(.data, ...,
                       height = 7,
                       resolution = 300) {
   if(!show.labels.in %in% c("show", "internal", "none")){
-    stop("The argument 'show.labels.in' must be one of the 'show', 'internal', or 'none'. ")
+    cli::cli_abort("The argument 'show.labels.in' must be one of the 'show', 'internal', or 'none'. ")
   }
   if (!lab.position %in% c("tr", "tl", "br", "bl")) {
-    stop("The argument 'lab.position' must be one of the 'tr', 'tl', 'br', or 'bl'.")
+    cli::cli_abort("The argument 'lab.position' must be one of the 'tr', 'tl', 'br', or 'bl'.")
   }
   if (!diag.type %in% c("histogram", "density", "boxplot")) {
-    stop("The argument 'diag.type' must be one of the 'boxplot', 'histogram' or 'density'.")
+    cli::cli_abort("The argument 'diag.type' must be one of the 'boxplot', 'histogram' or 'density'.")
   }
   if (!is.null(upper)) {
     if (!upper %in% c("corr", "scatter", NULL)) {
-      stop("The argument 'upper' must be one of the 'corr', 'scatter' or 'NULL'.")
+      cli::cli_abort("The argument 'upper' must be one of the 'corr', 'scatter' or 'NULL'.")
     }
   }
   if (!is.null(lower)) {
     if (!lower %in% c("corr", "scatter", NULL)) {
-      stop("The argument 'lower' must be one of the 'corr', 'scatter' or 'NULL'.")
+      cli::cli_abort("The argument 'lower' must be one of the 'corr', 'scatter' or 'NULL'.")
     }
   }
   col.by.test <- missing(col.by)
@@ -215,10 +215,10 @@ corr_plot <- function(.data, ...,
   }
   w <- c(21:25)
   if (is.null(fill.point) == TRUE && any(w == shape.point) && col.by.test) {
-    stop("If 'shape.point' is a value between 21 and 25, you must provide a color to fill the shape using the argument 'fill.point.'")
+    cli::cli_abort("If 'shape.point' is a value between 21 and 25, you must provide a color to fill the shape using the argument 'fill.point.'")
   }
   if (!is.null(fill.point) && !shape.point %in% w) {
-    stop("If 'fill.point' is informed, then declare 'shape.point' between 21 and 25.", call. = FALSE)
+    cli::cli_abort("If 'fill.point' is informed, then declare 'shape.point' between 21 and 25.")
   }
   my_custom_cor <- function(data, mapping, color = I("black"),
                             sizeRange = c(minsize, maxsize), ...) {
