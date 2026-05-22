@@ -431,7 +431,7 @@ get_climate <- function(env = NULL, lat, lon, start, end,
   start_vec <- if (length(start) == 1) rep(start, n_points) else start
   end_vec   <- if (length(end)   == 1) rep(end,   n_points) else end
 
-  nasaparams_path <- system.file("app/www/nasaparams.csv", package = "metan", mustWork = FALSE)
+  nasaparams_path <- system.file("nasaparams.csv", package = "metan", mustWork = FALSE)
   if (nasaparams_path == "") {
     cli::cli_abort("{.file nasaparams.csv} file not found within package structure.")
   }
