@@ -162,9 +162,12 @@ df_weather <- data.frame(
 
 # 2. Run Multi-Trait Analysis
 multi_results <- factorial_reg(
-  df_ge  = df_trial,
-  df_cov = df_weather,
-  resp   = c(grain_yield, plant_height)
+ .data  = df_trial,
+ env = env,
+ gen = gen,
+ cov_data = df_weather,
+ resp   = c(grain_yield, plant_height),
+ cov_vars = everything()
 )
 
 # S3 Plot: Multi-trait 100\% stacked bar chart
@@ -172,15 +175,32 @@ plot(multi_results, which = "contribution")
 
 # 3. Run Single-Trait Analysis Focus
 single_results <- factorial_reg(
-  df_ge  = df_trial,
-  df_cov = df_weather,
-  resp   = grain_yield
+  .data  = df_trial,
+  env = env,
+  gen = gen,
+  cov_data = df_weather,
+  resp   = grain_yield,
+  cov_vars = everything()
 )
 
 # S3 Plot: Single trait horizontal contribution chart
 plot(single_results, which = "contribution", trait = "grain_yield")
 
 # S3 Plot: Absolute Genotypic Slopes with 95\% Confidence Intervals
+plot(single_results, which = "coefficients", trait = "grain_yield", error_bars = TRUE)
+
+# forward stepwise procedure to find the subset that maximizes the explained
+# Genotype-by-Environment (GxE)
+single_results_step <- factorial_reg(
+  .data  = df_trial,
+  env = env,
+  gen = gen,
+  cov_data = df_weather,
+  resp   = grain_yield,
+  cov_vars = everything(),
+  select_covar = TRUE,
+
+)
 plot(single_results, which = "coefficients", trait = "grain_yield", error_bars = TRUE)
 }
 }
