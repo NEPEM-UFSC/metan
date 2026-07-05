@@ -22,7 +22,7 @@ and (6) standardized residuals vs observation order, and (7) 1:1 line plot.
 \examples{
 \donttest{
 library(metan)
-model <- performs_ammi(data_ge, ENV, GEN, REP, GY)
+model <- ammi(data_ge, ENV, GEN, REP, GY)
 plot(model)
 plot(model,
      which = c(3, 5),

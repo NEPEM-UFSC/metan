@@ -26,7 +26,7 @@ in the R console. The results can also be exported to the directory.
 \examples{
 \donttest{
 library(metan)
-model <- performs_ammi(data_ge, ENV, GEN, REP,
+model <- ammi(data_ge, ENV, GEN, REP,
                        resp = c(GY, HM))
 print(model)
 }

@@ -1019,10 +1019,15 @@ get_model_data <- function(x,
 
   if (has_class(x, c("performs_ammi", "ammi"))) {
     if (is.null(what)) what <- "ipca_expl"
-    what <- rlang::arg_match(what, values = c("Y", check2, check5))
+    what <- rlang::arg_match(what, values = c("Y", "projection", check2, check5))
 
     if (what == "Y" || what %in% check2) {
       bind <- map(x, \(m) m$model[[what]]) |> as_tibble() |> mutate(GEN = x[[1]][["model"]][["Code"]], TYPE = x[[1]][["model"]][["type"]]) |> dplyr::filter(TYPE == {{type}}) |> remove_cols(TYPE) |> column_to_first(GEN)
+    }
+    if (what == "projection") {
+      bind <- map(x, \(m) {
+        sqrt(rowSums((m$model |> select(PC1, PC2))^2))
+      }) |> as_tibble() |> mutate(GEN = x[[1]][["model"]][["Code"]], TYPE = x[[1]][["model"]][["type"]]) |> dplyr::filter(TYPE == {{type}}) |> remove_cols(TYPE) |> column_to_first(GEN)
     }
     if (what %in% check5) {
       what_mapped <- case_when(what == "ipca_ss" ~ "Sum Sq", what == "ipca_ms" ~ "Mean Sq", what == "ipca_fval" ~ "F value", what == "ipca_pval" ~ "Pr(>F)", what == "ipca_expl" ~ "Proportion", what == "ipca_accum" ~ "Accumulated")

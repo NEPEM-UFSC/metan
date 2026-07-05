@@ -45,7 +45,7 @@
 #' @examples
 #'\donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP, GY)
+#' model <- ammi(data_ge, ENV, GEN, REP, GY)
 #'
 #' # Default plot
 #' plot(model)

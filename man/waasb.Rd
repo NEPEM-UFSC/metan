@@ -11,6 +11,8 @@ waasb(
   rep,
   resp,
   block = NULL,
+  location = NULL,
+  year = NULL,
   by = NULL,
   mresp = NULL,
   wresp = NULL,
@@ -26,7 +28,7 @@ waasb(
 Genotypes, replication/block and response variable(s).}
 
 \item{env}{The name of the column that contains the levels of the
-environments.}
+environments. Ignored when both \code{location} and \code{year} are provided.}
 
 \item{gen}{The name of the column that contains the levels of the genotypes.}
 
@@ -42,6 +44,16 @@ design is employed considering block as random to make use of inter-block
 information, whereas the complete replicate effect is always taken as
 fixed, as no inter-replicate information was to be recovered (Mohring et
 al., 2015).}
+
+\item{location}{Defaults to \code{NULL}. The name of the column that contains
+the levels of the locations. When both \code{location} and \code{year} are provided,
+the single ENV effect is decomposed into LOC, YEAR, and LOC:YEAR components
+in the mixed model, enabling separate estimation of location and year
+effects. The \code{env} argument is then ignored, and ENV is constructed
+internally as the interaction LOC:YEAR.}
+
+\item{year}{Defaults to \code{NULL}. The name of the column that contains the
+levels of the years. Must be provided together with \code{location}.}
 
 \item{by}{One variable (factor) to compute the function by. It is a shortcut
 to \code{\link[dplyr:group_by]{dplyr::group_by()}}.This is especially useful, for example,

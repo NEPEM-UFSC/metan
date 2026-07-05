@@ -70,7 +70,7 @@ in the \pkg{metan} package such as \code{\link[=waas]{waas()}} and \code{\link[=
 \examples{
 \donttest{
 library(metan)
-model <- performs_ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
+model <- ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
 
 # PC1 x PC2 (variable GY)
 p1 <- plot_scores(model)
@@ -90,7 +90,7 @@ mod <-
   data_ge |>
    remove_rows(4:6) |>
    droplevels() |>
-   performs_ammi(ENV, GEN, REP, GY)
+   ammi(ENV, GEN, REP, GY)
 p2 <- plot_scores(mod)
 arrange_ggplot(p1, p2, tag_levels = list(c("Balanced data", "Unbalanced data")))
 

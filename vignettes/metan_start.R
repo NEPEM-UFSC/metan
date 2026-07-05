@@ -27,7 +27,7 @@ get_model_data(mge, what = "env_means") |> round_cols()
 get_model_data(mge, what = "gen_means") |> round_cols()
 
 ## -----------------------------------------------------------------------------
-ammi_model <- performs_ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
+ammi_model <- ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
 waas_index <- waas(data_ge, ENV, GEN, REP, GY, verbose = FALSE)
 
 ## ----fig.height=12, fig.width=5,  message=FALSE, warning=FALSE----------------
@@ -46,9 +46,9 @@ arrange_ggplot(a, b, c, tag_levels = "a", ncol = 1)
 
 ## -----------------------------------------------------------------------------
 predicted <- predict(ammi_model, naxis = c(4, 6))
-predicted |> 
-   subset(TRAIT == "GY") |> 
-   make_mat(GEN, ENV, YpredAMMI) |> 
+predicted |>
+   subset(TRAIT == "GY") |>
+   make_mat(GEN, ENV, YpredAMMI) |>
   round_cols()
 
 ## ----warning=FALSE------------------------------------------------------------
@@ -74,12 +74,12 @@ e <- plot_blup(model2,
 arrange_ggplot(d, e, tag_levels = list(c("d", "e")), ncol = 1)
 
 ## -----------------------------------------------------------------------------
-get_model_data(model2, what = "blupge") |> 
+get_model_data(model2, what = "blupge") |>
   round_cols()
 
 ## -----------------------------------------------------------------------------
 model3 <- waasb(data_ge, ENV, GEN, REP, everything(), verbose = FALSE)
-get_model_data(model3, what = "WAASB") |> 
+get_model_data(model3, what = "WAASB") |>
   round_cols()
 
 ## -----------------------------------------------------------------------------
@@ -97,6 +97,6 @@ arrange_ggplot(e, f, tag_levels = list(c("e", "f")), ncol = 1)
 
 ## -----------------------------------------------------------------------------
 stat_ge <- ge_stats(data_ge, ENV, GEN, REP, GY)
-get_model_data(stat_ge) |> 
+get_model_data(stat_ge) |>
   round_cols()
 

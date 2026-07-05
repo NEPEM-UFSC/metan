@@ -130,225 +130,225 @@
 #'\donttest{
 #' library(metan)
 #' model <-
-#'   performs_ammi(data_ge,
-#'                 env = ENV,
-#'                 gen = GEN,
-#'                 rep = REP,
-#'                 resp = c(GY, HM))
+#'   ammi(data_ge,
+#'        env = ENV,
+#'        gen = GEN,
+#'        rep = REP,
+#'        resp = c(GY, HM))
 #' model_indexes <- ammi_indexes(model)
 #'
 #'
 #' # Alternatively (and more intuitively) using |>
 #' # If resp is not declared, all traits are analyzed
 #' res_ind <- data_ge |>
-#'            performs_ammi(ENV, GEN, REP, verbose = FALSE) |>
+#'            ammi(ENV, GEN, REP, verbose = FALSE) |>
 #'            ammi_indexes()
 #'
 #' rbind_fill_id(res_ind, .id = "TRAIT")
 #'}
 #'
 ammi_indexes <- function(.data, order.y = NULL, level = 0.95) {
-    if(!is.null(order.y)){
-        order.y <- unlist(strsplit(order.y, split = ", "))
+  if(!is.null(order.y)){
+    order.y <- unlist(strsplit(order.y, split = ", "))
+  } else {
+    order.y <- rep("h", length(.data))
+  }
+  if (!inherits(.data, "waas") && !inherits(.data, "performs_ammi") && !inherits(.data, "ammi")) {
+    cli::cli_abort("The object 'x' must be an object of class \"waas\", \"performs_ammi\", or \"ammi\"")
+  }
+  if (any(!order.y %in% c("h", "l")) == TRUE) {
+    cli::cli_abort("The argument 'order.y' must be a comma-separated vector with 'h' or 'l'. Did you accidentally omit the space between the comma and the following word?")
+  }
+  if (length(order.y) != length(.data)) {
+    cli::cli_abort("The lenght of argument 'order.y' must be ", length(.data), ", the length of '.data'")
+  }
+  listres <- list()
+  varin <- 1
+  for (var in 1:length(.data)) {
+    model <- .data[[var]]
+    n <- sum(model$PCA$`Pr(>F)` <= (1 - level), na.rm = TRUE)
+    n <- ifelse(n < 2, 2, n)
+    meange <- model$MeansGxE
+    effects <- residuals(lm(Y ~ ENV + GEN, data = meange))
+    meange$residual <- effects
+    ge <- by(meange[, 7], meange[, c(2, 1)], function(x) sum(x, na.rm = TRUE))
+    ge <- array(ge, dim(ge), dimnames(ge))
+    ngen <- nrow(ge)
+    nenv <- ncol(ge)
+    svdge <- svd(ge)
+    gamma.n <- svdge$u[, 1:n]
+    delta.n <- svdge$v[, 1:n]
+    lambda  <- svdge$d[1:n]
+    theta.n <- model$PCA$Proportion[1:n]/100
+    PCA <- data.frame(model$model)
+    SCOR <- as.matrix(PCA[PCA[, 1] == "GEN", c(seq(4, n + 3))])
+    mean <- PCA[PCA[, 1] == "GEN", c(2:3)]
+
+    if (length(order.y) == 1) {
+      if (order.y == "h") {
+        rY <- rank(-mean[2])
+      }
+      if (order.y == "l") {
+        rY <- rank(mean[2])
+      }
     } else {
-        order.y <- rep("h", length(.data))
+      if (order.y[[varin]] == "h") {
+        rY <- rank(-mean[2])
+      }
+      if (order.y[[varin]] == "l") {
+        rY <- rank(mean[2])
+      }
     }
-    if (!inherits(.data, "waas") && !inherits(.data, "performs_ammi") && !inherits(.data, "ammi")) {
-        cli::cli_abort("The object 'x' must be an object of class \"waas\", \"performs_ammi\", or \"ammi\"")
+    varin <- varin + 1
+    # sum of absolute scores
+    if (n == 1) {
+      SIPC <- abs(SCOR)
+    } else {
+      SIPC <- unname(rowSums(apply(SCOR, 2, FUN = abs)))
     }
-    if (any(!order.y %in% c("h", "l")) == TRUE) {
-        cli::cli_abort("The argument 'order.y' must be a comma-separated vector with 'h' or 'l'. Did you accidentally omit the space between the comma and the following word?")
+    rS <- rank(SIPC)
+    ssiSIPC <- rS + rY
+
+    # Za
+    if (n == 1) {
+      Za <- abs(gamma.n * theta.n)
+    } else {
+      Za <- rowSums(abs(gamma.n %*% diag(theta.n)))
     }
-    if (length(order.y) != length(.data)) {
-        cli::cli_abort("The lenght of argument 'order.y' must be ", length(.data), ", the length of '.data'")
+    rZA <- rank(Za)
+    ssiZA <- rZA + rY
+
+    # averages of the squared eigenvector
+    if (n == 1) {
+      EV <- gamma.n^2/n
+    } else {
+      EV <- rowSums(gamma.n^2/n)
     }
-    listres <- list()
-    varin <- 1
-    for (var in 1:length(.data)) {
-        model <- .data[[var]]
-        n <- sum(model$PCA$`Pr(>F)` <= (1 - level), na.rm = TRUE)
-        n <- ifelse(n < 2, 2, n)
-        meange <- model$MeansGxE
-        effects <- residuals(lm(Y ~ ENV + GEN, data = meange))
-        meange$residual <- effects
-        ge <- by(meange[, 7], meange[, c(2, 1)], function(x) sum(x, na.rm = TRUE))
-        ge <- array(ge, dim(ge), dimnames(ge))
-        ngen <- nrow(ge)
-        nenv <- ncol(ge)
-        svdge <- svd(ge)
-        gamma.n <- svdge$u[, 1:n]
-        delta.n <- svdge$v[, 1:n]
-        lambda  <- svdge$d[1:n]
-        theta.n <- model$PCA$Proportion[1:n]/100
-        PCA <- data.frame(model$model)
-        SCOR <- as.matrix(PCA[PCA[, 1] == "GEN", c(seq(4, n + 3))])
-        mean <- PCA[PCA[, 1] == "GEN", c(2:3)]
+    rEV <- rank(EV)
+    ssiEV <- rEV + rY
 
-        if (length(order.y) == 1) {
-            if (order.y == "h") {
-                rY <- rank(-mean[2])
-            }
-            if (order.y == "l") {
-                rY <- rank(mean[2])
-            }
-        } else {
-            if (order.y[[varin]] == "h") {
-                rY <- rank(-mean[2])
-            }
-            if (order.y[[varin]] == "l") {
-                rY <- rank(mean[2])
-            }
-        }
-        varin <- varin + 1
-        # sum of absolute scores
-        if (n == 1) {
-            SIPC <- abs(SCOR)
-        } else {
-            SIPC <- unname(rowSums(apply(SCOR, 2, FUN = abs)))
-        }
-        rS <- rank(SIPC)
-        ssiSIPC <- rS + rY
+    # AMMI stability values
+    pc <- model$PCA$`Sum Sq`[1]/model$PCA$`Sum Sq`[2]
+    SCOR2 <- PCA[PCA[, 1] == "GEN", c(seq(4, 2 + 3))]
+    ASV <- sqrt((pc * SCOR2[, 1])^2 + SCOR2[, 2]^2)
+    rASV <- rank(ASV)
+    ssiASV <- rASV + rY
 
-        # Za
-        if (n == 1) {
-            Za <- abs(gamma.n * theta.n)
-        } else {
-            Za <- rowSums(abs(gamma.n %*% diag(theta.n)))
-        }
-        rZA <- rank(Za)
-        ssiZA <- rZA + rY
-
-        # averages of the squared eigenvector
-        if (n == 1) {
-            EV <- gamma.n^2/n
-        } else {
-            EV <- rowSums(gamma.n^2/n)
-        }
-        rEV <- rank(EV)
-        ssiEV <- rEV + rY
-
-        # AMMI stability values
-        pc <- model$PCA$`Sum Sq`[1]/model$PCA$`Sum Sq`[2]
-        SCOR2 <- PCA[PCA[, 1] == "GEN", c(seq(4, 2 + 3))]
-        ASV <- sqrt((pc * SCOR2[, 1])^2 + SCOR2[, 2]^2)
-        rASV <- rank(ASV)
-        ssiASV <- rASV + rY
-
-        # modified AMMI stability values
-        ssquares <- model$ANOVA[c(5:(5 + n)), 3]
-        MASV <- rep(0, nrow(SCOR))
-        for (i in 1:ncol(SCOR)) {
-            pc <- ssquares[i]/ssquares[i + 1]
-            MASV <- MASV + (SCOR[, i] * pc)^2
-            if ((i + 1) == ncol(SCOR))
-                (break)()
-        }
-        MASV <- sqrt(MASV + (SCOR[, ncol(SCOR)]^2))
-        rMASV <- rank(MASV)
-        ssiMASV <- rMASV + rY
-
-
-        # DI
-        DZ <- sqrt(rowSums((gamma.n)^2))
-        rDZ <- rank(DZ)
-        ssiDZ<- rDZ + rY
-
-
-        # FA
-        FA <- rowSums((gamma.n^2) %*% diag(lambda^2))
-        rFA <- rank(FA)
-        ssiFA <- rFA + rY
-
-        # Annicchiarico's Da
-        DA <- sqrt(rowSums((gamma.n %*% diag(lambda))^2))
-        rDA <- rank(DA)
-        ssiDA <- rDA + rY
-
-
-        # ASTAB
-        ASTAB <- rowSums((gamma.n^2) %*% diag(lambda))
-        rASTAB <- rank(ASTAB)
-        ssiASTAB <- rASTAB + rY
-
-
-        # ASI
-        ASI <- sqrt((SCOR[,1]^2 * theta.n[1]^2) + (SCOR[,2]^2 * theta.n[2]^2))
-        rASI <- rank(ASI)
-        ssiASI <- rASI + rY
-
-
-        # MASI
-        MASI <- sqrt(rowSums(SCOR^2 %*% diag(theta.n^2)))
-        rMASI <- rank(MASI)
-        ssiMASI <- rMASI + rY
-
-        # AVAMGE
-        ge.n <- gamma.n %*% diag(lambda) %*% t(delta.n)
-        AVAMGE <- rowSums(apply(ge.n, 2, FUN = abs))
-        rAVAMGE <- rank(AVAMGE)
-        ssiAVAMGE <- rAVAMGE + rY
-
-        # Weighted average of absolute scores
-        if(n == 1){
-            explan <- model$PCA[1, ][7]
-        } else{
-            explan <- model$PCA[which(model$PCA[6] < 1 - level),][7]
-        }
-        WAAS <-
-            SCOR |>
-            abs() |>
-            t() |>
-            as.data.frame()
-        WAAS <- sapply(WAAS, weighted.mean, w = explan$Proportion)
-        rWAAS <- rank(WAAS)
-        ssiWAAS <- rWAAS + rY
-
-        temp <- tibble(
-            GEN = mean[1] |> pull(),
-            Y = mean[2] |> pull(),
-            Y_R = rY,
-            ASTAB = ASTAB,
-            ASTAB_R = rASTAB,
-            ssiASTAB = ssiASTAB,
-            ASI = ASI,
-            ASI_R = rASI,
-            ASI_SSI = ssiASI,
-            ASV = ASV,
-            ASV_R = rASV,
-            ASV_SSI = ssiASV,
-            AVAMGE = AVAMGE,
-            AVAMGE_R = rAVAMGE,
-            AVAMGE_SSI = ssiAVAMGE,
-            DA = DA,
-            DA_R = rDA,
-            DA_SSI = ssiDA,
-            DZ = DZ,
-            DZ_R = rDZ,
-            DZ_SSI = ssiDZ,
-            EV = EV,
-            EV_R = rEV,
-            EV_SSI = ssiEV,
-            FA = FA,
-            FA_R = rFA,
-            FA_SSI = ssiFA,
-            MASI = MASI,
-            MASI_R = rMASI,
-            MASI_SSI = ssiMASI,
-            MASV = MASV,
-            MASV_R = rMASV,
-            MASV_SSI = ssiMASV,
-            SIPC = SIPC,
-            SIPC_R = rS,
-            SIPC_SSI = ssiSIPC,
-            ZA = Za,
-            ZA_R = rZA,
-            ZA_SSI = ssiZA,
-            WAAS = WAAS,
-            WAAS_R = rWAAS,
-            WAAS_SSI = ssiWAAS)
-        listres[[paste(names(.data[var]))]] <- temp
+    # modified AMMI stability values
+    ssquares <- model$ANOVA[c(5:(5 + n)), 3]
+    MASV <- rep(0, nrow(SCOR))
+    for (i in 1:ncol(SCOR)) {
+      pc <- ssquares[i]/ssquares[i + 1]
+      MASV <- MASV + (SCOR[, i] * pc)^2
+      if ((i + 1) == ncol(SCOR))
+        (break)()
     }
-    invisible(structure(listres, class = "ammi_indexes"))
+    MASV <- sqrt(MASV + (SCOR[, ncol(SCOR)]^2))
+    rMASV <- rank(MASV)
+    ssiMASV <- rMASV + rY
+
+
+    # DI
+    DZ <- sqrt(rowSums((gamma.n)^2))
+    rDZ <- rank(DZ)
+    ssiDZ<- rDZ + rY
+
+
+    # FA
+    FA <- rowSums((gamma.n^2) %*% diag(lambda^2))
+    rFA <- rank(FA)
+    ssiFA <- rFA + rY
+
+    # Annicchiarico's Da
+    DA <- sqrt(rowSums((gamma.n %*% diag(lambda))^2))
+    rDA <- rank(DA)
+    ssiDA <- rDA + rY
+
+
+    # ASTAB
+    ASTAB <- rowSums((gamma.n^2) %*% diag(lambda))
+    rASTAB <- rank(ASTAB)
+    ssiASTAB <- rASTAB + rY
+
+
+    # ASI
+    ASI <- sqrt((SCOR[,1]^2 * theta.n[1]^2) + (SCOR[,2]^2 * theta.n[2]^2))
+    rASI <- rank(ASI)
+    ssiASI <- rASI + rY
+
+
+    # MASI
+    MASI <- sqrt(rowSums(SCOR^2 %*% diag(theta.n^2)))
+    rMASI <- rank(MASI)
+    ssiMASI <- rMASI + rY
+
+    # AVAMGE
+    ge.n <- gamma.n %*% diag(lambda) %*% t(delta.n)
+    AVAMGE <- rowSums(apply(ge.n, 2, FUN = abs))
+    rAVAMGE <- rank(AVAMGE)
+    ssiAVAMGE <- rAVAMGE + rY
+
+    # Weighted average of absolute scores
+    if(n == 1){
+      explan <- model$PCA[1, ][7]
+    } else{
+      explan <- model$PCA[which(model$PCA[6] < 1 - level),][7]
+    }
+    WAAS <-
+      SCOR |>
+      abs() |>
+      t() |>
+      as.data.frame()
+    WAAS <- sapply(WAAS, weighted.mean, w = explan$Proportion)
+    rWAAS <- rank(WAAS)
+    ssiWAAS <- rWAAS + rY
+
+    temp <- tibble(
+      GEN = mean[1] |> pull(),
+      Y = mean[2] |> pull(),
+      Y_R = rY,
+      ASTAB = ASTAB,
+      ASTAB_R = rASTAB,
+      ssiASTAB = ssiASTAB,
+      ASI = ASI,
+      ASI_R = rASI,
+      ASI_SSI = ssiASI,
+      ASV = ASV,
+      ASV_R = rASV,
+      ASV_SSI = ssiASV,
+      AVAMGE = AVAMGE,
+      AVAMGE_R = rAVAMGE,
+      AVAMGE_SSI = ssiAVAMGE,
+      DA = DA,
+      DA_R = rDA,
+      DA_SSI = ssiDA,
+      DZ = DZ,
+      DZ_R = rDZ,
+      DZ_SSI = ssiDZ,
+      EV = EV,
+      EV_R = rEV,
+      EV_SSI = ssiEV,
+      FA = FA,
+      FA_R = rFA,
+      FA_SSI = ssiFA,
+      MASI = MASI,
+      MASI_R = rMASI,
+      MASI_SSI = ssiMASI,
+      MASV = MASV,
+      MASV_R = rMASV,
+      MASV_SSI = ssiMASV,
+      SIPC = SIPC,
+      SIPC_R = rS,
+      SIPC_SSI = ssiSIPC,
+      ZA = Za,
+      ZA_R = rZA,
+      ZA_SSI = ssiZA,
+      WAAS = WAAS,
+      WAAS_R = rWAAS,
+      WAAS_SSI = ssiWAAS)
+    listres[[paste(names(.data[var]))]] <- temp
+  }
+  invisible(structure(listres, class = "ammi_indexes"))
 }
 
 
@@ -375,39 +375,39 @@ ammi_indexes <- function(.data, order.y = NULL, level = 0.95) {
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP, GY) |>
+#' model <- ammi(data_ge, ENV, GEN, REP, GY) |>
 #'          ammi_indexes()
 #' print(model)
 #' }
 print.ammi_indexes <- function(x, which = "stats", export = FALSE, file.name = NULL, digits = 3, ...) {
-    opar <- options(pillar.sigfig = digits)
-    on.exit(options(opar))
-    if (export == TRUE) {
-        file.name <- ifelse(is.null(file.name) == TRUE, "ammi_indexes print", file.name)
-        sink(paste0(file.name, ".txt"))
+  opar <- options(pillar.sigfig = digits)
+  on.exit(options(opar))
+  if (export == TRUE) {
+    file.name <- ifelse(is.null(file.name) == TRUE, "ammi_indexes print", file.name)
+    sink(paste0(file.name, ".txt"))
+  }
+  if(!which %in% c("stats", "ssi", "ranks")){
+    cli::cli_abort("Argument 'which' must be one of 'stats', 'ranks', or 'ssi'")
+  }
+  for (i in 1:length(x)) {
+    if(which == "stats"){
+      var <- x[[i]] |>
+        dplyr::select(-contains("_R"), -contains("_SSI"))
     }
-    if(!which %in% c("stats", "ssi", "ranks")){
-        cli::cli_abort("Argument 'which' must be one of 'stats', 'ranks', or 'ssi'")
+    if(which == "ranks"){
+      var <- x[[i]] |>
+        dplyr::select(GEN, contains("_R"))
     }
-    for (i in 1:length(x)) {
-        if(which == "stats"){
-            var <- x[[i]] |>
-                dplyr::select(-contains("_R"), -contains("_SSI"))
-        }
-        if(which == "ranks"){
-            var <- x[[i]] |>
-                dplyr::select(GEN, contains("_R"))
-        }
-        if(which == "ssi"){
-            var <- x[[i]] |>
-                dplyr::select(GEN, contains("SSI"))
-        }
-        cli::cli_h1("Variable {names(x)[i]}")
-        cli::cli_h2("AMMI-based stability indexes")
-        print(var)
+    if(which == "ssi"){
+      var <- x[[i]] |>
+        dplyr::select(GEN, contains("SSI"))
     }
-    if (export == TRUE) {
-        sink()
-    }
+    cli::cli_h1("Variable {names(x)[i]}")
+    cli::cli_h2("AMMI-based stability indexes")
+    print(var)
+  }
+  if (export == TRUE) {
+    sink()
+  }
 }
 

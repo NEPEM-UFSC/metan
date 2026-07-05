@@ -77,18 +77,18 @@ Y_R, (Farshadfar, 2008).
 \donttest{
 library(metan)
 model <-
-  performs_ammi(data_ge,
-                env = ENV,
-                gen = GEN,
-                rep = REP,
-                resp = c(GY, HM))
+  ammi(data_ge,
+       env = ENV,
+       gen = GEN,
+       rep = REP,
+       resp = c(GY, HM))
 model_indexes <- ammi_indexes(model)
 
 
 # Alternatively (and more intuitively) using |>
 # If resp is not declared, all traits are analyzed
 res_ind <- data_ge |>
-           performs_ammi(ENV, GEN, REP, verbose = FALSE) |>
+           ammi(ENV, GEN, REP, verbose = FALSE) |>
            ammi_indexes()
 
 rbind_fill_id(res_ind, .id = "TRAIT")

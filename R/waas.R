@@ -272,9 +272,9 @@ waas <- function(.data,
             individual = NULL
         }
         if(missing(block)){
-            model <- performs_ammi(data, ENV, GEN, REP, Y, verbose = FALSE)[[1]]
+            model <- ammi(data, ENV, GEN, REP, Y, verbose = FALSE)[[1]]
         } else{
-            model <- performs_ammi(data, ENV, GEN, REP, Y, block = BLOCK, verbose = FALSE)[[1]]
+            model <- ammi(data, ENV, GEN, REP, Y, block = BLOCK, verbose = FALSE)[[1]]
         }
         PC <- model$PCA
         Escores <- model$model

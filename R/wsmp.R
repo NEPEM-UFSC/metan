@@ -262,7 +262,7 @@ wsmp <- function(model,
         ncomb <- (100/increment) + 1
         CombWAASY <- data.frame(type = matrix(".", (Ngen + Nenv), 1))
         WAASY.Values <- list()
-        model <- performs_ammi(data, ENV, GEN, REP, Y, verbose = FALSE)[[1]]
+        model <- ammi(data, ENV, GEN, REP, Y, verbose = FALSE)[[1]]
         anova <- model$anova
         PC <- model$PCA
         MeansGxE <- model$MeansGxE

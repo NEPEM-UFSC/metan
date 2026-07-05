@@ -43,7 +43,7 @@ procedures.
 \examples{
 \donttest{
 library(metan)
-model <- performs_ammi(data_ge, ENV, GEN, REP,
+model <- ammi(data_ge, ENV, GEN, REP,
                        resp = c(GY, HM))
 # Predict GY with 3 IPCA and HM with 1 IPCA
 predict <- predict(model, naxis = c(3, 1))

@@ -209,7 +209,7 @@ ge_stats = function(.data,
     hue_mod <- Huehn(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     lb_mod <- lin_binns(data, ENV, GEN, Y, verbose = FALSE)[[1]]
     then_mod <- Thennarasu(data, ENV, GEN, Y, verbose = FALSE)[[1]]
-    ammm_mod <- performs_ammi(data, ENV, GEN, REP, Y, verbose = FALSE)
+    ammm_mod <- ammi(data, ENV, GEN, REP, Y, verbose = FALSE)
     ammm_mod <- ammi_indexes(ammm_mod)[[1]]
     blup_mod <- waasb(data, ENV, GEN, REP, Y, verbose = FALSE)
     blup_mod <- blup_indexes(blup_mod)[[1]]

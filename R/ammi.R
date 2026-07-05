@@ -61,7 +61,7 @@
 #' @examples
 #'\donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
+#' model <- ammi(data_ge, ENV, GEN, REP, resp = c(GY, HM))
 #'
 #' # PC1 x PC2 (variable GY)
 #' p1 <- plot_scores(model)
@@ -81,7 +81,7 @@
 #'   data_ge |>
 #'    remove_rows(4:6) |>
 #'    droplevels() |>
-#'    performs_ammi(ENV, GEN, REP, GY)
+#'    ammi(ENV, GEN, REP, GY)
 #' p2 <- plot_scores(mod)
 #' arrange_ggplot(p1, p2, tag_levels = list(c("Balanced data", "Unbalanced data")))
 #'
@@ -363,7 +363,7 @@ performs_ammi <- function(.data,
 #' @examples
 #'\donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP, GY)
+#' model <- ammi(data_ge, ENV, GEN, REP, GY)
 #' plot(model)
 #' plot(model,
 #'      which = c(3, 5),
@@ -418,7 +418,7 @@ plot.performs_ammi <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP,
+#' model <- ammi(data_ge, ENV, GEN, REP,
 #'                        resp = c(GY, HM))
 #' # Predict GY with 3 IPCA and HM with 1 IPCA
 #' predict <- predict(model, naxis = c(3, 1))
@@ -507,7 +507,7 @@ predict.performs_ammi <- function(object, naxis = 2, ...) {
 #' @examples
 #' \donttest{
 #' library(metan)
-#' model <- performs_ammi(data_ge, ENV, GEN, REP,
+#' model <- ammi(data_ge, ENV, GEN, REP,
 #'                        resp = c(GY, HM))
 #' print(model)
 #' }
