@@ -1,5 +1,9 @@
 # metan 1.20.0
 
+## Minor improvements
+
+* `round_cols()`, `remove_space()`, and `remove_strings()` now use an anonymous function with `dplyr::across()`, fixing the deprecation warning of the `...` argument introduced in `dplyr` 1.1.0.
+
 # metan 1.19.0
 ## New features
 * New "complementarity" object returned in the function `mgidi()`.
