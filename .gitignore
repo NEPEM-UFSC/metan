@@ -26,6 +26,8 @@ docs/
 /cache/
 *_files/
 rsconnect/
+.remember
+.claude
 package_release.R
 check.R
 build_site.R
