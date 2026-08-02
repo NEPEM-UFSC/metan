@@ -32,7 +32,7 @@ arguments contained in dots, use \code{...} in the normal way.
     summarise(mean = mean(\{\{ var \}\}))
 \}
 }\if{html}{\out{</div>}}
-\item \code{\link[=enquo]{enquo()}} and \code{\link[=enquos]{enquos()}} delay the execution of one or several
+\item \code{\link[rlang:enquo]{rlang::enquo()}} and \code{\link[rlang:enquo]{rlang::enquos()}} delay the execution of one or several
 function arguments. The former returns a single expression, the
 latter returns a list of expressions. Once defused, expressions
 will no longer evaluate on their own. They must be injected back

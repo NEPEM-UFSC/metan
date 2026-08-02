@@ -15,7 +15,10 @@
 #' @param resp The response variable(s). To analyze multiple variables in a
 #' single procedure use, for example, `resp = c(var1, var2, var3)`.
 #' @param mineval The minimum value so that an eigenvector is retained in the
-#' factor analysis.
+#' factor analysis. If a vector of length 1, the same value is used for all
+#' response variables. If a named vector or list, each value is used for the
+#' corresponding response variable, e.g.,
+#' `mineval = c(Yield = 1.5, Height = 1.0)`.
 #' @param verbose Logical argument. If `verbose = FALSE` the code will run silently.
 #' @return An object of class `ge_factanal` with the following items:
 #' * `data`: The data used to compute the factor analysis.
@@ -59,9 +62,37 @@ ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
     vars <- .data |> select({{resp}}, -names(factors))
     vars <- vars |> select_numeric_cols()
     factors <- factors |> set_names("ENV", "GEN", "REP")
+    if (length(mineval) > 1) {
+        if (is.null(names(mineval)) || any(names(mineval) == "")) {
+            cli::cli_abort(paste("When 'mineval' has length greater than one, it must be",
+                                 "a named vector or list with one value per response",
+                                 "variable, e.g., mineval = c(var1 = 1.5, var2 = 1.0)."))
+        }
+        if (length(setdiff(names(mineval), names(vars))) > 0) {
+            cli::cli_abort(paste0("The following name(s) in 'mineval' do not match any ",
+                                  "response variable: ",
+                                  paste(setdiff(names(mineval), names(vars)), collapse = ", "),
+                                  "."))
+        }
+        if (length(setdiff(names(vars), names(mineval))) > 0) {
+            cli::cli_abort(paste0("Missing value(s) in 'mineval' for the following response ",
+                                  "variable(s): ",
+                                  paste(setdiff(names(vars), names(mineval)), collapse = ", "),
+                                  "."))
+        }
+        if (!is.numeric(unlist(mineval, use.names = FALSE))) {
+            cli::cli_abort("All values in 'mineval' must be numeric.")
+        }
+    }
     listres <- list()
     nvar <- ncol(vars)
     for (var in 1:nvar) {
+        var_name <- names(vars)[var]
+        mineval_var <- if (length(mineval) == 1) {
+            unname(unlist(mineval))
+        } else {
+            unlist(mineval[var_name])
+        }
         data <- factors |>
             mutate(Y = vars[[var]])
         if(has_na(data)){
@@ -75,13 +106,18 @@ ge_factanal <- function(.data, env, gen, rep, resp, mineval = 1,
         eigen.vectors <- eigen.decomposition$vectors
         colnames(eigen.vectors) <- paste("PC", 1:ncol(cor.means), sep = "")
         rownames(eigen.vectors) <- colnames(means)
-        if (length(eigen.values[eigen.values >= mineval]) == 1) {
-            eigen.values.factors <- as.vector(c(as.matrix(sqrt(eigen.values[eigen.values >= mineval]))))
-            initial.loadings <- cbind(eigen.vectors[, eigen.values >= mineval] * eigen.values.factors)
+        if (length(eigen.values[eigen.values >= mineval_var]) == 0) {
+            cli::cli_abort(paste0("No eigenvalue is greater than or equal to the ",
+                                  "'mineval' value (", mineval_var, ") for the variable ",
+                                  var_name, ". Use a lower 'mineval' value."))
+        }
+        if (length(eigen.values[eigen.values >= mineval_var]) == 1) {
+            eigen.values.factors <- as.vector(c(as.matrix(sqrt(eigen.values[eigen.values >= mineval_var]))))
+            initial.loadings <- cbind(eigen.vectors[, eigen.values >= mineval_var] * eigen.values.factors)
             A <- initial.loadings
         } else {
-            eigen.values.factors <- t(replicate(ncol(cor.means), c(as.matrix(sqrt(eigen.values[eigen.values >= mineval])))))
-            initial.loadings <- eigen.vectors[, eigen.values >= mineval] * eigen.values.factors
+            eigen.values.factors <- t(replicate(ncol(cor.means), c(as.matrix(sqrt(eigen.values[eigen.values >= mineval_var])))))
+            initial.loadings <- eigen.vectors[, eigen.values >= mineval_var] * eigen.values.factors
             A <- varimax(initial.loadings)[[1]][]
         }
         partial <- solve_svd(cor.means)
