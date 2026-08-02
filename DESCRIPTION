@@ -34,8 +34,8 @@ Description: Performs stability analysis of multi-environment trial data
 License: GPL-3
 URL: https://github.com/nepem-ufsc/metan, https://nepem-ufsc.github.io/metan/
 BugReports: https://github.com/nepem-ufsc/metan/issues
-Depends: 
-    R (>= 4.1.0)
+Depends:
+    R (>= 4.3.0)
 Imports: 
     cli,
     dplyr (>= 1.0.0),

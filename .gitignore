@@ -26,6 +26,8 @@ docs/
 /cache/
 *_files/
 rsconnect/
+CLAUDE.md
+TECHNICAL_DECOMPOSITION.md
 .remember
 .claude
 package_release.R
