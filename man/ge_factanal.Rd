@@ -22,7 +22,10 @@ replications/blocks}
 single procedure use, for example, \code{resp = c(var1, var2, var3)}.}
 
 \item{mineval}{The minimum value so that an eigenvector is retained in the
-factor analysis.}
+factor analysis. If a vector of length 1, the same value is used for all
+response variables. If a named vector or list, each value is used for the
+corresponding response variable, e.g.,
+\code{mineval = c(Yield = 1.5, Height = 1.0)}.}
 
 \item{verbose}{Logical argument. If \code{verbose = FALSE} the code will run silently.}
 }

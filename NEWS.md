@@ -1,5 +1,10 @@
 # metan 1.20.0
 
+## Minor improvements
+
+* `ge_factanal()` now allows trait-specific `mineval` values provided as a named vector or list, e.g., `mineval = c(Yield = 1.5, Height = 1.0)`. A length-one `mineval` still applies to all response variables. An informative error is thrown when names do not match the response variables.
+* `round_cols()`, `remove_space()`, and `remove_strings()` now use an anonymous function with `dplyr::across()`, fixing the deprecation warning of the `...` argument introduced in `dplyr` 1.1.0.
+
 # metan 1.19.0
 ## New features
 * New "complementarity" object returned in the function `mgidi()`.

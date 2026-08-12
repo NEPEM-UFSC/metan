@@ -1,0 +1,57 @@
+# Informational CI workflow (Phase 2 of the metan quality-improvement plan).
+#
+# This runs R CMD check + testthat on every push/PR but is intentionally NOT
+# wired up as a required status check yet, so it does not block merging.
+# It exists purely to give visibility into whether changes break the build
+# or the regression tests introduced in tests/testthat/. Once confidence is
+# built up, this check can be marked "required" in the repo's branch
+# protection settings.
+#
+# R version matrix: 4.6 and 4.5 (latest minor of each of the last two major
+# releases) — chosen to catch the DESCRIPTION's declared minimum (R >= 4.3.0,
+# driven by GGally's own R >= 4.3 requirement) drifting out of sync with
+# reality again, without paying for a full oldrel/devel matrix.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+name: R-CMD-check (informational)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        r-version: ['4.6', '4.5']
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, any::testthat
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true

@@ -220,11 +220,11 @@ remove_space <- function(.data, ...){
     if(missing(...)){
       results <-
         mutate(.data,
-               across(where(~!is.numeric(.x)), gsub, pattern = "[[:space:]]", replacement = ""))
+               across(where(~!is.numeric(.x)), \(x) gsub(x, pattern = "[[:space:]]", replacement = "")))
     } else{
       results <-
         mutate(.data,
-               across(c(...), gsub, pattern = "[[:space:]]", replacement = ""))
+               across(c(...), \(x) gsub(x, pattern = "[[:space:]]", replacement = "")))
     }
 
     return(results)
@@ -239,11 +239,11 @@ remove_strings <- function(.data, ...){
   if (has_class(.data, c("data.frame","tbl_df", "data.table"))){
     if(missing(...)){
       results <-
-        mutate(.data, across(everything(), gsub, pattern = "[^0-9.-]", replacement = "")) |>
+        mutate(.data, across(everything(), \(x) gsub(x, pattern = "[^0-9.-]", replacement = ""))) |>
         as_numeric(everything())
     } else{
       results <-
-        mutate(.data, across(c(...), gsub, pattern = "[^0-9.-]", replacement = "")) |>
+        mutate(.data, across(c(...), \(x) gsub(x, pattern = "[^0-9.-]", replacement = ""))) |>
         as_numeric(...)
     }
     return(results)
@@ -312,9 +312,9 @@ round_cols <- function(.data, ...,  digits = 2){
     rnames <- rownames(.data)
   }
   if (missing(...)){
-    .data <- .data |> mutate(across(where(is.numeric), round, digits = digits))
+    .data <- .data |> mutate(across(where(is.numeric), \(x) round(x, digits = digits)))
   } else{
-    .data <- .data |> mutate(across(c(...), round, digits = digits))
+    .data <- .data |> mutate(across(c(...), \(x) round(x, digits = digits)))
   }
   if(rn_test == TRUE){
     rownames(.data) <- rnames
