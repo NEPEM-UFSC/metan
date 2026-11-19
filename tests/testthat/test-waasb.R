@@ -6,6 +6,9 @@ test_that("waasb() output is stable for balanced data", {
   mod <- data_ge |> waasb(ENV, GEN, REP, GY, verbose = FALSE)
 
   expect_s3_class(mod, "waasb")
-  expect_snapshot_value(round_num(mod[[1]]$model), style = "deparse")
+  expect_snapshot_value(
+    round_num(normalize_pc_sign(mod[[1]]$model)),
+    style = "deparse"
+  )
   expect_snapshot_value(round_num(mod[[1]]$ESTIMATES), style = "deparse")
 })

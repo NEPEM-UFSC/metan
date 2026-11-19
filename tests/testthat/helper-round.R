@@ -6,7 +6,7 @@ round_num <- function(x, digits = 5) {
 # return opposite signs for the same component, so normalize each PC before
 # snapshotting to keep the regression test deterministic across platforms.
 normalize_pc_sign <- function(x) {
-  pc_cols <- grep("^PC[0-9]+$", names(x), value = TRUE)
+  pc_cols <- grep("^(env|gen)?PC[0-9]+$", names(x), value = TRUE)
   for (col in pc_cols) {
     values <- x[[col]]
     if (length(values) > 0 && values[which.max(abs(values))] < 0) {

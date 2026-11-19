@@ -2,11 +2,19 @@
 
 # Report the R environment and verify that development packages are installed.
 
+if (getRversion() < "4.6.0") {
+  stop(
+    "metan development requires R >= 4.6.0; found ", R.version.string,
+    call. = FALSE
+  )
+}
+
+r_minor <- strsplit(R.version$minor, ".", fixed = TRUE)[[1]][1]
 rig_lib <- file.path(
   Sys.getenv("HOME"),
   "R",
-  R.version$platform,
-  paste0(R.version$major, ".", R.version$minor)
+  paste0(R.version$platform, "-library"),
+  paste0(R.version$major, ".", r_minor)
 )
 if (dir.exists(rig_lib)) {
   .libPaths(c(rig_lib, .libPaths()))
@@ -14,6 +22,7 @@ if (dir.exists(rig_lib)) {
 
 cat("R:", R.version.string, "\n")
 cat("R home:", R.home(), "\n")
+cat("R library:", rig_lib, "\n")
 cat("libPaths:\n")
 print(.libPaths())
 

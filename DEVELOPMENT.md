@@ -71,6 +71,11 @@ documented development tools, and pins `roxygen2` to the version recorded in
 system header is missing, install the corresponding `-dev` package with `apt`
 and rerun the script. Do not modify the system R installation.
 
+Because the project `.Renviron` sets `R_LIBS_USER` for R 4.6, running the
+system `/usr/bin/R` (4.3.3) from inside this repository will also see the 4.6
+library. Use the rig-managed R 4.6 inside this repository, or run the system R
+from another directory.
+
 ## 4. Daily workflow
 
 Load the package without installing it:
