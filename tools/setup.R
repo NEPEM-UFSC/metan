@@ -29,4 +29,8 @@ pak::pkg_install(
   ask = FALSE
 )
 
+# Keep roxygen2 at the version recorded in DESCRIPTION (RoxygenNote).
+# Upgrade both together in a dedicated documentation PR.
+pak::pkg_install("roxygen2@7.3.3", ask = FALSE)
+
 message("Dependencies installed. Run `Rscript tools/check-env.R` to verify.")

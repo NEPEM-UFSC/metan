@@ -26,10 +26,18 @@ needed <- c(
 
 installed <- rownames(installed.packages())
 missing <- setdiff(needed, installed)
-if (length(missing) == 0) {
-  cat("All development packages are installed.\n")
-} else {
+if (length(missing) > 0) {
   cat("Missing packages:\n")
   print(missing)
   quit(status = 1)
+}
+
+cat("All development packages are installed.\n")
+
+if (requireNamespace("roxygen2", quietly = TRUE) &&
+    as.character(packageVersion("roxygen2")) != "7.3.3") {
+  cat(
+    "Warning: roxygen2 is", as.character(packageVersion("roxygen2")),
+    "but DESCRIPTION pins 7.3.3. Run Rscript tools/setup.R.\n"
+  )
 }
