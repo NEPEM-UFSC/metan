@@ -37,3 +37,13 @@
 ^logo_metan\.ai$
 ^CRAN-SUBMISSION$
 ^revdep$
+^QUALITY_ASSESSMENT\.md$
+^AGENTS\.md$
+^DEVELOPMENT\.md$
+^Makefile$
+^tools$
+^\.editorconfig$
+^\.lintr$
+^\.github/development$
+^\.superpowers$
+^\.Renviron$

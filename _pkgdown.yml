@@ -11,7 +11,6 @@ template:
     border-radius: 0.5rem
     btn-border-radius: 0.25rem
   params:
-    ganalytics: UA-140429633-1
     docsearch:
       api_key: ef40e3bab94bb0e1d687fd3844052701
       index_name: metan
@@ -23,7 +22,7 @@ authors:
     href: https://olivoto.netlify.app/
 
 navbar:
-  title: "sparklyr"
+  title: "metan"
   type: inverse
   left:
     - icon: fa-home
@@ -103,6 +102,7 @@ reference:
       - cv_ammif
   - subtitle: "Fit models"
     contents:
+      - ammi
       - ammi_indexes
       - impute_missing_val
       - performs_ammi
@@ -225,7 +225,6 @@ reference:
       - plot.ge_cluster
       - plot.ge_effects
       - plot.ge_factanal
-      - plot.ge_reg
       - print.Annicchiarico
       - print.anova_ind
       - print.anova_joint
@@ -233,7 +232,6 @@ reference:
       - print.env_dissimilarity
       - print.env_stratification
       - print.ge_factanal
-      - print.ge_reg
       - print.ge_stats
       - print.Shukla
       - print.Schmildt
@@ -244,9 +242,10 @@ reference:
       - Huehn
       - print.Fox
       - print.Huehn
-      - print.superiority
       - print.Thennarasu
       - Shukla
+      - lin_binns
+      - print.lin_binns
       - superiority
       - Thennarasu
 
@@ -383,6 +382,16 @@ reference:
       - utils_samples
       - metan
 
+
+  - title: "Climate and environment"
+    desc: "Functions for agro-climatological data and environmental classification"
+    contents:
+      - calculate_nc_ch
+      - calculate_utah_ch
+      - calculate_weinberger_ch
+      - envirotype
+      - gdd_ometto_frue
+      - get_climate
 
   - title: "Datasets"
     desc: "Data for reproducible examples"

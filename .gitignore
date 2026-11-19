@@ -21,7 +21,6 @@ vignettes/*.bib
 .bib
 *.utf8.md
 *.knit.md
-docs/
 *_cache/
 /cache/
 *_files/
@@ -72,3 +71,16 @@ src/*.dll
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# revdepcheck artifacts
+revdep/library/
+revdep/checks/
+revdep/checks.noindex/
+revdep/data.sqlite
+revdep/email.yml
+
+# Local agent workspace
+.superpowers/
+
+# Alternative pkgdown output directory
+pkgdown-site/

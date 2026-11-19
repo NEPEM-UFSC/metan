@@ -1,3 +1,8 @@
+> **Historical document (2026-07-31).** Some findings are outdated: the
+> repository now has a `testthat` suite and a GitHub Actions workflow.
+> Keep this as a point-in-time assessment; see `DEVELOPMENT.md` for the
+> current process.
+
 # Software Package Quality Assessment — `metan`
 
 **Package:** metan (Multi Environment Trials Analysis) · v1.20.0
