@@ -1,23 +1,15 @@
-# Informational CI workflow (Phase 2 of the metan quality-improvement plan).
+# R CMD check + testthat on every push and pull request.
 #
-# This runs R CMD check + testthat on every push/PR but is intentionally NOT
-# wired up as a required status check yet, so it does not block merging.
-# It exists purely to give visibility into whether changes break the build
-# or the regression tests introduced in tests/testthat/. Once confidence is
-# built up, this check can be marked "required" in the repo's branch
-# protection settings.
-#
-# R version matrix: 4.6 and 4.5 (latest minor of each of the last two major
-# releases) — chosen to catch the DESCRIPTION's declared minimum (R >= 4.3.0,
-# driven by GGally's own R >= 4.3 requirement) drifting out of sync with
-# reality again, without paying for a full oldrel/devel matrix.
+# The matrix covers the declared minimum (R 4.3.0), the previous minor (4.5),
+# and the current release (4.6), so a dependency silently raising its R
+# requirement is caught before it reaches CRAN.
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
 
-name: R-CMD-check (informational)
+name: R-CMD-check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,11 +21,10 @@ permissions:
 jobs:
   R-CMD-check:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        r-version: ['4.6', '4.5']
+        r-version: ['4.3', '4.5', '4.6']
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes

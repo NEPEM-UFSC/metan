@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/NEPEM-UFSC/metan/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NEPEM-UFSC/metan/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](https://www.r-pkg.org/badges/version-ago/metan)](https://CRAN.R-project.org/package=metan) [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable-1)
 ![Total Downloads](https://cranlogs.r-pkg.org/badges/grand-total/metan)
 [![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/last-month/metan?color=orange)](https://r-pkg.org/pkg/metan)

@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/NEPEM-UFSC/metan/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NEPEM-UFSC/metan/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version-ago/metan)](https://CRAN.R-project.org/package=metan)
 [![Lifecycle:
